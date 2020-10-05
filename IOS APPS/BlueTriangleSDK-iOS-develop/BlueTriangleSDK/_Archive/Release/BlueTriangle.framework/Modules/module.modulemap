@@ -1,0 +1,6 @@
+framework module BlueTriangle {
+  umbrella header "BlueTriangle.h"
+
+  export *
+  module * { export * }
+}
