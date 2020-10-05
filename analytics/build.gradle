@@ -1,0 +1,87 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'maven-publish'
+
+android {
+    compileSdkVersion 28
+
+
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    testImplementation 'junit:junit:4.13'
+    androidTestImplementation 'androidx.test:runner:1.2.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+}
+
+//region Publish to jCenter
+def libGroupId = 'com.bluetriangle'
+def libArtifactId = 'analytics'
+def libVersion = '1.0.0'
+def libDesc = 'This is the Blue Triangle Analytics SDK'
+def libLicenses = ['Apache-2.0']
+def libVCSUrl = 'https://github.com/blue-triangle-tech/btsdk-dev.git'
+
+// Generate Source Jar
+task sourceJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier "sources"
+}
+
+// Create the publication with the pom configuration
+publishing {
+    publications {
+        MyPublication(MavenPublication) {
+            groupId libGroupId
+            artifactId libArtifactId
+            version libVersion
+            artifact(sourceJar)
+            artifact("$buildDir/outputs/aar/$libArtifactId-release.aar")
+        }
+    }
+}
+
+// Bintray config
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
+bintray {
+    user = 'clockworksyler1985'
+    key = '3a14f8d48761fe655695bed619bd04ccfe633f1d'
+    publications = ['MyPublication']
+    pkg {
+        repo = "Blue-Triangle-SDK"
+        name = "$libGroupId:$libArtifactId"
+        desc = libDesc
+        licenses = libLicenses
+        vcsUrl = libVCSUrl
+        userOrg = 'bluetriangle'
+        version {
+            name = libVersion
+            vcsTag = libVersion
+            released = new Date()
+        }
+    }
+}
+//endregion
