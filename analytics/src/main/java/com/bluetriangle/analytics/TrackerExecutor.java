@@ -1,7 +1,7 @@
 package com.bluetriangle.analytics;
 
 import android.os.Process;
-import androidx.annotation.NonNull;
+import android.support.annotation.NonNull;
 import android.util.Base64;
 import android.util.Log;
 import org.json.JSONObject;
@@ -134,6 +134,7 @@ class TrackerExecutor extends ThreadPoolExecutor {
          */
         private String buildJson() {
             final JSONObject data = new JSONObject(timer.getFields());
+            Log.d("crash data sent:", data.toString());
             return data.toString();
         }
 

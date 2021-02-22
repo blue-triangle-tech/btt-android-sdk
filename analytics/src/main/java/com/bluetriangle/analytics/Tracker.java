@@ -2,9 +2,10 @@ package com.bluetriangle.analytics;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
 import android.os.Build;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import java.lang.ref.WeakReference;
@@ -26,7 +27,10 @@ public class Tracker {
 
     /**
      * Default URL to submit the timer data to
+     * old url https://d.btttag.com/btt.gif
      */
+    //http://3.221.132.81/analytics.rcv
+    //https://d.btttag.com/analytics.rcv
     private static final String TRACKER_URL = "https://d.btttag.com/analytics.rcv";
 
     /**
@@ -47,12 +51,28 @@ public class Tracker {
     /**
      * A map of fields that should be applied to all timers such as
      */
-    private final Map<String, String> globalFields;
+    public final Map<String, String> globalFields;
 
     /**
      * URL to submit timers to
      */
     private final String trackerUrl;
+
+    /**
+     * The Users BTT site prefix
+     */
+    public static  String sitePrefix;
+
+    /**
+     * The Users BTT site session
+     */
+    public static  String siteSession;
+
+    /**
+     * The Users BTT application name
+     */
+    public static  String applicationName;
+
 
     /**
      * Executor service to queue and submit timers
@@ -95,7 +115,7 @@ public class Tracker {
 
         String siteIdentifier = siteId;
         String url = trackerUrl;
-
+        sitePrefix = siteId;
         if (TextUtils.isEmpty(siteIdentifier)) {
             siteIdentifier = Utils.getResourceString(context, SITE_ID_RESOURCE_KEY);
         }
@@ -123,6 +143,7 @@ public class Tracker {
         this.trackerUrl = trackerUrl;
         globalFields = new HashMap<>(8);
         globalFields.put(Timer.FIELD_SITE_ID, siteId);
+        sitePrefix = siteId;
         globalFields.put(Timer.FIELD_BROWSER, BROWSER);
         final String os = String.format("Android %s", Build.VERSION.RELEASE);
         final String appVersion = Utils.getAppVersion(context);
@@ -130,14 +151,24 @@ public class Tracker {
         final boolean isTablet = context.getResources().getBoolean(R.bool.isTablet);
         globalFields.put(Timer.FIELD_DEVICE, isTablet ? "Tablet" : "Mobile");
         globalFields.put(Timer.FIELD_BROWSER_VERSION, String.format("%s-%s-%s", BROWSER, appVersion, os));
-
+        this.applicationName =getApplicationName(context);
 
         final String sessionId = Utils.generateRandomId();
         final String globalUserId = getOrCreateGlobalUserId();
+        siteSession = sessionId;
         setSessionId(sessionId);
         setGlobalUserId(globalUserId);
 
         this.trackerExecutor = new TrackerExecutor();
+    }
+
+    public static String getApplicationName(Context context) {
+        ApplicationInfo applicationInfo = context.getApplicationInfo();
+        int stringId = applicationInfo.labelRes;
+        String appName = stringId == 0 ? applicationInfo.nonLocalizedLabel.toString() : context.getString(stringId);
+        appName = appName +"%20"+ String.format("Android%s", Build.VERSION.RELEASE);
+
+        return appName.replaceAll(" ", "%20");
     }
 
     /**
@@ -281,6 +312,20 @@ public class Tracker {
         synchronized (globalFields) {
             globalFields.remove(fieldName);
         }
+    }
+
+    public void trackCrashes(){
+        //http://3.221.132.81/err.rcv
+        //https://d.btttag.com/err.rcv
+        if(!(Thread.getDefaultUncaughtExceptionHandler() instanceof BtCrashHandler)) {
+            Thread.setDefaultUncaughtExceptionHandler(new BtCrashHandler(
+                    "https://d.btttag.com/err.rcv", sitePrefix, siteSession,this.trackerUrl,applicationName));
+        }
+    }
+
+    public void raiseTestException() {
+        int a = 10, b = 0;
+        System.out.println(a/b);
     }
 
 }
