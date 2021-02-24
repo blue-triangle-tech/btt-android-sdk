@@ -10,13 +10,14 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.net.ssl.HttpsURLConnection;
 
 /**
  * A thread pool executor for queueing and submitting timers
@@ -91,10 +92,11 @@ class TrackerExecutor extends ThreadPoolExecutor {
 
         @Override
         public void run() {
-            HttpURLConnection connection = null;
+            HttpsURLConnection connection = null;
             try {
-                final URL url = new URL(trackerUrl);
-                connection = (HttpURLConnection) url.openConnection();
+                final URL url = new URL(this.trackerUrl);
+               // Log.d("Tracker URL", String.format("Tracker URL: %s", this.trackerUrl));
+                connection = (HttpsURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
                 connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
                 connection.setDoOutput(true);
@@ -134,7 +136,7 @@ class TrackerExecutor extends ThreadPoolExecutor {
          */
         private String buildJson() {
             final JSONObject data = new JSONObject(timer.getFields());
-            Log.d("crash data sent:", data.toString());
+            //Log.d("crash data sent:", data.toString());
             return data.toString();
         }
 

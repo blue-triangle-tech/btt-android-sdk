@@ -15,12 +15,13 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import javax.net.ssl.HttpsURLConnection;
 
 
 public class BtCrashHandler  implements Thread
@@ -63,6 +64,17 @@ public class BtCrashHandler  implements Thread
         final PrintWriter printWriter = new PrintWriter(result);
         e.printStackTrace(printWriter);
         String stacktrace = result.toString();
+        String lines[] = stacktrace.split("\\r?\\n");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < lines.length - 1; i++) {
+            //data.length - 1 => to not add separator at the end
+            if (!lines[i].matches(" *")) {//empty string are ""; " "; "  "; and so on
+                sb.append(lines[i]);
+                sb.append("~~");
+            }
+        }
+        sb.append(lines[lines.length - 1].trim());
+        stacktrace = sb.toString();
         printWriter.close();
         if (url != null) {
             try {
@@ -177,8 +189,8 @@ public class BtCrashHandler  implements Thread
         @Override
         public void run() {
             //Log.d("BTT session", this.siteSession);
-            HttpURLConnection connection = null;
-            HttpURLConnection connectionHits = null;
+            HttpsURLConnection connection = null;
+            HttpsURLConnection connectionHits = null;
             this.crashHitsTimer.end();
             this.nStart = this.crashHitsTimer.getField("nst");
             final Tracker tracker = Tracker.getInstance();
@@ -186,7 +198,8 @@ public class BtCrashHandler  implements Thread
             //first submit the hits data to the portal
             try {
                 final URL urlHits = new URL(this.trackerUrl);
-                connectionHits = (HttpURLConnection) urlHits.openConnection();
+                //Log.d("Tracker URL", String.format("Tracker URL: %s", this.trackerUrl));
+                connectionHits = (HttpsURLConnection) urlHits.openConnection();
                 connectionHits.setRequestMethod("POST");
                 connectionHits.setRequestProperty("Content-Type", "application/json; charset=utf-8");
                 connectionHits.setDoOutput(true);
@@ -238,7 +251,8 @@ public class BtCrashHandler  implements Thread
 
                 //Log.d("Crash URL:", siteurl);
                 final URL url = new URL(siteurl);
-                connection = (HttpURLConnection) url.openConnection();
+                //Log.d("Crash URL", String.format("Crash URL: %s", siteurl));
+                connection = (HttpsURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
                 connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
                 connection.setDoOutput(true);

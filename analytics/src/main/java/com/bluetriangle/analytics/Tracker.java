@@ -114,17 +114,13 @@ public class Tracker {
         }
 
         String siteIdentifier = siteId;
-        String url = trackerUrl;
+
         sitePrefix = siteId;
         if (TextUtils.isEmpty(siteIdentifier)) {
             siteIdentifier = Utils.getResourceString(context, SITE_ID_RESOURCE_KEY);
         }
 
-        if (TextUtils.isEmpty(url)) {
-            url = TRACKER_URL;
-        }
-
-        instance = new Tracker(context, siteIdentifier, url);
+        instance = new Tracker(context, siteIdentifier, TRACKER_URL);
         return instance;
     }
 
@@ -210,7 +206,7 @@ public class Tracker {
 
         timer.setFields(globalFields);
 
-        trackerExecutor.submit(new TrackerExecutor.TimerRunnable(trackerUrl, timer));
+        trackerExecutor.submit(new TrackerExecutor.TimerRunnable(this.trackerUrl, timer));
     }
 
     /**

@@ -1,7 +1,7 @@
 package com.bluetriangle.android.demo;
 
 import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.Button;
 import butterknife.ButterKnife;
 import butterknife.OnClick;

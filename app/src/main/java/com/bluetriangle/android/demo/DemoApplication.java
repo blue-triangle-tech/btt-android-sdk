@@ -10,9 +10,15 @@ public class DemoApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        //demosports
-        //testsite5one
-        tracker = Tracker.init(getApplicationContext(), "demosports", null);
+        // d.btttag.com => 107.22.227.162
+        //"http://107.22.227.162/btt.gif"
+        //https://d.btttag.com/analytics.rcv
+        //sdkdemo26621z
+        //bluetriangledemo500z
+        tracker = Tracker.init(getApplicationContext(), "sdkdemo26621z" );
+        tracker.trackCrashes();
+        //tracker.raiseTestException();
+
     }
 }
 
