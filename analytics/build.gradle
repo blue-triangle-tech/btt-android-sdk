@@ -1,10 +1,12 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.jfrog.bintray'
+apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'maven-publish'
+
+
 
 android {
     compileSdkVersion 27
-
+    
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 27
@@ -30,12 +32,9 @@ dependencies {
 }
 
 //region Publish to jCenter
-def libGroupId = 'com.bluetriangle'
-def libArtifactId = 'analytics'
-def libVersion = '2.0.5'
-def libDesc = 'This is the Blue Triangle Analytics SDK'
-def libLicenses = ['Apache-2.0']
-def libVCSUrl = 'https://github.com/blue-triangle-tech/btsdk-dev.git'
+def libraryGroupId = 'bluetriangle.sdk.package'
+def libraryArtifactId = 'analytics'
+def libraryVersion = '2.6.0'
 
 // Generate Source Jar
 task sourceJar(type: Jar) {
@@ -46,36 +45,87 @@ task sourceJar(type: Jar) {
 // Create the publication with the pom configuration
 publishing {
     publications {
-        MyPublication(MavenPublication) {
-            groupId libGroupId
-            artifactId libArtifactId
-            version libVersion
+        mavenJava(MavenPublication) {
+            groupId libraryGroupId
+            version libraryVersion
+            artifactId libraryArtifactId
             artifact(sourceJar)
-            artifact("$buildDir/outputs/aar/$libArtifactId-release.aar")
+            artifact("$buildDir/outputs/aar/$libraryArtifactId-release.aar")
         }
     }
 }
+
+//artifatory config
+
+artifactory {
+    contextUrl = 'https://bluetrianglesdk.jfrog.io/artifactory/'  //The base Artifactory URL if not overridden by the publisher/resolver
+    publish {
+        contextUrl = 'https://bluetrianglesdk.jfrog.io/artifactory/' //The base Artifactory URL for the publisher
+        //A closure defining publishing information
+        repository {
+            repoKey = 'android-sdk-local'   //The Artifactory repository key to publish to
+            username = artifactory_username          //The publisher user name
+            password = artifactory_password       //The publisher password or API key
+//            ivy {
+//                //Optional section for configuring Ivy publication. Assumes Maven repo layout if not specified
+//                ivyLayout = '[organization]/[module]/[revision]/[type]s/ivy-[revision].xml'
+//                artifactLayout = '[organization]/[module]/[revision]/[module]-[revision](-[classifier]).[ext]'
+//                mavenCompatible = true //Convert any dots in an [organization] layout value to path separators, similar to Maven's groupId-to-path conversion. True if not specified
+//            }
+        }
+
+        defaults {
+            //List of Gradle Publications (names or objects) from which to collect the list of artifacts to be deployed to Artifactory.
+            //If you'd like to deploy the artifacts from all the publications defined in the Gradle script, you can set the 'ALL_PUBLICATIONS' string, instead of the publication names.
+            publications ('mavenJava')
+            //List of Gradle Configurations (names or objects) from which to collect the list of artifacts to be deployed to Artifactory.
+            publishConfigs('archives', 'published')
+            properties = ['qa.level': 'basic', 'q.os': 'android', 'dev.team': 'core']  //Optional map of properties to attach to all published artifacts
+
+            /*
+            The properties closure in the "defaults" task uses the following syntax:
+            properties {
+                publicationName 'group:module:version:classifier@type', key1:'value1', key2:'value2', ...
+            }
+            publicationName: A valid name for a publication of the project. You can use all to apply the properties to all publications.
+            group:module:version:classifier@type: A filter that specifies the artifacts to which properties should be attached.
+            The filter may contain wildcards: * for all characters or ? for a single character.
+            key:'value': A list of key/value properties that will be attached to to the published artifacts matching the filter.
+            */
+//            properties {                                                   //Optional closure to attach properties to artifacts based on a list of artifact patterns per project publication
+//                foo '*:*:*:*@*', platform: 'linux', 'win64'                //The property platform=linux,win64 will be set on all artifacts in foo publication
+//                mavenJava 'org.jfrog:*:*:*@*', key1: 'val1'                //The property key1=val1 will be set on all artifacts part of the mavenJava publication and with group org.jfrog
+//                all 'org.jfrog:shared:1.?:*@*', key2: 'val2', key3: 'val3' //The properties key2 and key3 will be set on all published artifacts (all publications) with group:artifact:version
+//                //equal to org.jfrog:shared:1.?
+//            }
+            publishBuildInfo = true   //Publish build-info to Artifactory (true by default)
+            publishArtifacts = true   //Publish artifacts to Artifactory (true by default)
+            //publishPom = true   //Publish generated POM files to Artifactory (true by default).
+            //publishIvy = true   //Publish generated Ivy descriptor files to Artifactory (true by default).
+        }
+    }
+}
+
 
 // Bintray config
-Properties properties = new Properties()
-properties.load(project.rootProject.file('local.properties').newDataInputStream())
-
-bintray {
-    user = 'clockworksyler1985'
-    key = '3a14f8d48761fe655695bed619bd04ccfe633f1d'
-    publications = ['MyPublication']
-    pkg {
-        repo = "Blue-Triangle-SDK"
-        name = "$libGroupId:$libArtifactId"
-        desc = libDesc
-        licenses = libLicenses
-        vcsUrl = libVCSUrl
-        userOrg = 'bluetriangle'
-        version {
-            name = libVersion
-            vcsTag = libVersion
-            released = new Date()
-        }
-    }
-}
+//Properties properties = new Properties()
+//properties.load(project.rootProject.file('local.properties').newDataInputStream())
+//bintray {
+//    user = 'clockworksyler1985'
+//    key = '3a14f8d48761fe655695bed619bd04ccfe633f1d'
+//    publications = ['MyPublication']
+//    pkg {
+//        repo = "Blue-Triangle-SDK"
+//        name = "$libGroupId:$libArtifactId"
+//        desc = libDesc
+//        licenses = libLicenses
+//        vcsUrl = libVCSUrl
+//        userOrg = 'bluetriangle'
+//        version {
+//            name = libVersion
+//            vcsTag = libVersion
+//            released = new Date()
+//        }
+//    }
+//}
 //endregion
