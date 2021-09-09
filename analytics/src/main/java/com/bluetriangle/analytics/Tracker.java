@@ -143,7 +143,6 @@ public class Tracker {
         globalFields.put(Timer.FIELD_BROWSER, BROWSER);
         final String os = String.format("Android %s", Build.VERSION.RELEASE);
         final String appVersion = Utils.getAppVersion(context);
-        globalFields.put(Timer.FIELD_NATIVE_OS, os);
         final boolean isTablet = context.getResources().getBoolean(R.bool.isTablet);
         globalFields.put(Timer.FIELD_DEVICE, isTablet ? "Tablet" : "Mobile");
         globalFields.put(Timer.FIELD_BROWSER_VERSION, String.format("%s-%s-%s", BROWSER, appVersion, os));

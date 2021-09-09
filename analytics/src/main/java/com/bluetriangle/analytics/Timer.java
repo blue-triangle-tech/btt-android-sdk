@@ -67,6 +67,7 @@ public class Timer implements Parcelable {
         DEFAULT_VALUES = new HashMap<>(40);
         DEFAULT_VALUES.put(FIELD_BVZN, "");
         DEFAULT_VALUES.put(FIELD_OS, "Android");
+        DEFAULT_VALUES.put(FIELD_NATIVE_OS, "Android");
         DEFAULT_VALUES.put(FIELD_EVENT_TYPE, "9");
         DEFAULT_VALUES.put(FIELD_NAVIGATION_TYPE, "9");
         DEFAULT_VALUES.put(FIELD_RV, "0");
