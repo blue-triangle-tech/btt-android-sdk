@@ -60,8 +60,6 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
         //Log.d("Crash report start", timeStamp);
 
         this.crashHitsTimer.start();
-        this.crashHitsTimer.setPageName("Android Crash " + Utils.getDeviceName());
-        this.crashHitsTimer.setTrafficSegmentName("Android Crash");
 
         final Writer result = new StringWriter();
         final PrintWriter printWriter = new PrintWriter(result);
@@ -172,9 +170,9 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
             HttpsURLConnection connection = null;
             HttpsURLConnection connectionHits = null;
             this.crashHitsTimer.end();
-            final String nStart = this.crashHitsTimer.getField("nst");
             final Tracker tracker = Tracker.getInstance();
             this.crashHitsTimer.setFields(tracker.globalFields);
+
             //first submit the hits data to the portal
             try {
                 final URL urlHits = new URL(this.trackerUrl);
@@ -218,26 +216,34 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
 
             // send crash data
             try {
-                final String timerTime = this.crashHitsTimer.getField("pgTm");
                 final String deviceName = Utils.getDeviceName();
 
                 final String siteUrl = Uri.parse(this.crashReportUrl)
                         .buildUpon()
-                        .appendQueryParameter(Timer.FIELD_SITE_ID, this.sitePrefix)
-                        .appendQueryParameter(FIELD_NAVIGATION_START, nStart)
-                        .appendQueryParameter(Timer.FIELD_PAGE_NAME, "Android Crash " + deviceName)
-                        .appendQueryParameter(Timer.FIELD_TRAFFIC_SEGMENT_NAME, "Android Crash")
-                        .appendQueryParameter(Timer.FIELD_NATIVE_OS, "Android")
-                        .appendQueryParameter(Timer.FIELD_DEVICE, "Mobile")
+                        .appendQueryParameter(Timer.FIELD_SITE_ID, sitePrefix)
+                        .appendQueryParameter(FIELD_NAVIGATION_START, crashHitsTimer.getField(Timer.FIELD_NST))
+                        .appendQueryParameter(Timer.FIELD_PAGE_NAME,
+                                crashHitsTimer.getField(Timer.FIELD_PAGE_NAME, "Android Crash " + deviceName))
+                        .appendQueryParameter(Timer.FIELD_TRAFFIC_SEGMENT_NAME,
+                                crashHitsTimer.getField(Timer.FIELD_TRAFFIC_SEGMENT_NAME, "Android Crash"))
+                        .appendQueryParameter(Timer.FIELD_NATIVE_OS,
+                                crashHitsTimer.getField(Timer.FIELD_NATIVE_OS, "Android"))
+                        .appendQueryParameter(Timer.FIELD_DEVICE, crashHitsTimer.getField(Timer.FIELD_DEVICE, "Mobile"))
                         .appendQueryParameter(Timer.FIELD_BROWSER, Tracker.BROWSER)
-                        .appendQueryParameter(FIELD_SESSION_ID, this.siteSession)
-                        .appendQueryParameter(Timer.FIELD_PAGE_TIME, timerTime)
-                        .appendQueryParameter(Timer.FIELD_CONTENT_GROUP_NAME, deviceName)
-                        .appendQueryParameter(Timer.FIELD_AB_TEST_ID, "Default")
-                        .appendQueryParameter(Timer.FIELD_DATACENTER, "Default")
-                        .appendQueryParameter(Timer.FIELD_CAMPAIGN_NAME, "")
-                        .appendQueryParameter(Timer.FIELD_CAMPAIGN_MEDIUM, "Android")
-                        .appendQueryParameter(Timer.FIELD_CAMPAIGN_SOURCE, "Crash")
+                        .appendQueryParameter(FIELD_SESSION_ID, siteSession)
+                        .appendQueryParameter(Timer.FIELD_PAGE_TIME, crashHitsTimer.getField("pgTm"))
+                        .appendQueryParameter(Timer.FIELD_CONTENT_GROUP_NAME,
+                                crashHitsTimer.getField(Timer.FIELD_CONTENT_GROUP_NAME, deviceName))
+                        .appendQueryParameter(Timer.FIELD_AB_TEST_ID,
+                                crashHitsTimer.getField(Timer.FIELD_AB_TEST_ID, "Default"))
+                        .appendQueryParameter(Timer.FIELD_DATACENTER,
+                                crashHitsTimer.getField(Timer.FIELD_DATACENTER, "Default"))
+                        .appendQueryParameter(Timer.FIELD_CAMPAIGN_NAME,
+                                crashHitsTimer.getField(Timer.FIELD_CAMPAIGN_NAME, ""))
+                        .appendQueryParameter(Timer.FIELD_CAMPAIGN_MEDIUM,
+                                crashHitsTimer.getField(Timer.FIELD_CAMPAIGN_MEDIUM, "Android"))
+                        .appendQueryParameter(Timer.FIELD_CAMPAIGN_SOURCE,
+                                crashHitsTimer.getField(Timer.FIELD_CAMPAIGN_SOURCE, "Crash"))
                         .build().toString();
 
                 final URL url = new URL(siteUrl);
@@ -277,7 +283,6 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
                 }
             }
             Log.d("BTT Crash Reporter", "crash report submitted successfully");
-
         }
 
         /**
