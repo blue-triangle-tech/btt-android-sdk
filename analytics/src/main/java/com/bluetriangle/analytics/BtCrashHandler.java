@@ -16,37 +16,35 @@ import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URL;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
 
 
 public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
 
-    private Thread.UncaughtExceptionHandler defaultUEH;
+    private final Thread.UncaughtExceptionHandler defaultUEH;
 
-    private String url;
+    private final String url;
 
-    private String trackerUrl;
+    private final String trackerUrl;
 
-    private String sitePrefix;
+    private final String sitePrefix;
 
-    private String siteSession;
+    private final String siteSession;
 
-    private String applicationName;
+    private final String applicationName;
 
     Timer crashHitsTimer;
 
-    public BtCrashHandler(String url, String incSitePrefix, String incSiteSession, String trackerUrl,
-            String applicationName) {
+    public BtCrashHandler(final String url, final String sitePrefix, final String siteSession, final String trackerUrl,
+            final String applicationName) {
         this.url = url;
         this.trackerUrl = trackerUrl;
         this.defaultUEH = Thread.getDefaultUncaughtExceptionHandler();
-        this.sitePrefix = incSitePrefix;
-        this.siteSession = incSiteSession;
+        this.sitePrefix = sitePrefix;
+        this.siteSession = siteSession;
         this.crashHitsTimer = new Timer();
         this.applicationName = applicationName;
     }
@@ -56,15 +54,18 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
     public void uncaughtException(Thread t, Throwable e) {
         final String timeStamp = String.valueOf(System.currentTimeMillis());
         //Log.d("Crash report start", timeStamp);
+
         this.crashHitsTimer.start();
         this.crashHitsTimer.setPageName("Android%20Crash%20" + getDeviceName());
         this.crashHitsTimer.setTrafficSegmentName("Android%20Crash");
+
         final Writer result = new StringWriter();
         final PrintWriter printWriter = new PrintWriter(result);
         e.printStackTrace(printWriter);
-        String stacktrace = result.toString();
-        String lines[] = stacktrace.split("\\r?\\n");
-        StringBuilder sb = new StringBuilder();
+        printWriter.close();
+
+        final String[] lines = result.toString().split("\\r?\\n");
+        final StringBuilder sb = new StringBuilder();
         for (int i = 0; i < lines.length - 1; i++) {
             //data.length - 1 => to not add separator at the end
             if (!lines[i].matches(" *")) {//empty string are ""; " "; "  "; and so on
@@ -73,8 +74,8 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
             }
         }
         sb.append(lines[lines.length - 1].trim());
-        stacktrace = sb.toString();
-        printWriter.close();
+        final String stacktrace = sb.toString();
+
         if (url != null) {
             try {
                 sendToServer(stacktrace, timeStamp);
@@ -88,8 +89,8 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
     }
 
     public String getDeviceName() {
-        String manufacturer = Build.MANUFACTURER;
-        String model = Build.MODEL;
+        final String manufacturer = Build.MANUFACTURER;
+        final String model = Build.MODEL;
         if (model.startsWith(manufacturer)) {
             return capitalize(model).replaceAll(" ", "%20");
         } else {
@@ -161,7 +162,7 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
         /**
          * This is the epoch when the error happened
          */
-        Timer crashHitsTimer;
+        final Timer crashHitsTimer;
 
         /**
          * Create a timer runnable to submit the given timer to the given URL
@@ -170,7 +171,7 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
          * @param sitePrefix     the timer to submit
          */
         CrashReportRunnable(final String crashReportUrl, final String sitePrefix, final String stackTrace,
-                final String siteSession, final String timeStamp, Timer crashHitsTimer, String trackerUrl,
+                final String siteSession, final String timeStamp, final Timer crashHitsTimer, final String trackerUrl,
                 final String applicationName) {
             super();
             this.crashReportUrl = crashReportUrl;
