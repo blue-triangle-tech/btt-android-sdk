@@ -25,6 +25,9 @@ import javax.net.ssl.HttpsURLConnection;
 
 public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
 
+    public static final String FIELD_NAVIGATION_START = "nStart";
+    public static final String FIELD_SESSION_ID = "sessionID";
+
     private final Thread.UncaughtExceptionHandler defaultUEH;
 
     private final String url;
@@ -220,21 +223,21 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
 
                 final String siteUrl = Uri.parse(this.crashReportUrl)
                         .buildUpon()
-                        .appendQueryParameter("siteID", this.sitePrefix)
-                        .appendQueryParameter("nStart", nStart)
-                        .appendQueryParameter("pageName", "Android Crash " + deviceName)
-                        .appendQueryParameter("txnName", "Android Crash")
-                        .appendQueryParameter("os", "Android")
-                        .appendQueryParameter("device", "Mobile")
-                        .appendQueryParameter("browser", "Native App")
-                        .appendQueryParameter("sessionID", this.siteSession)
-                        .appendQueryParameter("pgTm", timerTime)
-                        .appendQueryParameter("pageType", deviceName)
-                        .appendQueryParameter("AB", "Default")
-                        .appendQueryParameter("DCTR", "Default")
-                        .appendQueryParameter("CmpN", "")
-                        .appendQueryParameter("CmpM", "Android")
-                        .appendQueryParameter("CmpS", "Crash")
+                        .appendQueryParameter(Timer.FIELD_SITE_ID, this.sitePrefix)
+                        .appendQueryParameter(FIELD_NAVIGATION_START, nStart)
+                        .appendQueryParameter(Timer.FIELD_PAGE_NAME, "Android Crash " + deviceName)
+                        .appendQueryParameter(Timer.FIELD_TRAFFIC_SEGMENT_NAME, "Android Crash")
+                        .appendQueryParameter(Timer.FIELD_NATIVE_OS, "Android")
+                        .appendQueryParameter(Timer.FIELD_DEVICE, "Mobile")
+                        .appendQueryParameter(Timer.FIELD_BROWSER, "Native App")
+                        .appendQueryParameter(FIELD_SESSION_ID, this.siteSession)
+                        .appendQueryParameter(Timer.FIELD_PAGE_TIME, timerTime)
+                        .appendQueryParameter(Timer.FIELD_CONTENT_GROUP_NAME, deviceName)
+                        .appendQueryParameter(Timer.FIELD_AB_TEST_ID, "Default")
+                        .appendQueryParameter(Timer.FIELD_DATACENTER, "Default")
+                        .appendQueryParameter(Timer.FIELD_CAMPAIGN_NAME, "")
+                        .appendQueryParameter(Timer.FIELD_CAMPAIGN_MEDIUM, "Android")
+                        .appendQueryParameter(Timer.FIELD_CAMPAIGN_SOURCE, "Crash")
                         .build().toString();
 
                 final URL url = new URL(siteUrl);
