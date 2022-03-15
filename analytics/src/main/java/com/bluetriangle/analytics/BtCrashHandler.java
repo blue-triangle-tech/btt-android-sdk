@@ -229,7 +229,7 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
                         .appendQueryParameter(Timer.FIELD_TRAFFIC_SEGMENT_NAME, "Android Crash")
                         .appendQueryParameter(Timer.FIELD_NATIVE_OS, "Android")
                         .appendQueryParameter(Timer.FIELD_DEVICE, "Mobile")
-                        .appendQueryParameter(Timer.FIELD_BROWSER, "Native App")
+                        .appendQueryParameter(Timer.FIELD_BROWSER, Tracker.BROWSER)
                         .appendQueryParameter(FIELD_SESSION_ID, this.siteSession)
                         .appendQueryParameter(Timer.FIELD_PAGE_TIME, timerTime)
                         .appendQueryParameter(Timer.FIELD_CONTENT_GROUP_NAME, deviceName)

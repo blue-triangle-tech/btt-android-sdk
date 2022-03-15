@@ -36,7 +36,7 @@ public class Tracker {
     /**
      * The hardcoded browser
      */
-    private static final String BROWSER = "Native App";
+    static final String BROWSER = "Native App";
 
     /**
      * Singleton instance of the tracker
