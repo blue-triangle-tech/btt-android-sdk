@@ -521,6 +521,21 @@ public class Timer implements Parcelable {
     }
 
     /**
+     * Get the current value for the given field or default if not set
+     *
+     * @param fieldName the name of the field to get
+     * @param
+     * @return the current value for the given field or null if not set
+     */
+    public String getField(@NonNull final String fieldName, @NonNull final String defaultValue) {
+        final String fieldValue = fields.get(fieldName);
+        if (fieldValue == null) {
+            return defaultValue;
+        }
+        return fieldValue;
+    }
+
+    /**
      * Resets a field to the default value if there is one else removes the field completely.
      *
      * @param fieldName name of field to remove
