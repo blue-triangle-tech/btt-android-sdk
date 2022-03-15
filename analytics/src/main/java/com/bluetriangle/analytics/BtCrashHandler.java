@@ -1,5 +1,6 @@
 package com.bluetriangle.analytics;
 
+import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Base64;
@@ -56,8 +57,8 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
         //Log.d("Crash report start", timeStamp);
 
         this.crashHitsTimer.start();
-        this.crashHitsTimer.setPageName("Android%20Crash%20" + getDeviceName());
-        this.crashHitsTimer.setTrafficSegmentName("Android%20Crash");
+        this.crashHitsTimer.setPageName("Android Crash " + Utils.getDeviceName());
+        this.crashHitsTimer.setTrafficSegmentName("Android Crash");
 
         final Writer result = new StringWriter();
         final PrintWriter printWriter = new PrintWriter(result);
@@ -237,26 +238,29 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
             // send crash data
             try {
                 final String timerTime = this.crashHitsTimer.getField("pgTm");
-                final String siteurl = this.crashReportUrl + "?" +
-                        "siteID=" + this.sitePrefix + "&" +
-                        "nStart=" + nStart + "&" +
-                        "pageName=" + "Android%20Crash%20" + getDeviceName() + "&" +
-                        "txnName=" + "Android%20Crash" + "&" +
-                        "os=" + "Android" + "&" +
-                        "device=" + "Mobile" + "&" +
-                        "browser=" + "Native%20App" + "&" +
-                        "sessionID=" + this.siteSession + "&" +
-                        "pgTm=" + timerTime + "&" +
-                        "pageType=" + getDeviceName() + "&" +
-                        "AB=" + "Default" + "&" +
-                        "DCTR=" + "Default" + "&" +
-                        "CmpN=" + "" + "&" +
-                        "CmpM=" + "Android" + "&" +
-                        "CmpS=" + "Crash";
+                final String deviceName = Utils.getDeviceName();
 
-                //Log.d("Crash URL:", siteurl);
-                final URL url = new URL(siteurl);
-                //Log.d("Crash URL", String.format("Crash URL: %s", siteurl));
+                final String siteUrl = Uri.parse(this.crashReportUrl)
+                        .buildUpon()
+                        .appendQueryParameter("siteID", this.sitePrefix)
+                        .appendQueryParameter("nStart", nStart)
+                        .appendQueryParameter("pageName", "Android Crash " + deviceName)
+                        .appendQueryParameter("txnName", "Android Crash")
+                        .appendQueryParameter("os", "Android")
+                        .appendQueryParameter("device", "Mobile")
+                        .appendQueryParameter("browser", "Native App")
+                        .appendQueryParameter("sessionID", this.siteSession)
+                        .appendQueryParameter("pgTm", timerTime)
+                        .appendQueryParameter("pageType", deviceName)
+                        .appendQueryParameter("AB", "Default")
+                        .appendQueryParameter("DCTR", "Default")
+                        .appendQueryParameter("CmpN", "")
+                        .appendQueryParameter("CmpM", "Android")
+                        .appendQueryParameter("CmpS", "Crash")
+                        .build().toString();
+
+                final URL url = new URL(siteUrl);
+                //Log.d("Crash URL", String.format("Crash URL: %s", siteUrl));
                 connection = (HttpsURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
                 connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
