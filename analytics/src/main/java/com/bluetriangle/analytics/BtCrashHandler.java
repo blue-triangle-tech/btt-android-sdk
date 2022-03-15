@@ -326,10 +326,9 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
          * @return base 64 encoded JSON payload
          * @throws UnsupportedEncodingException if UTF-8 encoding is not supported
          */
-        private byte[] buildBase64EncodedJson(String stacktrace, String timeStamp, String applicationName)
-                throws UnsupportedEncodingException {
-            ArrayList<HashMap<String, String>> dataMap = new ArrayList<HashMap<String, String>>();
-            HashMap<String, String> crashReport = new HashMap<String, String>();
+        private byte[] buildBase64EncodedJson(final String stacktrace, final String timeStamp,
+                final String applicationName) throws UnsupportedEncodingException {
+            final HashMap<String, String> crashReport = new HashMap<>();
             crashReport.put("msg", stacktrace);
             crashReport.put("eTp", "NativeAppCrash");
             crashReport.put("eCnt", "1");
@@ -337,12 +336,10 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
             crashReport.put("line", "1");
             crashReport.put("col", "1");
             crashReport.put("time", timeStamp);
-            dataMap.add(crashReport);
-            List<JSONObject> jsonObj = new ArrayList<JSONObject>();
-            JSONObject data = new JSONObject(dataMap.get(0));
-            jsonObj.add(data);
-            JSONArray dataArray = new JSONArray(jsonObj);
-            return Base64.encode(dataArray.toString().getBytes("UTF-8"), Base64.DEFAULT);
+
+            final JSONObject jsonCrashReport = new JSONObject(crashReport);
+            final JSONArray crashDataArray = new JSONArray(Collections.singletonList(jsonCrashReport));
+            return Base64.encode(crashDataArray.toString().getBytes("UTF-8"), Base64.DEFAULT);
         }
 
         /**
