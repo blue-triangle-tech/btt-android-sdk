@@ -89,28 +89,6 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
         Log.d("btt exception:", e.getMessage());
     }
 
-    public String getDeviceName() {
-        final String manufacturer = Build.MANUFACTURER;
-        final String model = Build.MODEL;
-        if (model.startsWith(manufacturer)) {
-            return capitalize(model).replaceAll(" ", "%20");
-        } else {
-            return capitalize(manufacturer).replaceAll(" ", "%20") + "%20" + model.replaceAll(" ", "%20");
-        }
-    }
-
-    private String capitalize(String s) {
-        if (s == null || s.length() == 0) {
-            return "";
-        }
-        char first = s.charAt(0);
-        if (Character.isUpperCase(first)) {
-            return s;
-        } else {
-            return Character.toUpperCase(first) + s.substring(1);
-        }
-    }
-
     private void sendToServer(String stacktrace, String timeStamp) throws InterruptedException {
         Thread thread = new Thread(
                 new CrashReportRunnable(this.url, this.sitePrefix, stacktrace, this.siteSession, timeStamp,
@@ -297,29 +275,6 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
             }
             Log.d("BTT Crash Reporter", "crash report submitted successfully");
 
-        }
-
-        public String getDeviceName() {
-            String manufacturer = Build.MANUFACTURER;
-            String model = Build.MODEL;
-            if (model.startsWith(manufacturer)) {
-                return capitalize(model).replaceAll(" ", "%20");
-            } else {
-                return capitalize(manufacturer).replaceAll(" ", "%20") + "%20" + model.replaceAll(" ", "%20");
-            }
-        }
-
-
-        private String capitalize(String s) {
-            if (s == null || s.length() == 0) {
-                return "";
-            }
-            char first = s.charAt(0);
-            if (Character.isUpperCase(first)) {
-                return s;
-            } else {
-                return Character.toUpperCase(first) + s.substring(1);
-            }
         }
 
         /**

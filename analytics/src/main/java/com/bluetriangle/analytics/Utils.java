@@ -4,7 +4,9 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.util.Random;
 
@@ -75,7 +77,8 @@ public class Utils {
      */
     private static PackageInfo getAppPackageInfo(@NonNull final Context context) {
         try {
-            return context.getPackageManager().getPackageInfo(context.getPackageName(), PackageManager.GET_CONFIGURATIONS);
+            return context.getPackageManager()
+                    .getPackageInfo(context.getPackageName(), PackageManager.GET_CONFIGURATIONS);
         } catch (PackageManager.NameNotFoundException ignore) {
             // this should never happen, we are looking up ourself
         }
@@ -94,6 +97,20 @@ public class Utils {
             return packageInfo.versionName;
         }
         return "UNKNOWN";
+    }
+
+    public static String getDeviceName() {
+        if (Build.MODEL.startsWith(Build.MANUFACTURER)) {
+            return capitalize(Build.MODEL);
+        }
+        return capitalize(Build.MANUFACTURER) + " " + Build.MODEL;
+    }
+
+    public static String capitalize(@Nullable final String str) {
+        if (str == null || str.isEmpty()) {
+            return "";
+        }
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
     }
 
 }
