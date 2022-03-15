@@ -24,8 +24,7 @@ import java.util.concurrent.TimeUnit;
 import javax.net.ssl.HttpsURLConnection;
 
 
-public class BtCrashHandler  implements Thread
-        .UncaughtExceptionHandler {
+public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
 
     private Thread.UncaughtExceptionHandler defaultUEH;
 
@@ -41,7 +40,8 @@ public class BtCrashHandler  implements Thread
 
     Timer crashHitsTimer;
 
-    public BtCrashHandler(String url, String incSitePrefix, String incSiteSession, String trackerUrl, String applicationName) {
+    public BtCrashHandler(String url, String incSitePrefix, String incSiteSession, String trackerUrl,
+            String applicationName) {
         this.url = url;
         this.trackerUrl = trackerUrl;
         this.defaultUEH = Thread.getDefaultUncaughtExceptionHandler();
@@ -58,7 +58,7 @@ public class BtCrashHandler  implements Thread
         String timeStamp = String.valueOf(timeStampLong);
         //Log.d("Crash report start", timeStamp);
         this.crashHitsTimer.start();
-        this.crashHitsTimer.setPageName("Android%20Crash%20"+getDeviceName());
+        this.crashHitsTimer.setPageName("Android%20Crash%20" + getDeviceName());
         this.crashHitsTimer.setTrafficSegmentName("Android%20Crash");
         final Writer result = new StringWriter();
         final PrintWriter printWriter = new PrintWriter(result);
@@ -111,7 +111,9 @@ public class BtCrashHandler  implements Thread
     }
 
     private void sendToServer(String stacktrace, String timeStamp) throws InterruptedException {
-        Thread thread = new Thread(new CrashReportRunnable(this.url,this.sitePrefix,stacktrace,this.siteSession,timeStamp,this.crashHitsTimer,this.trackerUrl,this.applicationName));
+        Thread thread = new Thread(
+                new CrashReportRunnable(this.url, this.sitePrefix, stacktrace, this.siteSession, timeStamp,
+                        this.crashHitsTimer, this.trackerUrl, this.applicationName));
         thread.start();
         thread.join();
 
@@ -171,9 +173,11 @@ public class BtCrashHandler  implements Thread
          * Create a timer runnable to submit the given timer to the given URL
          *
          * @param crashReportUrl the tracker API URL to submit the data to
-         * @param sitePrefix      the timer to submit
+         * @param sitePrefix     the timer to submit
          */
-        CrashReportRunnable(final String crashReportUrl, final String sitePrefix, final String stackTrace, final String siteSession,final String timeStamp, Timer crashHitsTimer, String trackerUrl, final String applicationName) {
+        CrashReportRunnable(final String crashReportUrl, final String sitePrefix, final String stackTrace,
+                final String siteSession, final String timeStamp, Timer crashHitsTimer, String trackerUrl,
+                final String applicationName) {
             super();
             this.crashReportUrl = crashReportUrl;
             this.trackerUrl = trackerUrl;
@@ -210,7 +214,8 @@ public class BtCrashHandler  implements Thread
 
                 final int statusCodeHits = connectionHits.getResponseCode();
                 if (statusCodeHits >= 300) {
-                    BufferedReader bufferedReaderHits = new BufferedReader(new InputStreamReader(connectionHits.getErrorStream()));
+                    BufferedReader bufferedReaderHits = new BufferedReader(
+                            new InputStreamReader(connectionHits.getErrorStream()));
                     StringBuilder builderHits = new StringBuilder();
                     String line = bufferedReaderHits.readLine();
                     while (line != null) {
@@ -219,12 +224,15 @@ public class BtCrashHandler  implements Thread
                     }
                     bufferedReaderHits.close();
                     final String responseBody = builderHits.toString();
-                    Log.e("BTT Crash Hits Timer", String.format("Server Error submitting crash report: %s - %s", statusCodeHits, responseBody));
+                    Log.e("BTT Crash Hits Timer",
+                            String.format("Server Error submitting crash report: %s - %s", statusCodeHits,
+                                    responseBody));
                 }
                 connectionHits.getHeaderField(0);
 
             } catch (Exception e) {
-                Log.e("BTT Crash Hits Timer", String.format("Android Error submitting crash report: %s", e.getMessage()), e);
+                Log.e("BTT Crash Hits Timer",
+                        String.format("Android Error submitting crash report: %s", e.getMessage()), e);
             } finally {
                 if (connectionHits != null) {
                     connectionHits.disconnect();
@@ -235,19 +243,19 @@ public class BtCrashHandler  implements Thread
             // send crash data
             try {
                 final String timerTime = this.crashHitsTimer.getField("pgTm");
-                final String siteurl = this.crashReportUrl+"?"+
-                        "siteID="+this.sitePrefix+"&"+
-                        "nStart="+this.nStart+"&"+
-                        "pageName="+ "Android%20Crash%20"+getDeviceName()+"&"+
-                        "txnName="+ "Android%20Crash"+"&"+
-                        "sessionID="+ this.siteSession+"&"+
-                        "pgTm="+ timerTime +"&"+
-                        "pageType="+ getDeviceName()+"&"+
-                        "AB="+ "Default"+"&"+
-                        "DCTR="+ "Default"+"&"+
-                        "CmpN="+ ""+"&"+
-                        "CmpM="+ "Android"+"&"+
-                        "CmpS="+ "Crash";
+                final String siteurl = this.crashReportUrl + "?" +
+                        "siteID=" + this.sitePrefix + "&" +
+                        "nStart=" + this.nStart + "&" +
+                        "pageName=" + "Android%20Crash%20" + getDeviceName() + "&" +
+                        "txnName=" + "Android%20Crash" + "&" +
+                        "sessionID=" + this.siteSession + "&" +
+                        "pgTm=" + timerTime + "&" +
+                        "pageType=" + getDeviceName() + "&" +
+                        "AB=" + "Default" + "&" +
+                        "DCTR=" + "Default" + "&" +
+                        "CmpN=" + "" + "&" +
+                        "CmpM=" + "Android" + "&" +
+                        "CmpS=" + "Crash";
 
                 //Log.d("Crash URL:", siteurl);
                 final URL url = new URL(siteurl);
@@ -258,12 +266,13 @@ public class BtCrashHandler  implements Thread
                 connection.setDoOutput(true);
                 connection.setDoInput(false);
                 final DataOutputStream dataOutputStream = new DataOutputStream(connection.getOutputStream());
-                dataOutputStream.write(buildBase64EncodedJson(this.stackTrace,this.timeStamp,this.applicationName));
+                dataOutputStream.write(buildBase64EncodedJson(this.stackTrace, this.timeStamp, this.applicationName));
                 dataOutputStream.close();
 
                 final int statusCode = connection.getResponseCode();
                 if (statusCode >= 300) {
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+                    BufferedReader bufferedReader = new BufferedReader(
+                            new InputStreamReader(connection.getErrorStream()));
                     StringBuilder builder = new StringBuilder();
                     String line = bufferedReader.readLine();
                     while (line != null) {
@@ -272,12 +281,14 @@ public class BtCrashHandler  implements Thread
                     }
                     bufferedReader.close();
                     final String responseBody = builder.toString();
-                    Log.e("BTT Crash Reporter", String.format("Server Error submitting crash report: %s - %s", statusCode, responseBody));
+                    Log.e("BTT Crash Reporter",
+                            String.format("Server Error submitting crash report: %s - %s", statusCode, responseBody));
                 }
                 connection.getHeaderField(0);
 
             } catch (Exception e) {
-                Log.e("BTT Crash Reporter", String.format("Android Error submitting crash report: %s", e.getMessage()), e);
+                Log.e("BTT Crash Reporter", String.format("Android Error submitting crash report: %s", e.getMessage()),
+                        e);
             } finally {
                 if (connection != null) {
                     connection.disconnect();
@@ -286,6 +297,7 @@ public class BtCrashHandler  implements Thread
             Log.d("BTT Crash Reporter", "crash report submitted successfully");
 
         }
+
         public String getDeviceName() {
             String manufacturer = Build.MANUFACTURER;
             String model = Build.MODEL;
@@ -315,7 +327,8 @@ public class BtCrashHandler  implements Thread
          * @return base 64 encoded JSON payload
          * @throws UnsupportedEncodingException if UTF-8 encoding is not supported
          */
-        private byte[] buildBase64EncodedJson(String stacktrace,String timeStamp, String applicationName) throws UnsupportedEncodingException {
+        private byte[] buildBase64EncodedJson(String stacktrace, String timeStamp, String applicationName)
+                throws UnsupportedEncodingException {
             ArrayList<HashMap<String, String>> dataMap = new ArrayList<HashMap<String, String>>();
             HashMap<String, String> crashReport = new HashMap<String, String>();
             crashReport.put("msg", stacktrace);
