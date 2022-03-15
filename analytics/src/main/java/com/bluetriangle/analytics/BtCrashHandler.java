@@ -242,6 +242,9 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
                         "nStart=" + nStart + "&" +
                         "pageName=" + "Android%20Crash%20" + getDeviceName() + "&" +
                         "txnName=" + "Android%20Crash" + "&" +
+                        "os=" + "Android" + "&" +
+                        "device=" + "Mobile" + "&" +
+                        "browser=" + "Native%20App" + "&" +
                         "sessionID=" + this.siteSession + "&" +
                         "pgTm=" + timerTime + "&" +
                         "pageType=" + getDeviceName() + "&" +
