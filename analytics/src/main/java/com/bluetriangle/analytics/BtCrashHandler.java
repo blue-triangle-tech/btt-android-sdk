@@ -154,11 +154,6 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
         final String timeStamp;
 
         /**
-         * This is the epoch navigation time
-         */
-        String nStart;
-
-        /**
          * This is the name of the application
          */
         final String applicationName;
@@ -186,7 +181,6 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
             this.timeStamp = timeStamp;
             this.crashHitsTimer = crashHitsTimer;
             this.applicationName = applicationName;
-            this.nStart = "";
         }
 
         @Override
@@ -195,7 +189,7 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
             HttpsURLConnection connection = null;
             HttpsURLConnection connectionHits = null;
             this.crashHitsTimer.end();
-            this.nStart = this.crashHitsTimer.getField("nst");
+            final String nStart = this.crashHitsTimer.getField("nst");
             final Tracker tracker = Tracker.getInstance();
             this.crashHitsTimer.setFields(tracker.globalFields);
             //first submit the hits data to the portal
@@ -244,7 +238,7 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
                 final String timerTime = this.crashHitsTimer.getField("pgTm");
                 final String siteurl = this.crashReportUrl + "?" +
                         "siteID=" + this.sitePrefix + "&" +
-                        "nStart=" + this.nStart + "&" +
+                        "nStart=" + nStart + "&" +
                         "pageName=" + "Android%20Crash%20" + getDeviceName() + "&" +
                         "txnName=" + "Android%20Crash" + "&" +
                         "sessionID=" + this.siteSession + "&" +
