@@ -54,8 +54,7 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public void uncaughtException(Thread t, Throwable e) {
-        Long timeStampLong = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
-        String timeStamp = String.valueOf(timeStampLong);
+        final String timeStamp = String.valueOf(System.currentTimeMillis());
         //Log.d("Crash report start", timeStamp);
         this.crashHitsTimer.start();
         this.crashHitsTimer.setPageName("Android%20Crash%20" + getDeviceName());
