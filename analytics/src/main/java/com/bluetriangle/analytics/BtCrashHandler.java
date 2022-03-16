@@ -25,8 +25,8 @@ import javax.net.ssl.HttpsURLConnection;
 
 public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
 
-    public static final String FIELD_NAVIGATION_START = "nStart";
-    public static final String FIELD_SESSION_ID = "sessionID";
+    public static final String FIELD_ERROR_NAVIGATION_START = "nStart";
+    public static final String FIELD_ERROR_SESSION_ID = "sessionID";
 
     private final Thread.UncaughtExceptionHandler defaultUEH;
 
@@ -221,7 +221,7 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
                 final String siteUrl = Uri.parse(this.crashReportUrl)
                         .buildUpon()
                         .appendQueryParameter(Timer.FIELD_SITE_ID, sitePrefix)
-                        .appendQueryParameter(FIELD_NAVIGATION_START, crashHitsTimer.getField(Timer.FIELD_NST))
+                        .appendQueryParameter(FIELD_ERROR_NAVIGATION_START, crashHitsTimer.getField(Timer.FIELD_NST))
                         .appendQueryParameter(Timer.FIELD_PAGE_NAME,
                                 crashHitsTimer.getField(Timer.FIELD_PAGE_NAME, "Android Crash " + deviceName))
                         .appendQueryParameter(Timer.FIELD_TRAFFIC_SEGMENT_NAME,
@@ -230,7 +230,7 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
                                 crashHitsTimer.getField(Timer.FIELD_NATIVE_OS, "Android"))
                         .appendQueryParameter(Timer.FIELD_DEVICE, crashHitsTimer.getField(Timer.FIELD_DEVICE, "Mobile"))
                         .appendQueryParameter(Timer.FIELD_BROWSER, Tracker.BROWSER)
-                        .appendQueryParameter(FIELD_SESSION_ID, siteSession)
+                        .appendQueryParameter(FIELD_ERROR_SESSION_ID, siteSession)
                         .appendQueryParameter(Timer.FIELD_PAGE_TIME, crashHitsTimer.getField("pgTm"))
                         .appendQueryParameter(Timer.FIELD_CONTENT_GROUP_NAME,
                                 crashHitsTimer.getField(Timer.FIELD_CONTENT_GROUP_NAME, deviceName))
