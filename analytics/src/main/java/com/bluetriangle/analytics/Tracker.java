@@ -61,17 +61,17 @@ public class Tracker {
     /**
      * The Users BTT site prefix
      */
-    public static  String sitePrefix;
+    public static String sitePrefix;
 
     /**
      * The Users BTT site session
      */
-    public static  String siteSession;
+    public static String siteSession;
 
     /**
      * The Users BTT application name
      */
-    public static  String applicationName;
+    public static String applicationName;
 
 
     /**
@@ -108,7 +108,8 @@ public class Tracker {
      * @param trackerUrl the URL to submit timer data
      * @return the initialized tracker
      */
-    synchronized public static Tracker init(@NonNull final Context context, @Nullable final String siteId, @Nullable final String trackerUrl) {
+    synchronized public static Tracker init(@NonNull final Context context, @Nullable final String siteId,
+            @Nullable final String trackerUrl) {
         if (instance != null) {
             return instance;
         }
@@ -146,7 +147,7 @@ public class Tracker {
         final boolean isTablet = context.getResources().getBoolean(R.bool.isTablet);
         globalFields.put(Timer.FIELD_DEVICE, isTablet ? "Tablet" : "Mobile");
         globalFields.put(Timer.FIELD_BROWSER_VERSION, String.format("%s-%s-%s", BROWSER, appVersion, os));
-        this.applicationName =getApplicationName(context);
+        this.applicationName = getApplicationName(context);
 
         final String sessionId = Utils.generateRandomId();
         final String globalUserId = getOrCreateGlobalUserId();
@@ -178,7 +179,8 @@ public class Tracker {
             return Utils.generateRandomId();
         }
 
-        final SharedPreferences sharedPreferences = context.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE);
+        final SharedPreferences sharedPreferences = context
+                .getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE);
         if (sharedPreferences.contains(Timer.FIELD_GLOBAL_USER_ID)) {
             globalUserId = sharedPreferences.getString(Timer.FIELD_GLOBAL_USER_ID, null);
         }
@@ -363,18 +365,18 @@ public class Tracker {
         }
     }
 
-    public void trackCrashes(){
+    public void trackCrashes() {
         //http://3.221.132.81/err.rcv
         //https://d.btttag.com/err.rcv
-        if(!(Thread.getDefaultUncaughtExceptionHandler() instanceof BtCrashHandler)) {
+        if (!(Thread.getDefaultUncaughtExceptionHandler() instanceof BtCrashHandler)) {
             Thread.setDefaultUncaughtExceptionHandler(new BtCrashHandler(
-                    "https://d.btttag.com/err.rcv", sitePrefix, siteSession,this.trackerUrl,applicationName));
+                    "https://d.btttag.com/err.rcv", sitePrefix, siteSession, this.trackerUrl, applicationName));
         }
     }
 
     public void raiseTestException() {
         int a = 10, b = 0;
-        System.out.println(a/b);
+        System.out.println(a / b);
     }
 
 }
