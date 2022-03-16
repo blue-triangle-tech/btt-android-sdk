@@ -17,6 +17,7 @@ public class DemoApplication extends Application {
         //bluetriangledemo500z
         tracker = Tracker.init(getApplicationContext(), "sdkdemo26621z" );
         tracker.trackCrashes();
+        tracker.setSessionTrafficSegmentName("Demo Traffic Segment");
         //tracker.raiseTestException();
 
     }
