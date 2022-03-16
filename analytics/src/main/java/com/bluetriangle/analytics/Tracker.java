@@ -227,6 +227,60 @@ public class Tracker {
     }
 
     /**
+     * Set this session's AB test identifier
+     *
+     * @param abTestIdentifier the AB test id
+     */
+    public void setSessionAbTestIdentifier(@NonNull final String abTestIdentifier) {
+        setGlobalField(Timer.FIELD_AB_TEST_ID, abTestIdentifier);
+    }
+
+    /**
+     * Set this session's data center value
+     *
+     * @param dataCenter the value for the data center
+     */
+    public void setSessionDataCenter(@NonNull final String dataCenter) {
+        setGlobalField(Timer.FIELD_DATACENTER, dataCenter);
+    }
+
+    /**
+     * Set this session's traffic segment name
+     *
+     * @param trafficSegmentName name of the traffic segment for this session
+     */
+    public void setSessionTrafficSegmentName(@NonNull final String trafficSegmentName) {
+        setGlobalField(Timer.FIELD_TRAFFIC_SEGMENT_NAME, trafficSegmentName);
+    }
+
+    /**
+     * Set this session's campaign name
+     *
+     * @param campaignName name of campaign
+     */
+    public void setSessionCampaignName(@NonNull final String campaignName) {
+        setGlobalField(Timer.FIELD_CAMPAIGN_NAME, campaignName);
+    }
+
+    /**
+     * Set this session's campaign source
+     *
+     * @param campaignSource source of campaign
+     */
+    public void setSessionCampaignSource(@NonNull final String campaignSource) {
+        setGlobalField(Timer.FIELD_CAMPAIGN_SOURCE, campaignSource);
+    }
+
+    /**
+     * Set this session's campaign medium
+     *
+     * @param campaignMedium medium of campaign
+     */
+    public void setSessionCampaignMedium(@NonNull final String campaignMedium) {
+        setGlobalField(Timer.FIELD_CAMPAIGN_MEDIUM, campaignMedium);
+    }
+
+    /**
      * Set a global field to be applied to all trackers
      *
      * @param fieldName the name of the field
