@@ -163,11 +163,15 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
 
         @Override
         public void run() {
+            final String deviceName = Utils.getDeviceName();
+
             HttpsURLConnection connection = null;
             HttpsURLConnection connectionHits = null;
             this.crashHitsTimer.end();
+            this.crashHitsTimer.setPageName("Android Crash " + deviceName);
             final Tracker tracker = Tracker.getInstance();
             this.crashHitsTimer.setFields(tracker.globalFields);
+
 
             //first submit the hits data to the portal
             try {
@@ -208,8 +212,6 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
 
             // send crash data
             try {
-                final String deviceName = Utils.getDeviceName();
-
                 final String siteUrl = Uri.parse(this.crashReportUrl)
                         .buildUpon()
                         .appendQueryParameter(Timer.FIELD_SITE_ID, sitePrefix)
