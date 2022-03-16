@@ -521,15 +521,15 @@ public class Timer implements Parcelable {
     }
 
     /**
-     * Get the current value for the given field or default if not set
+     * Get the current value for the given field or default if null or empty
      *
      * @param fieldName the name of the field to get
-     * @param
+     * @param defaultValue the default value to return if null or empty
      * @return the current value for the given field or null if not set
      */
     public String getField(@NonNull final String fieldName, @NonNull final String defaultValue) {
         final String fieldValue = fields.get(fieldName);
-        if (fieldValue == null) {
+        if (fieldValue == null || fieldValue.isEmpty()) {
             return defaultValue;
         }
         return fieldValue;
