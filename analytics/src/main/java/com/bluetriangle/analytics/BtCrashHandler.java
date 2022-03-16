@@ -24,6 +24,7 @@ import javax.net.ssl.HttpsURLConnection;
 
 
 public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
+    private static final String TAG = BtCrashHandler.class.getSimpleName();
 
     public static final String FIELD_ERROR_NAVIGATION_START = "nStart";
     public static final String FIELD_ERROR_SESSION_ID = "sessionID";
@@ -57,8 +58,6 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
     @Override
     public void uncaughtException(Thread t, Throwable e) {
         final String timeStamp = String.valueOf(System.currentTimeMillis());
-        //Log.d("Crash report start", timeStamp);
-
         this.crashHitsTimer.start();
 
         final Writer result = new StringWriter();
@@ -87,7 +86,6 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
         }
 
         defaultUEH.uncaughtException(t, e);
-        Log.d("btt exception:", e.getMessage());
     }
 
     private void sendToServer(String stacktrace, String timeStamp) throws InterruptedException {
@@ -96,7 +94,6 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
                         this.crashHitsTimer, this.trackerUrl, this.applicationName));
         thread.start();
         thread.join();
-
     }
 
     /**
@@ -166,7 +163,6 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
 
         @Override
         public void run() {
-            //Log.d("BTT session", this.siteSession);
             HttpsURLConnection connection = null;
             HttpsURLConnection connectionHits = null;
             this.crashHitsTimer.end();
@@ -176,7 +172,7 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
             //first submit the hits data to the portal
             try {
                 final URL urlHits = new URL(this.trackerUrl);
-                //Log.d("Tracker URL", String.format("Tracker URL: %s", this.trackerUrl));
+                Log.d(TAG, "Submitting crash timer to: " + this.trackerUrl);
                 connectionHits = (HttpsURLConnection) urlHits.openConnection();
                 connectionHits.setRequestMethod("POST");
                 connectionHits.setRequestProperty("Content-Type", "application/json; charset=utf-8");
@@ -198,21 +194,17 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
                     }
                     bufferedReaderHits.close();
                     final String responseBody = builderHits.toString();
-                    Log.e("BTT Crash Hits Timer",
-                            String.format("Server Error submitting crash report: %s - %s", statusCodeHits,
-                                    responseBody));
+                    Log.e(TAG, String.format("Error submitting crash timer: %s - %s", statusCodeHits, responseBody));
                 }
                 connectionHits.getHeaderField(0);
-
             } catch (Exception e) {
-                Log.e("BTT Crash Hits Timer",
-                        String.format("Android Error submitting crash report: %s", e.getMessage()), e);
+                Log.e(TAG, String.format("Error submitting crash timer: %s", e.getMessage()), e);
             } finally {
                 if (connectionHits != null) {
                     connectionHits.disconnect();
                 }
             }
-            Log.d("BTT Crash Hits Timer", "crash report submitted successfully");
+            Log.d(TAG, "Crash report timer successfully");
 
             // send crash data
             try {
@@ -245,9 +237,9 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
                         .appendQueryParameter(Timer.FIELD_CAMPAIGN_SOURCE,
                                 crashHitsTimer.getField(Timer.FIELD_CAMPAIGN_SOURCE, "Crash"))
                         .build().toString();
-
+                Log.d(TAG, "Crash Report URL: " + siteUrl);
                 final URL url = new URL(siteUrl);
-                //Log.d("Crash URL", String.format("Crash URL: %s", siteUrl));
+
                 connection = (HttpsURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
                 connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
@@ -269,20 +261,17 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
                     }
                     bufferedReader.close();
                     final String responseBody = builder.toString();
-                    Log.e("BTT Crash Reporter",
-                            String.format("Server Error submitting crash report: %s - %s", statusCode, responseBody));
+                    Log.e(TAG, String.format("Error submitting crash report: %s - %s", statusCode, responseBody));
                 }
                 connection.getHeaderField(0);
-
             } catch (Exception e) {
-                Log.e("BTT Crash Reporter", String.format("Android Error submitting crash report: %s", e.getMessage()),
-                        e);
+                Log.e(TAG, String.format("Error submitting crash report: %s", e.getMessage()), e);
             } finally {
                 if (connection != null) {
                     connection.disconnect();
                 }
             }
-            Log.d("BTT Crash Reporter", "crash report submitted successfully");
+            Log.d(TAG, "Crash report submitted successfully");
         }
 
         /**
@@ -304,7 +293,9 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
 
             final JSONObject jsonCrashReport = new JSONObject(crashReport);
             final JSONArray crashDataArray = new JSONArray(Collections.singletonList(jsonCrashReport));
-            return Base64.encode(crashDataArray.toString().getBytes("UTF-8"), Base64.DEFAULT);
+            final String jsonData = crashDataArray.toString();
+            Log.d(TAG, "Crash Report Data: " + jsonData);
+            return Base64.encode(jsonData.getBytes("UTF-8"), Base64.DEFAULT);
         }
 
         /**
@@ -314,8 +305,9 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
          */
         private String buildJson() {
             final JSONObject data = new JSONObject(this.crashHitsTimer.getFields());
-            //Log.d("crash hits data sent:", data.toString());
-            return data.toString();
+            final String jsonData = data.toString();
+            Log.d(TAG, "Crash Timer Data: " + jsonData);
+            return jsonData;
         }
 
         /**
