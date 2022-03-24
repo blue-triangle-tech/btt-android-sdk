@@ -29,7 +29,7 @@ public class Tracker {
      * Default URL to submit the timer data to
      * old url https://d.btttag.com/btt.gif
      */
-    //http://3.221.132.81/analytics.rcv
+    //https://3.221.132.81/analytics.rcv
     //https://d.btttag.com/analytics.rcv
     private static final String TRACKER_URL = "https://d.btttag.com/analytics.rcv";
 
@@ -121,7 +121,12 @@ public class Tracker {
             siteIdentifier = Utils.getResourceString(context, SITE_ID_RESOURCE_KEY);
         }
 
-        instance = new Tracker(context, siteIdentifier, TRACKER_URL);
+        String url = trackerUrl;
+        if (url == null || url.isEmpty()) {
+            url = TRACKER_URL;
+        }
+
+        instance = new Tracker(context, siteIdentifier, url);
         return instance;
     }
 
