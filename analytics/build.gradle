@@ -38,7 +38,7 @@ dependencies {
 //region Publish to jCenter
 def libGroupId = 'com.bluetriangle'
 def libArtifactId = 'analytics'
-def libVersion = '2.0.5'
+def libVersion = '2.0.6'
 def libDesc = 'This is the Blue Triangle Analytics SDK'
 def libLicenses = ['Apache-2.0']
 def libVCSUrl = 'https://github.com/blue-triangle-tech/btsdk-dev.git'
