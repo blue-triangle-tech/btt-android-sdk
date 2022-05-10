@@ -1,5 +1,4 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.jfrog.bintray'
 apply plugin: 'maven-publish'
 
 android {
@@ -35,53 +34,32 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }
 
-//region Publish to jCenter
-def libGroupId = 'com.bluetriangle'
-def libArtifactId = 'analytics'
-def libVersion = '2.0.6'
-def libDesc = 'This is the Blue Triangle Analytics SDK'
-def libLicenses = ['Apache-2.0']
-def libVCSUrl = 'https://github.com/blue-triangle-tech/btsdk-dev.git'
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/blue-triangle-tech/btt-android-sdk")
+            credentials {
+                username = properties.getProperty('github_username')
+                password = properties.getProperty('github_token')
+            }
+        }
+    }
+    publications {
+        gpr(MavenPublication) {
+            groupId 'com.bluetriangle'
+            artifactId 'analytics'
+            version '2.6.7'
+        }
+    }
+}
+
 
 // Generate Source Jar
 task sourceJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
     classifier "sources"
 }
-
-// Create the publication with the pom configuration
-publishing {
-    publications {
-        MyPublication(MavenPublication) {
-            groupId libGroupId
-            artifactId libArtifactId
-            version libVersion
-            artifact(sourceJar)
-            artifact("$buildDir/outputs/aar/$libArtifactId-release.aar")
-        }
-    }
-}
-
-// Bintray config
-Properties properties = new Properties()
-properties.load(project.rootProject.file('local.properties').newDataInputStream())
-
-bintray {
-    user = 'clockworksyler1985'
-    key = '3a14f8d48761fe655695bed619bd04ccfe633f1d'
-    publications = ['MyPublication']
-    pkg {
-        repo = "Blue-Triangle-SDK"
-        name = "$libGroupId:$libArtifactId"
-        desc = libDesc
-        licenses = libLicenses
-        vcsUrl = libVCSUrl
-        userOrg = 'bluetriangle'
-        version {
-            name = libVersion
-            vcsTag = libVersion
-            released = new Date()
-        }
-    }
-}
-//endregion
