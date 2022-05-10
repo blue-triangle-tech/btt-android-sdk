@@ -1,7 +1,7 @@
 package com.bluetriangle.analytics;
 
 import android.os.Process;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Base64;
 import android.util.Log;
 import org.json.JSONObject;

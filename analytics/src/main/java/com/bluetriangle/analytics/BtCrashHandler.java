@@ -2,7 +2,7 @@ package com.bluetriangle.analytics;
 
 import android.net.Uri;
 import android.os.Build;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.RequiresApi;
 import android.util.Base64;
 import android.util.Log;
 
