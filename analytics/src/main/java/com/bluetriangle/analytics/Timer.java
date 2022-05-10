@@ -2,8 +2,8 @@ package com.bluetriangle.analytics;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.util.Log;
 
 import java.util.HashMap;
@@ -518,6 +518,21 @@ public class Timer implements Parcelable {
      */
     public String getField(@NonNull final String fieldName) {
         return fields.get(fieldName);
+    }
+
+    /**
+     * Get the current value for the given field or default if null or empty
+     *
+     * @param fieldName the name of the field to get
+     * @param defaultValue the default value to return if null or empty
+     * @return the current value for the given field or null if not set
+     */
+    public String getField(@NonNull final String fieldName, @NonNull final String defaultValue) {
+        final String fieldValue = fields.get(fieldName);
+        if (fieldValue == null || fieldValue.isEmpty()) {
+            return defaultValue;
+        }
+        return fieldValue;
     }
 
     /**

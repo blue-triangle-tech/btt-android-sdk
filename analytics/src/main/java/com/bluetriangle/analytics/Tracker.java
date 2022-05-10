@@ -4,8 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.text.TextUtils;
 
 import java.lang.ref.WeakReference;
@@ -29,14 +29,14 @@ public class Tracker {
      * Default URL to submit the timer data to
      * old url https://d.btttag.com/btt.gif
      */
-    //http://3.221.132.81/analytics.rcv
+    //https://3.221.132.81/analytics.rcv
     //https://d.btttag.com/analytics.rcv
     private static final String TRACKER_URL = "https://d.btttag.com/analytics.rcv";
 
     /**
      * The hardcoded browser
      */
-    private static final String BROWSER = "Native App";
+    static final String BROWSER = "Native App";
 
     /**
      * Singleton instance of the tracker
@@ -61,17 +61,17 @@ public class Tracker {
     /**
      * The Users BTT site prefix
      */
-    public static  String sitePrefix;
+    public static String sitePrefix;
 
     /**
      * The Users BTT site session
      */
-    public static  String siteSession;
+    public static String siteSession;
 
     /**
      * The Users BTT application name
      */
-    public static  String applicationName;
+    public static String applicationName;
 
 
     /**
@@ -108,7 +108,8 @@ public class Tracker {
      * @param trackerUrl the URL to submit timer data
      * @return the initialized tracker
      */
-    synchronized public static Tracker init(@NonNull final Context context, @Nullable final String siteId, @Nullable final String trackerUrl) {
+    synchronized public static Tracker init(@NonNull final Context context, @Nullable final String siteId,
+            @Nullable final String trackerUrl) {
         if (instance != null) {
             return instance;
         }
@@ -120,7 +121,12 @@ public class Tracker {
             siteIdentifier = Utils.getResourceString(context, SITE_ID_RESOURCE_KEY);
         }
 
-        instance = new Tracker(context, siteIdentifier, TRACKER_URL);
+        String url = trackerUrl;
+        if (url == null || url.isEmpty()) {
+            url = TRACKER_URL;
+        }
+
+        instance = new Tracker(context, siteIdentifier, url);
         return instance;
     }
 
@@ -146,7 +152,7 @@ public class Tracker {
         final boolean isTablet = context.getResources().getBoolean(R.bool.isTablet);
         globalFields.put(Timer.FIELD_DEVICE, isTablet ? "Tablet" : "Mobile");
         globalFields.put(Timer.FIELD_BROWSER_VERSION, String.format("%s-%s-%s", BROWSER, appVersion, os));
-        this.applicationName =getApplicationName(context);
+        this.applicationName = getApplicationName(context);
 
         final String sessionId = Utils.generateRandomId();
         final String globalUserId = getOrCreateGlobalUserId();
@@ -178,7 +184,8 @@ public class Tracker {
             return Utils.generateRandomId();
         }
 
-        final SharedPreferences sharedPreferences = context.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE);
+        final SharedPreferences sharedPreferences = context
+                .getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE);
         if (sharedPreferences.contains(Timer.FIELD_GLOBAL_USER_ID)) {
             globalUserId = sharedPreferences.getString(Timer.FIELD_GLOBAL_USER_ID, null);
         }
@@ -224,6 +231,60 @@ public class Tracker {
      */
     public void setGlobalUserId(@NonNull final String globalUserId) {
         setGlobalField(Timer.FIELD_GLOBAL_USER_ID, globalUserId);
+    }
+
+    /**
+     * Set this session's AB test identifier
+     *
+     * @param abTestIdentifier the AB test id
+     */
+    public void setSessionAbTestIdentifier(@NonNull final String abTestIdentifier) {
+        setGlobalField(Timer.FIELD_AB_TEST_ID, abTestIdentifier);
+    }
+
+    /**
+     * Set this session's data center value
+     *
+     * @param dataCenter the value for the data center
+     */
+    public void setSessionDataCenter(@NonNull final String dataCenter) {
+        setGlobalField(Timer.FIELD_DATACENTER, dataCenter);
+    }
+
+    /**
+     * Set this session's traffic segment name
+     *
+     * @param trafficSegmentName name of the traffic segment for this session
+     */
+    public void setSessionTrafficSegmentName(@NonNull final String trafficSegmentName) {
+        setGlobalField(Timer.FIELD_TRAFFIC_SEGMENT_NAME, trafficSegmentName);
+    }
+
+    /**
+     * Set this session's campaign name
+     *
+     * @param campaignName name of campaign
+     */
+    public void setSessionCampaignName(@NonNull final String campaignName) {
+        setGlobalField(Timer.FIELD_CAMPAIGN_NAME, campaignName);
+    }
+
+    /**
+     * Set this session's campaign source
+     *
+     * @param campaignSource source of campaign
+     */
+    public void setSessionCampaignSource(@NonNull final String campaignSource) {
+        setGlobalField(Timer.FIELD_CAMPAIGN_SOURCE, campaignSource);
+    }
+
+    /**
+     * Set this session's campaign medium
+     *
+     * @param campaignMedium medium of campaign
+     */
+    public void setSessionCampaignMedium(@NonNull final String campaignMedium) {
+        setGlobalField(Timer.FIELD_CAMPAIGN_MEDIUM, campaignMedium);
     }
 
     /**
@@ -309,18 +370,18 @@ public class Tracker {
         }
     }
 
-    public void trackCrashes(){
+    public void trackCrashes() {
         //http://3.221.132.81/err.rcv
         //https://d.btttag.com/err.rcv
-        if(!(Thread.getDefaultUncaughtExceptionHandler() instanceof BtCrashHandler)) {
+        if (!(Thread.getDefaultUncaughtExceptionHandler() instanceof BtCrashHandler)) {
             Thread.setDefaultUncaughtExceptionHandler(new BtCrashHandler(
-                    "https://d.btttag.com/err.rcv", sitePrefix, siteSession,this.trackerUrl,applicationName));
+                    "https://d.btttag.com/err.rcv", sitePrefix, siteSession, this.trackerUrl, applicationName));
         }
     }
 
     public void raiseTestException() {
         int a = 10, b = 0;
-        System.out.println(a/b);
+        System.out.println(a / b);
     }
 
 }

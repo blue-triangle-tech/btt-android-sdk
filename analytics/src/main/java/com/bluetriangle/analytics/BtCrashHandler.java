@@ -1,7 +1,8 @@
 package com.bluetriangle.analytics;
 
+import android.net.Uri;
 import android.os.Build;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.RequiresApi;
 import android.util.Base64;
 import android.util.Log;
 
@@ -16,37 +17,39 @@ import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URL;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
 
 
-public class BtCrashHandler  implements Thread
-        .UncaughtExceptionHandler {
+public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
+    private static final String TAG = BtCrashHandler.class.getSimpleName();
 
-    private Thread.UncaughtExceptionHandler defaultUEH;
+    public static final String FIELD_ERROR_NAVIGATION_START = "nStart";
+    public static final String FIELD_ERROR_SESSION_ID = "sessionID";
 
-    private String url;
+    private final Thread.UncaughtExceptionHandler defaultUEH;
 
-    private String trackerUrl;
+    private final String url;
 
-    private String sitePrefix;
+    private final String trackerUrl;
 
-    private String siteSession;
+    private final String sitePrefix;
 
-    private String applicationName;
+    private final String siteSession;
+
+    private final String applicationName;
 
     Timer crashHitsTimer;
 
-    public BtCrashHandler(String url, String incSitePrefix, String incSiteSession, String trackerUrl, String applicationName) {
+    public BtCrashHandler(final String url, final String sitePrefix, final String siteSession, final String trackerUrl,
+            final String applicationName) {
         this.url = url;
         this.trackerUrl = trackerUrl;
         this.defaultUEH = Thread.getDefaultUncaughtExceptionHandler();
-        this.sitePrefix = incSitePrefix;
-        this.siteSession = incSiteSession;
+        this.sitePrefix = sitePrefix;
+        this.siteSession = siteSession;
         this.crashHitsTimer = new Timer();
         this.applicationName = applicationName;
     }
@@ -54,18 +57,16 @@ public class BtCrashHandler  implements Thread
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public void uncaughtException(Thread t, Throwable e) {
-        Long timeStampLong = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
-        String timeStamp = String.valueOf(timeStampLong);
-        //Log.d("Crash report start", timeStamp);
+        final String timeStamp = String.valueOf(System.currentTimeMillis());
         this.crashHitsTimer.start();
-        this.crashHitsTimer.setPageName("Android%20Crash%20"+getDeviceName());
-        this.crashHitsTimer.setTrafficSegmentName("Android%20Crash");
+
         final Writer result = new StringWriter();
         final PrintWriter printWriter = new PrintWriter(result);
         e.printStackTrace(printWriter);
-        String stacktrace = result.toString();
-        String lines[] = stacktrace.split("\\r?\\n");
-        StringBuilder sb = new StringBuilder();
+        printWriter.close();
+
+        final String[] lines = result.toString().split("\\r?\\n");
+        final StringBuilder sb = new StringBuilder();
         for (int i = 0; i < lines.length - 1; i++) {
             //data.length - 1 => to not add separator at the end
             if (!lines[i].matches(" *")) {//empty string are ""; " "; "  "; and so on
@@ -74,8 +75,8 @@ public class BtCrashHandler  implements Thread
             }
         }
         sb.append(lines[lines.length - 1].trim());
-        stacktrace = sb.toString();
-        printWriter.close();
+        final String stacktrace = sb.toString();
+
         if (url != null) {
             try {
                 sendToServer(stacktrace, timeStamp);
@@ -85,36 +86,14 @@ public class BtCrashHandler  implements Thread
         }
 
         defaultUEH.uncaughtException(t, e);
-        Log.d("btt exception:", e.getMessage());
-    }
-
-    public String getDeviceName() {
-        String manufacturer = Build.MANUFACTURER;
-        String model = Build.MODEL;
-        if (model.startsWith(manufacturer)) {
-            return capitalize(model).replaceAll(" ", "%20");
-        } else {
-            return capitalize(manufacturer).replaceAll(" ", "%20") + "%20" + model.replaceAll(" ", "%20");
-        }
-    }
-
-    private String capitalize(String s) {
-        if (s == null || s.length() == 0) {
-            return "";
-        }
-        char first = s.charAt(0);
-        if (Character.isUpperCase(first)) {
-            return s;
-        } else {
-            return Character.toUpperCase(first) + s.substring(1);
-        }
     }
 
     private void sendToServer(String stacktrace, String timeStamp) throws InterruptedException {
-        Thread thread = new Thread(new CrashReportRunnable(this.url,this.sitePrefix,stacktrace,this.siteSession,timeStamp,this.crashHitsTimer,this.trackerUrl,this.applicationName));
+        Thread thread = new Thread(
+                new CrashReportRunnable(this.url, this.sitePrefix, stacktrace, this.siteSession, timeStamp,
+                        this.crashHitsTimer, this.trackerUrl, this.applicationName));
         thread.start();
         thread.join();
-
     }
 
     /**
@@ -153,11 +132,6 @@ public class BtCrashHandler  implements Thread
         final String timeStamp;
 
         /**
-         * This is the epoch navigation time
-         */
-        String nStart;
-
-        /**
          * This is the name of the application
          */
         final String applicationName;
@@ -165,15 +139,17 @@ public class BtCrashHandler  implements Thread
         /**
          * This is the epoch when the error happened
          */
-        Timer crashHitsTimer;
+        final Timer crashHitsTimer;
 
         /**
          * Create a timer runnable to submit the given timer to the given URL
          *
          * @param crashReportUrl the tracker API URL to submit the data to
-         * @param sitePrefix      the timer to submit
+         * @param sitePrefix     the timer to submit
          */
-        CrashReportRunnable(final String crashReportUrl, final String sitePrefix, final String stackTrace, final String siteSession,final String timeStamp, Timer crashHitsTimer, String trackerUrl, final String applicationName) {
+        CrashReportRunnable(final String crashReportUrl, final String sitePrefix, final String stackTrace,
+                final String siteSession, final String timeStamp, final Timer crashHitsTimer, final String trackerUrl,
+                final String applicationName) {
             super();
             this.crashReportUrl = crashReportUrl;
             this.trackerUrl = trackerUrl;
@@ -183,22 +159,24 @@ public class BtCrashHandler  implements Thread
             this.timeStamp = timeStamp;
             this.crashHitsTimer = crashHitsTimer;
             this.applicationName = applicationName;
-            this.nStart = "";
         }
 
         @Override
         public void run() {
-            //Log.d("BTT session", this.siteSession);
+            final String deviceName = Utils.getDeviceName();
+
             HttpsURLConnection connection = null;
             HttpsURLConnection connectionHits = null;
             this.crashHitsTimer.end();
-            this.nStart = this.crashHitsTimer.getField("nst");
+            this.crashHitsTimer.setPageName("Android Crash " + deviceName);
             final Tracker tracker = Tracker.getInstance();
             this.crashHitsTimer.setFields(tracker.globalFields);
+
+
             //first submit the hits data to the portal
             try {
                 final URL urlHits = new URL(this.trackerUrl);
-                //Log.d("Tracker URL", String.format("Tracker URL: %s", this.trackerUrl));
+                Log.d(TAG, "Submitting crash timer to: " + this.trackerUrl);
                 connectionHits = (HttpsURLConnection) urlHits.openConnection();
                 connectionHits.setRequestMethod("POST");
                 connectionHits.setRequestProperty("Content-Type", "application/json; charset=utf-8");
@@ -210,7 +188,8 @@ public class BtCrashHandler  implements Thread
 
                 final int statusCodeHits = connectionHits.getResponseCode();
                 if (statusCodeHits >= 300) {
-                    BufferedReader bufferedReaderHits = new BufferedReader(new InputStreamReader(connectionHits.getErrorStream()));
+                    BufferedReader bufferedReaderHits = new BufferedReader(
+                            new InputStreamReader(connectionHits.getErrorStream()));
                     StringBuilder builderHits = new StringBuilder();
                     String line = bufferedReaderHits.readLine();
                     while (line != null) {
@@ -219,51 +198,65 @@ public class BtCrashHandler  implements Thread
                     }
                     bufferedReaderHits.close();
                     final String responseBody = builderHits.toString();
-                    Log.e("BTT Crash Hits Timer", String.format("Server Error submitting crash report: %s - %s", statusCodeHits, responseBody));
+                    Log.e(TAG, String.format("Error submitting crash timer: %s - %s", statusCodeHits, responseBody));
                 }
                 connectionHits.getHeaderField(0);
-
             } catch (Exception e) {
-                Log.e("BTT Crash Hits Timer", String.format("Android Error submitting crash report: %s", e.getMessage()), e);
+                Log.e(TAG, String.format("Error submitting crash timer: %s", e.getMessage()), e);
             } finally {
                 if (connectionHits != null) {
                     connectionHits.disconnect();
                 }
             }
-            Log.d("BTT Crash Hits Timer", "crash report submitted successfully");
+            Log.d(TAG, "Crash report timer successfully");
 
             // send crash data
             try {
-                final String timerTime = this.crashHitsTimer.getField("pgTm");
-                final String siteurl = this.crashReportUrl+"?"+
-                        "siteID="+this.sitePrefix+"&"+
-                        "nStart="+this.nStart+"&"+
-                        "pageName="+ "Android%20Crash%20"+getDeviceName()+"&"+
-                        "txnName="+ "Android%20Crash"+"&"+
-                        "sessionID="+ this.siteSession+"&"+
-                        "pgTm="+ timerTime +"&"+
-                        "pageType="+ getDeviceName()+"&"+
-                        "AB="+ "Default"+"&"+
-                        "DCTR="+ "Default"+"&"+
-                        "CmpN="+ ""+"&"+
-                        "CmpM="+ "Android"+"&"+
-                        "CmpS="+ "Crash";
+                final String siteUrl = Uri.parse(this.crashReportUrl)
+                        .buildUpon()
+                        .appendQueryParameter(Timer.FIELD_SITE_ID, sitePrefix)
+                        .appendQueryParameter(FIELD_ERROR_NAVIGATION_START, crashHitsTimer.getField(Timer.FIELD_NST))
+                        .appendQueryParameter(Timer.FIELD_PAGE_NAME,
+                                crashHitsTimer.getField(Timer.FIELD_PAGE_NAME, "Android Crash " + deviceName))
+                        .appendQueryParameter(Timer.FIELD_TRAFFIC_SEGMENT_NAME,
+                                crashHitsTimer.getField(Timer.FIELD_TRAFFIC_SEGMENT_NAME, "Android Crash"))
+                        .appendQueryParameter(Timer.FIELD_NATIVE_OS,
+                                crashHitsTimer.getField(Timer.FIELD_NATIVE_OS, "Android"))
+                        .appendQueryParameter(Timer.FIELD_DEVICE, crashHitsTimer.getField(Timer.FIELD_DEVICE, "Mobile"))
+                        .appendQueryParameter(Timer.FIELD_BROWSER, Tracker.BROWSER)
+                        .appendQueryParameter(Timer.FIELD_BROWSER_VERSION,
+                                crashHitsTimer.getField(Timer.FIELD_BROWSER_VERSION))
+                        .appendQueryParameter(FIELD_ERROR_SESSION_ID, siteSession)
+                        .appendQueryParameter(Timer.FIELD_PAGE_TIME, crashHitsTimer.getField("pgTm"))
+                        .appendQueryParameter(Timer.FIELD_CONTENT_GROUP_NAME,
+                                crashHitsTimer.getField(Timer.FIELD_CONTENT_GROUP_NAME, deviceName))
+                        .appendQueryParameter(Timer.FIELD_AB_TEST_ID,
+                                crashHitsTimer.getField(Timer.FIELD_AB_TEST_ID, "Default"))
+                        .appendQueryParameter(Timer.FIELD_DATACENTER,
+                                crashHitsTimer.getField(Timer.FIELD_DATACENTER, "Default"))
+                        .appendQueryParameter(Timer.FIELD_CAMPAIGN_NAME,
+                                crashHitsTimer.getField(Timer.FIELD_CAMPAIGN_NAME, ""))
+                        .appendQueryParameter(Timer.FIELD_CAMPAIGN_MEDIUM,
+                                crashHitsTimer.getField(Timer.FIELD_CAMPAIGN_MEDIUM, "Android"))
+                        .appendQueryParameter(Timer.FIELD_CAMPAIGN_SOURCE,
+                                crashHitsTimer.getField(Timer.FIELD_CAMPAIGN_SOURCE, "Crash"))
+                        .build().toString();
+                Log.d(TAG, "Crash Report URL: " + siteUrl);
+                final URL url = new URL(siteUrl);
 
-                //Log.d("Crash URL:", siteurl);
-                final URL url = new URL(siteurl);
-                //Log.d("Crash URL", String.format("Crash URL: %s", siteurl));
                 connection = (HttpsURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
                 connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
                 connection.setDoOutput(true);
                 connection.setDoInput(false);
                 final DataOutputStream dataOutputStream = new DataOutputStream(connection.getOutputStream());
-                dataOutputStream.write(buildBase64EncodedJson(this.stackTrace,this.timeStamp,this.applicationName));
+                dataOutputStream.write(buildBase64EncodedJson(this.stackTrace, this.timeStamp, this.applicationName));
                 dataOutputStream.close();
 
                 final int statusCode = connection.getResponseCode();
                 if (statusCode >= 300) {
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+                    BufferedReader bufferedReader = new BufferedReader(
+                            new InputStreamReader(connection.getErrorStream()));
                     StringBuilder builder = new StringBuilder();
                     String line = bufferedReader.readLine();
                     while (line != null) {
@@ -272,41 +265,17 @@ public class BtCrashHandler  implements Thread
                     }
                     bufferedReader.close();
                     final String responseBody = builder.toString();
-                    Log.e("BTT Crash Reporter", String.format("Server Error submitting crash report: %s - %s", statusCode, responseBody));
+                    Log.e(TAG, String.format("Error submitting crash report: %s - %s", statusCode, responseBody));
                 }
                 connection.getHeaderField(0);
-
             } catch (Exception e) {
-                Log.e("BTT Crash Reporter", String.format("Android Error submitting crash report: %s", e.getMessage()), e);
+                Log.e(TAG, String.format("Error submitting crash report: %s", e.getMessage()), e);
             } finally {
                 if (connection != null) {
                     connection.disconnect();
                 }
             }
-            Log.d("BTT Crash Reporter", "crash report submitted successfully");
-
-        }
-        public String getDeviceName() {
-            String manufacturer = Build.MANUFACTURER;
-            String model = Build.MODEL;
-            if (model.startsWith(manufacturer)) {
-                return capitalize(model).replaceAll(" ", "%20");
-            } else {
-                return capitalize(manufacturer).replaceAll(" ", "%20") + "%20" + model.replaceAll(" ", "%20");
-            }
-        }
-
-
-        private String capitalize(String s) {
-            if (s == null || s.length() == 0) {
-                return "";
-            }
-            char first = s.charAt(0);
-            if (Character.isUpperCase(first)) {
-                return s;
-            } else {
-                return Character.toUpperCase(first) + s.substring(1);
-            }
+            Log.d(TAG, "Crash report submitted successfully");
         }
 
         /**
@@ -315,9 +284,9 @@ public class BtCrashHandler  implements Thread
          * @return base 64 encoded JSON payload
          * @throws UnsupportedEncodingException if UTF-8 encoding is not supported
          */
-        private byte[] buildBase64EncodedJson(String stacktrace,String timeStamp, String applicationName) throws UnsupportedEncodingException {
-            ArrayList<HashMap<String, String>> dataMap = new ArrayList<HashMap<String, String>>();
-            HashMap<String, String> crashReport = new HashMap<String, String>();
+        private byte[] buildBase64EncodedJson(final String stacktrace, final String timeStamp,
+                final String applicationName) throws UnsupportedEncodingException {
+            final HashMap<String, String> crashReport = new HashMap<>();
             crashReport.put("msg", stacktrace);
             crashReport.put("eTp", "NativeAppCrash");
             crashReport.put("eCnt", "1");
@@ -325,12 +294,12 @@ public class BtCrashHandler  implements Thread
             crashReport.put("line", "1");
             crashReport.put("col", "1");
             crashReport.put("time", timeStamp);
-            dataMap.add(crashReport);
-            List<JSONObject> jsonObj = new ArrayList<JSONObject>();
-            JSONObject data = new JSONObject(dataMap.get(0));
-            jsonObj.add(data);
-            JSONArray dataArray = new JSONArray(jsonObj);
-            return Base64.encode(dataArray.toString().getBytes("UTF-8"), Base64.DEFAULT);
+
+            final JSONObject jsonCrashReport = new JSONObject(crashReport);
+            final JSONArray crashDataArray = new JSONArray(Collections.singletonList(jsonCrashReport));
+            final String jsonData = crashDataArray.toString();
+            Log.d(TAG, "Crash Report Data: " + jsonData);
+            return Base64.encode(jsonData.getBytes("UTF-8"), Base64.DEFAULT);
         }
 
         /**
@@ -340,8 +309,9 @@ public class BtCrashHandler  implements Thread
          */
         private String buildJson() {
             final JSONObject data = new JSONObject(this.crashHitsTimer.getFields());
-            //Log.d("crash hits data sent:", data.toString());
-            return data.toString();
+            final String jsonData = data.toString();
+            Log.d(TAG, "Crash Timer Data: " + jsonData);
+            return jsonData;
         }
 
         /**
