@@ -1,37 +1,27 @@
 # Blue Triangle Tech Android Analytics SDK
 
-## Building the AAR
 
-To build the AAR library to distribute to clients:
+## Installation
 
-1. Open the BlueTriangleAndroidDemo project in Android Studio
-2. Execute the `assembleRelease` task under the `analytics` Gradle project
-3. The AAR should successfully build as seen in the Android Studio console
-4. The generated AAR file should be found at `analytics/build/outputs/aar/analytics-release.aar`
-
-## Installing the AAR
-
-1. Place the provided AAR `analytics.aar` in a `libs` directory in the app directory.
-2. Add the `libs` directory to the app's Grade file list of repositories to find the analytics AAR.
+Add the Maven repository to the project's `build.gradle` file:
 
 ```
-repositories{
-    flatDir{
-        dirs 'libs'
+repositories {
+    ...
+    maven {
+       url = uri("https://maven.pkg.github.com/blue-triangle-tech/btt-android-sdk")
     }
 }
 ```
 
-3. Add `implementation(name:'analytics', ext:'aar')` to your `dependencies` block in the app's Gradle file.
+Add the package dependency to your application's `build.gradle` file:
 
 ```
 dependencies {
-    implementation(name:'analytics', ext:'aar')
+    ...
+    implementation 'com.bluetriangle:analytics:2.6.7'
 }
 ```
-
-4. Sync the Gradle file changes.
-5. Ensure `<uses-permission android:name="android.permission.INTERNET"/>` is configured in the application's `AndroidManifest.xml`.
 
 ## Using the Analytics library
 
@@ -95,3 +85,20 @@ timer.end().submit();
 ```
 
 When a timer is submitted to the tracker, the tracker sets any global fields such as site ID, session ID, and user ID. Additional global fields may be set as needed and applied to all timers. The timer's fields are then converted to JSON and sent via HTTP POST to the configured tracker URL.
+
+
+## Publishing the Analytics SDK Package
+
+The Analytics SDK is published through [GitHub Packages](https://github.com/orgs/blue-triangle-tech/packages?repo_name=btt-android-sdk).
+
+To publish a new version of the library:
+
+1. Update the version in the Analytics library `build.gradle` file: `version '2.6.7'`
+2. Add your GitHub username and [personal access token](https://github.com/settings/tokens) to the `local.properties` file:
+
+```
+github_username=username_goes_here
+github_token=token_goes_here
+```
+
+3. Run the `publish` gradle task. For example, using the terminal `./gradlew publish`
