@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
 group = 'com.github.blue-triangle-tech'
-version = '2.6.7'
+version = '2.6.8'
 
 android {
     namespace 'com.bluetriangle.analytics'
@@ -39,7 +39,7 @@ afterEvaluate {
                 from components.release
                 groupId = 'com.github.blue-triangle-tech'
                 artifactId = 'btt-android-sdk'
-                version = '2.6.7'
+                version = '2.6.8'
             }
         }
     }
