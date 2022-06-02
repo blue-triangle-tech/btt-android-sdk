@@ -6,11 +6,11 @@
 Add the Maven repository to the project's `build.gradle` file:
 
 ```
-repositories {
-    ...
-    maven {
-       url = uri("https://maven.pkg.github.com/blue-triangle-tech/btt-android-sdk")
-    }
+allprojects {
+	repositories {
+		...
+		maven { url 'https://jitpack.io' }
+	}
 }
 ```
 
@@ -19,7 +19,7 @@ Add the package dependency to your application's `build.gradle` file:
 ```
 dependencies {
     ...
-    implementation 'com.bluetriangle:analytics:2.6.7'
+    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.6.8'
 }
 ```
 
@@ -89,16 +89,9 @@ When a timer is submitted to the tracker, the tracker sets any global fields suc
 
 ## Publishing the Analytics SDK Package
 
-The Analytics SDK is published through [GitHub Packages](https://github.com/orgs/blue-triangle-tech/packages?repo_name=btt-android-sdk).
+The Analytics SDK is published through [JitPack](https://jitpack.io/).
 
 To publish a new version of the library:
 
-1. Update the version in the Analytics library `build.gradle` file: `version '2.6.7'`
-2. Add your GitHub username and [personal access token](https://github.com/settings/tokens) to the `local.properties` file:
-
-```
-github_username=username_goes_here
-github_token=token_goes_here
-```
-
-3. Run the `publish` gradle task. For example, using the terminal `./gradlew publish`
+1. Update the version in the Analytics library `build.gradle` file and in this readme file.
+2. Create a [GitHub tag/release](https://github.com/blue-triangle-tech/btt-android-sdk/releases) for the new version.
