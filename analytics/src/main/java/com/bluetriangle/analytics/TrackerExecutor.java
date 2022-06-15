@@ -84,9 +84,9 @@ class TrackerExecutor extends ThreadPoolExecutor {
          * @param trackerUrl the tracker API URL to submit the data to
          * @param timer      the timer to submit
          */
-        TimerRunnable(final String trackerUrl, final Timer timer) {
+        TimerRunnable(@NonNull final BlueTriangleConfiguration configuration, @NonNull final Timer timer) {
             super();
-            this.trackerUrl = trackerUrl;
+            this.trackerUrl = configuration.getTrackerUrl();
             this.timer = timer;
         }
 
