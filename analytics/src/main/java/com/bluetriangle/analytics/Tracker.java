@@ -221,7 +221,7 @@ public class Tracker {
 
         timer.setFields(globalFields);
 
-        trackerExecutor.submit(new TrackerExecutor.TimerRunnable(configuration, timer));
+        trackerExecutor.submit(new TimerRunnable(configuration, timer));
     }
 
     /**
