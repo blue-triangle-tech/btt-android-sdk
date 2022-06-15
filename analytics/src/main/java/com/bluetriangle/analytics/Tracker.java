@@ -147,7 +147,7 @@ public class Tracker {
         setGlobalUserId(globalUserId);
         configuration.setGlobalUserId(globalUserId);
 
-        this.trackerExecutor = new TrackerExecutor();
+        this.trackerExecutor = new TrackerExecutor(configuration);
 
         if (configuration.isTrackCrashesEnabled()) {
             trackCrashes();

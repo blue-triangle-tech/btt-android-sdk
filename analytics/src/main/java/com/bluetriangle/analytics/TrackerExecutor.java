@@ -24,22 +24,22 @@ import javax.net.ssl.HttpsURLConnection;
  */
 class TrackerExecutor extends ThreadPoolExecutor {
 
-    private static final String LOG_TAG = "BTT_TIMER";
-
     private static final int DEFAULT_POOL_SIZE = 1;
     private static final int MAX_POOL_SIZE = 2;
     private static final long KEEP_ALIVE_TIME_MS = 0;
     private static final String THREAD_NAME_PREFIX = "BTT-";
 
-    TrackerExecutor() {
+    private final BlueTriangleConfiguration configuration;
+
+    TrackerExecutor(@NonNull BlueTriangleConfiguration configuration) {
         super(DEFAULT_POOL_SIZE, MAX_POOL_SIZE, KEEP_ALIVE_TIME_MS, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(), new TrackerThreadFactory());
+        this.configuration = configuration;
     }
 
     /**
      * Builds threads with the given runnable
      */
     private static class TrackerThreadFactory implements ThreadFactory {
-
         public Thread newThread(@NonNull final Runnable runnable) {
             return new TrackerThread(runnable);
         }
@@ -67,11 +67,10 @@ class TrackerExecutor extends ThreadPoolExecutor {
      * A runnable which submits a timer to the given API URL
      */
     static class TimerRunnable implements Runnable {
-
         /**
-         * Tracker URL to submit timers to
+         *  The tracker configuration
          */
-        final String trackerUrl;
+        final BlueTriangleConfiguration configuration;
 
         /**
          * The timer to submit
@@ -86,7 +85,7 @@ class TrackerExecutor extends ThreadPoolExecutor {
          */
         TimerRunnable(@NonNull final BlueTriangleConfiguration configuration, @NonNull final Timer timer) {
             super();
-            this.trackerUrl = configuration.getTrackerUrl();
+            this.configuration = configuration;
             this.timer = timer;
         }
 
@@ -94,7 +93,7 @@ class TrackerExecutor extends ThreadPoolExecutor {
         public void run() {
             HttpsURLConnection connection = null;
             try {
-                final URL url = new URL(this.trackerUrl);
+                final URL url = new URL(configuration.getTrackerUrl());
                // Log.d("Tracker URL", String.format("Tracker URL: %s", this.trackerUrl));
                 connection = (HttpsURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
@@ -115,18 +114,18 @@ class TrackerExecutor extends ThreadPoolExecutor {
                     }
                     bufferedReader.close();
                     final String responseBody = builder.toString();
-                    Log.e(LOG_TAG, String.format("Server Error submitting %s: %s - %s", timer, statusCode, responseBody));
+                    configuration.getLogger().error("Server Error submitting %s: %s - %s", timer, statusCode, responseBody);
                 }
                 connection.getHeaderField(0);
 
             } catch (Exception e) {
-                Log.e(LOG_TAG, String.format("Android Error submitting %s: %s", timer, e.getMessage()), e);
+                configuration.getLogger().error(e, "Android Error submitting %s: %s", timer, e.getMessage());
             } finally {
                 if (connection != null) {
                     connection.disconnect();
                 }
             }
-            Log.d(LOG_TAG, String.format("%s submitted successfully", timer));
+            configuration.getLogger().debug("%s submitted successfully", timer);
         }
 
         /**
