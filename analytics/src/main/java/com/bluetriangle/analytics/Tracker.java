@@ -54,7 +54,9 @@ public class Tracker {
     private final TrackerExecutor trackerExecutor;
 
     /**
+     * Performance monitoring threads
      */
+    private final HashMap<Long, PerformanceMonitor> performanceMonitors = new HashMap<>();
 
     /**
      * Initialize the tracker with default tracker URL and Site ID from string resources.
@@ -152,6 +154,13 @@ public class Tracker {
         }
     }
 
+    public @Nullable
+    ActivityManager getActivityManager() {
+        final Context ctx = context.get();
+        if (ctx != null) {
+            return (ActivityManager) ctx.getSystemService(ACTIVITY_SERVICE);
+        }
+        return null;
     }
 
     /**
@@ -178,6 +187,20 @@ public class Tracker {
         }
 
         return globalUserId;
+    }
+
+    @NonNull PerformanceMonitor createPerformanceMonitor() {
+        final PerformanceMonitor performanceMonitor = new PerformanceMonitor(configuration);
+        performanceMonitors.put(performanceMonitor.getId(), performanceMonitor);
+        return performanceMonitor;
+    }
+
+    @Nullable PerformanceMonitor getPerformanceMonitor(final long id) {
+        return performanceMonitors.get(id);
+    }
+
+    void clearPerformanceMonitor(final long id) {
+        performanceMonitors.remove(id);
     }
 
     /**
