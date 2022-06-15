@@ -18,8 +18,6 @@ import java.util.Map;
  * Additional attributes beyond the ones defined below can be set on a timer as well.
  */
 public class Timer implements Parcelable {
-    private static final String LOG_TAG = "BTT_TIMER";
-
     public static final String EXTRA_TIMER = "BTT_TIMER";
 
     public static final String FIELD_PAGE_NAME = "pageName";
@@ -89,6 +87,16 @@ public class Timer implements Parcelable {
         DEFAULT_VALUES.put(FIELD_PAGE_VALUE, "0");
         DEFAULT_VALUES.put(FIELD_CONTENT_GROUP_NAME, "");
     }
+
+    /**
+     * Tracker
+     */
+    private final Tracker tracker = Tracker.getInstance();
+
+    /**
+     * Logger
+     */
+    private final Logger logger = tracker.getConfiguration().getLogger();
 
     /**
      * A map of all fields for this timer to be sent to the cloud server
@@ -163,7 +171,7 @@ public class Timer implements Parcelable {
         if (start == 0) {
             start = System.currentTimeMillis();
         } else {
-            Log.e(LOG_TAG, "Timer already started");
+            logger.error("Timer already started");
         }
         return this;
     }
@@ -181,9 +189,9 @@ public class Timer implements Parcelable {
             setField(FIELD_DOM_INTERACTIVE, interactive);
         } else {
             if (start == 0) {
-                Log.e(LOG_TAG, "Timer never started");
+                logger.error("Timer never started");
             } else if (interactive != 0) {
-                Log.e(LOG_TAG, "Timer already marked as interactive");
+                logger.error("Timer already marked as interactive");
             }
         }
         return this;
@@ -202,9 +210,9 @@ public class Timer implements Parcelable {
             setField(FIELD_PAGE_TIME, end - start);
         } else {
             if (start == 0) {
-                Log.e(LOG_TAG, "Timer never started");
+                logger.error("Timer never started");
             } else if (end != 0) {
-                Log.e(LOG_TAG, "Timer already ended");
+                logger.error("Timer already ended");
             }
         }
 
@@ -246,7 +254,7 @@ public class Timer implements Parcelable {
         if (tracker != null) {
             tracker.submitTimer(this);
         } else {
-            Log.w(LOG_TAG, "Tracker not initialized");
+            logger.error("Tracker not initialized");
         }
     }
 
