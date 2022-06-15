@@ -19,7 +19,7 @@ import androidx.annotation.Nullable;
 /**
  * CPU monitoring adapted from https://eng.lyft.com/monitoring-cpu-performance-of-lyfts-android-applications-4e36fafffe12
  */
-public class PerformanceMonitor extends Thread {
+class PerformanceMonitor extends Thread {
     private static final String THREAD_NAME = "BTTPerformanceMonitor";
     private static final File CPU_STATS_FILE = new File("/proc/self/stat");
 

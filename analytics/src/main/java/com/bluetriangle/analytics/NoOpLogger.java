@@ -6,7 +6,7 @@ import androidx.annotation.Nullable;
 /**
  * A logger that does not actually log anything
  */
-final public class NoOpLogger extends Logger {
+final class NoOpLogger extends Logger {
 
     private static final NoOpLogger instance = new NoOpLogger();
 

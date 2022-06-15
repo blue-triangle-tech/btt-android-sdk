@@ -5,7 +5,7 @@ import java.util.Map;
 
 import androidx.annotation.NonNull;
 
-public class PerformanceReport {
+final class PerformanceReport {
 
     public static final String FIELD_MIN_CPU = "minCPU";
     public static final String FIELD_MAX_CPU = "maxCPU";

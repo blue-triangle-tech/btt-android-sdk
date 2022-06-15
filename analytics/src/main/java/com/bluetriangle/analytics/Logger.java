@@ -8,7 +8,7 @@ import androidx.annotation.Nullable;
 /**
  * abstract logger interface for handling logging
  */
-public abstract class Logger {
+abstract class Logger {
     /**
      * Log a message at the given log level
      *
