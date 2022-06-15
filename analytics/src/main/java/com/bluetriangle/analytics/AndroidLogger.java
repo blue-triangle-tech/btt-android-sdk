@@ -5,7 +5,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-final public class AndroidLogger extends Logger {
+final class AndroidLogger extends Logger {
     private static final String tag = "BlueTriangle";
     private final int logLevel;
 

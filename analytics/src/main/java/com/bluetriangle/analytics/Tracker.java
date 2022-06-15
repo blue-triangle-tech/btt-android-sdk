@@ -114,6 +114,10 @@ public class Tracker {
             }
         }
 
+        if (configuration.isDebug()) {
+            configuration.setLogger(new AndroidLogger(configuration.getDebugLevel()));
+        }
+
         instance = new Tracker(context, configuration);
         return instance;
     }
