@@ -2,7 +2,6 @@ package com.bluetriangle.analytics;
 
 import android.net.Uri;
 import android.os.Build;
-import androidx.annotation.RequiresApi;
 import android.util.Base64;
 import android.util.Log;
 
@@ -22,6 +21,9 @@ import java.util.HashMap;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+
 
 public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
     private static final String TAG = BtCrashHandler.class.getSimpleName();
@@ -31,35 +33,21 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
 
     private final Thread.UncaughtExceptionHandler defaultUEH;
 
-    private final String url;
+    private final BlueTriangleConfiguration configuration;
 
-    private final String trackerUrl;
 
-    private final String sitePrefix;
+    private Timer crashHitsTimer;
 
-    private final String siteSession;
-
-    private final String applicationName;
-
-    Timer crashHitsTimer;
-
-    public BtCrashHandler(final String url, final String sitePrefix, final String siteSession, final String trackerUrl,
-            final String applicationName) {
-        this.url = url;
-        this.trackerUrl = trackerUrl;
+    public BtCrashHandler(@NonNull final BlueTriangleConfiguration configuration) {
         this.defaultUEH = Thread.getDefaultUncaughtExceptionHandler();
-        this.sitePrefix = sitePrefix;
-        this.siteSession = siteSession;
-        this.crashHitsTimer = new Timer();
-        this.applicationName = applicationName;
+        this.configuration = configuration;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
-    public void uncaughtException(Thread t, Throwable e) {
+    public void uncaughtException(@NonNull Thread t, Throwable e) {
         final String timeStamp = String.valueOf(System.currentTimeMillis());
-        this.crashHitsTimer.start();
-
+        this.crashHitsTimer = new Timer().start();
         final Writer result = new StringWriter();
         final PrintWriter printWriter = new PrintWriter(result);
         e.printStackTrace(printWriter);
@@ -77,21 +65,28 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
         sb.append(lines[lines.length - 1].trim());
         final String stacktrace = sb.toString();
 
-        if (url != null) {
-            try {
-                sendToServer(stacktrace, timeStamp);
-            } catch (InterruptedException interruptedException) {
-                interruptedException.printStackTrace();
-            }
+        try {
+            sendToServer(stacktrace, timeStamp);
+        } catch (InterruptedException interruptedException) {
+            interruptedException.printStackTrace();
         }
 
         defaultUEH.uncaughtException(t, e);
     }
 
-    private void sendToServer(String stacktrace, String timeStamp) throws InterruptedException {
+    private void sendToServer(final String stacktrace, final String timeStamp) throws InterruptedException {
         Thread thread = new Thread(
-                new CrashReportRunnable(this.url, this.sitePrefix, stacktrace, this.siteSession, timeStamp,
-                        this.crashHitsTimer, this.trackerUrl, this.applicationName));
+                new CrashReportRunnable(
+                        configuration.getErrorReportingUrl(),
+                        configuration.getSiteId(),
+                        stacktrace,
+                        configuration.getSessionId(),
+                        timeStamp,
+                        crashHitsTimer,
+                        configuration.getTrackerUrl(),
+                        configuration.getApplicationName()
+                )
+        );
         thread.start();
         thread.join();
     }
@@ -172,7 +167,6 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
             final Tracker tracker = Tracker.getInstance();
             this.crashHitsTimer.setFields(tracker.globalFields);
 
-
             //first submit the hits data to the portal
             try {
                 final URL urlHits = new URL(this.trackerUrl);
@@ -212,6 +206,7 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
 
             // send crash data
             try {
+
                 final String siteUrl = Uri.parse(this.crashReportUrl)
                         .buildUpon()
                         .appendQueryParameter(Timer.FIELD_SITE_ID, sitePrefix)
@@ -223,7 +218,7 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
                         .appendQueryParameter(Timer.FIELD_NATIVE_OS,
                                 crashHitsTimer.getField(Timer.FIELD_NATIVE_OS, "Android"))
                         .appendQueryParameter(Timer.FIELD_DEVICE, crashHitsTimer.getField(Timer.FIELD_DEVICE, "Mobile"))
-                        .appendQueryParameter(Timer.FIELD_BROWSER, Tracker.BROWSER)
+                        .appendQueryParameter(Timer.FIELD_BROWSER, Constants.BROWSER)
                         .appendQueryParameter(Timer.FIELD_BROWSER_VERSION,
                                 crashHitsTimer.getField(Timer.FIELD_BROWSER_VERSION))
                         .appendQueryParameter(FIELD_ERROR_SESSION_ID, siteSession)
@@ -243,7 +238,6 @@ public class BtCrashHandler implements Thread.UncaughtExceptionHandler {
                         .build().toString();
                 Log.d(TAG, "Crash Report URL: " + siteUrl);
                 final URL url = new URL(siteUrl);
-
                 connection = (HttpsURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
                 connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
