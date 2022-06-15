@@ -3,13 +3,15 @@ package com.bluetriangle.android.demo;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.widget.Button;
+
+import com.bluetriangle.analytics.Timer;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import android.widget.Button;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import com.bluetriangle.analytics.Timer;
 
 public class MainActivity extends AppCompatActivity {
     private Timer timer;

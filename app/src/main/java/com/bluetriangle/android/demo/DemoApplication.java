@@ -15,8 +15,7 @@ public class DemoApplication extends Application {
         //https://d.btttag.com/analytics.rcv
         //sdkdemo26621z
         //bluetriangledemo500z
-        tracker = Tracker.init(getApplicationContext(), "sdkdemo26621z" );
-        tracker.trackCrashes();
+        tracker = Tracker.init(getApplicationContext());
         tracker.setSessionTrafficSegmentName("Demo Traffic Segment");
         //tracker.raiseTestException();
 
