@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import android.text.TextUtils;
 
+import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
@@ -97,6 +98,9 @@ public class Tracker {
         MetadataReader.applyMetadata(context, configuration);
 
         configuration.setApplicationName(Utils.getAppName(context));
+
+        final File cacheDir = new File(context.getCacheDir(), "bta");
+        configuration.setCacheDirectory(cacheDir.getAbsolutePath());
 
         if (!TextUtils.isEmpty(siteId)) {
             configuration.setSiteId(siteId);

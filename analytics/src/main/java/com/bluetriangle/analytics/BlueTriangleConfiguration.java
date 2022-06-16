@@ -40,6 +40,11 @@ public class BlueTriangleConfiguration {
     @NonNull private String trackerUrl = DEFAULT_TRACKER_URL;
     @NonNull private String errorReportingUrl = DEFAULT_ERROR_REPORTING_URL;
 
+    /**
+     * Cache directory path 
+     */
+    private String cacheDirectory = null;
+
     private boolean trackCrashesEnabled = false;
     private boolean performanceMonitorEnabled = true;
     private long performanceMonitorIntervalMs = TimeUnit.SECONDS.toMillis(1);
@@ -78,6 +83,24 @@ public class BlueTriangleConfiguration {
 
     public void setApplicationName(@Nullable String applicationName) {
         this.applicationName = applicationName;
+    }
+
+    /**
+     * get the cache directory path
+     *
+     * @return cache directory path
+     */
+    public String getCacheDirectory() {
+        return cacheDirectory;
+    }
+
+    /**
+     * Set the cache directory path
+     *
+     * @param cacheDirectory path to cache director
+     */
+    public void setCacheDirectory(String cacheDirectory) {
+        this.cacheDirectory = cacheDirectory;
     }
 
     public boolean isDebug() {
