@@ -5,9 +5,12 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.util.Base64;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Random;
 
 /**
@@ -115,17 +118,27 @@ final class Utils {
         return String.format("%s %s", appName, getOs());
     }
 
-    public static String getDeviceName() {
+    static String getDeviceName() {
         if (Build.MODEL.startsWith(Build.MANUFACTURER)) {
             return capitalize(Build.MODEL);
         }
         return capitalize(Build.MANUFACTURER) + " " + Build.MODEL;
     }
 
-    public static String capitalize(@Nullable final String str) {
+    static String capitalize(@Nullable final String str) {
         if (str == null || str.isEmpty()) {
             return "";
         }
         return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
+
+    /**
+     * Build the base 64 encoded data to POST to the API
+     *
+     * @return base 64 encoded JSON payload
+     * @throws UnsupportedEncodingException if UTF-8 encoding is not supported
+     */
+    static byte[] b64encode(final String data) throws UnsupportedEncodingException {
+        return Base64.encode(data.getBytes(Constants.UTF_8), Base64.DEFAULT);
     }
 }

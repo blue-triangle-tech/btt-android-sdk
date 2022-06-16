@@ -1,7 +1,5 @@
 package com.bluetriangle.analytics;
 
-import android.util.Base64;
-
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -48,7 +46,7 @@ final class TimerRunnable implements Runnable {
             connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
             connection.setDoOutput(true);
             final DataOutputStream dataOutputStream = new DataOutputStream(connection.getOutputStream());
-            dataOutputStream.write(buildBase64EncodedJson());
+            dataOutputStream.write(buildTimerData());
             dataOutputStream.close();
 
             final int statusCode = connection.getResponseCode();
@@ -77,23 +75,15 @@ final class TimerRunnable implements Runnable {
     }
 
     /**
-     * Builds a JSON string of the timer's fields
-     *
-     * @return a string of JSON representing the timer
-     */
-    private String buildJson() {
-        final JSONObject data = new JSONObject(timer.getFields());
-        //Log.d("crash data sent:", data.toString());
-        return data.toString();
-    }
-
-    /**
      * Build the base 64 encoded data to POST to the API
      *
      * @return base 64 encoded JSON payload
      * @throws UnsupportedEncodingException if UTF-8 encoding is not supported
      */
-    private byte[] buildBase64EncodedJson() throws UnsupportedEncodingException {
-        return Base64.encode(buildJson().getBytes("UTF-8"), Base64.DEFAULT);
+    private byte[] buildTimerData() throws UnsupportedEncodingException {
+        final JSONObject data = new JSONObject(timer.getFields());
+        final String jsonData = data.toString();
+        configuration.getLogger().debug("Timer Data: %s", jsonData);
+        return Utils.b64encode(jsonData);
     }
 }
