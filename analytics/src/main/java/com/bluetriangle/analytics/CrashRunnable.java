@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
@@ -100,19 +101,25 @@ final class CrashRunnable implements Runnable {
 
     private void submitCrashReport() {
         HttpsURLConnection connection = null;
+        final String crashReportUrl = buildCrashReportUrl();
+        configuration.getLogger().debug("Crash Report URL: %s", crashReportUrl);
+        final String payloadData = buildCrashReportData();
+        final URL url;
+        try {
+            url = new URL(crashReportUrl);
+        } catch (MalformedURLException e) {
+            configuration.getLogger().error(e, "Malformed crash report URL: %s", crashReportUrl);
+            return;
+        }
 
         try {
-            final String crashReportUrl = buildCrashReportUrl();
-            configuration.getLogger().debug("Crash Report URL: %s", crashReportUrl);
-
-            final URL url = new URL(crashReportUrl);
             connection = (HttpsURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
             connection.setDoOutput(true);
             connection.setDoInput(false);
             final DataOutputStream dataOutputStream = new DataOutputStream(connection.getOutputStream());
-            dataOutputStream.write(buildCrashReportData());
+            dataOutputStream.write(Utils.b64encode(payloadData));
             dataOutputStream.close();
 
             final int statusCode = connection.getResponseCode();
@@ -128,9 +135,14 @@ final class CrashRunnable implements Runnable {
                 final String responseBody = builder.toString();
                 configuration.getLogger().error("Error submitting crash report: %s - %s", statusCode, responseBody);
             }
+            // If server error, cache the payload and try again later
+            if (statusCode >= 500) {
+                cachePayload(crashReportUrl, payloadData);
+            }
             connection.getHeaderField(0);
         } catch (Exception e) {
             configuration.getLogger().error(e, "Error submitting crash report: %s", e.getMessage());
+            cachePayload(crashReportUrl, payloadData);
         } finally {
             if (connection != null) {
                 connection.disconnect();
@@ -139,12 +151,21 @@ final class CrashRunnable implements Runnable {
     }
 
     /**
-     * Build the base 64 encoded data to POST to the crash report API
+     * Cache the crash report to try and send again in the future
+     * @param url URL to send to
+     * @param payloadData payload data to send
+     */
+    private void cachePayload(final String url, final String payloadData) {
+        configuration.getLogger().info("Caching crash report");
+        configuration.getPayloadCache().cachePayload(new Payload(url, payloadData));
+    }
+
+    /**
+     * build the JSON payload of crash data
      *
      * @return base 64 encoded JSON payload
-     * @throws UnsupportedEncodingException if UTF-8 encoding is not supported
      */
-    private byte[] buildCrashReportData() throws UnsupportedEncodingException {
+    private String buildCrashReportData() {
         final HashMap<String, String> crashReport = new HashMap<>();
         crashReport.put("msg", this.stackTrace);
         crashReport.put("eTp", "NativeAppCrash");
@@ -158,6 +179,6 @@ final class CrashRunnable implements Runnable {
         final JSONArray crashDataArray = new JSONArray(Collections.singletonList(jsonCrashReport));
         final String jsonData = crashDataArray.toString();
         configuration.getLogger().debug("Crash Report Data: " + jsonData);
-        return Utils.b64encode(jsonData);
+        return jsonData;
     }
 }
