@@ -236,6 +236,14 @@ public class Tracker {
     }
 
     /**
+     * Submit a cached payload to the executor
+     * @param payload cached payload to retry sending
+     */
+    void submitPayload(@NonNull final Payload payload) {
+        trackerExecutor.submit(new PayloadRunnable(configuration, payload));
+    }
+
+    /**
      * set the current session ID for this tracker
      *
      * @param sessionId session ID to send with all timers submitted
