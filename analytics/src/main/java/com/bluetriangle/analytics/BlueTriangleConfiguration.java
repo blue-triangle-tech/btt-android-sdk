@@ -41,9 +41,19 @@ public class BlueTriangleConfiguration {
     @NonNull private String errorReportingUrl = DEFAULT_ERROR_REPORTING_URL;
 
     /**
-     * Cache directory path 
+     * Cache directory path
      */
     private String cacheDirectory = null;
+
+    /**
+     * Max items in the cache
+     */
+    private int maxCacheItems = 100;
+
+    /**
+     * Max attmepts to resend a payload
+     */
+    private int maxAttempts = 3;
 
     private boolean trackCrashesEnabled = false;
     private boolean performanceMonitorEnabled = true;
@@ -101,6 +111,22 @@ public class BlueTriangleConfiguration {
      */
     public void setCacheDirectory(String cacheDirectory) {
         this.cacheDirectory = cacheDirectory;
+    }
+
+    public int getMaxCacheItems() {
+        return maxCacheItems;
+    }
+
+    public void setMaxCacheItems(int maxCacheItems) {
+        this.maxCacheItems = maxCacheItems;
+    }
+
+    public int getMaxAttempts() {
+        return maxAttempts;
+    }
+
+    public void setMaxAttempts(int maxAttempts) {
+        this.maxAttempts = maxAttempts;
     }
 
     public boolean isDebug() {
