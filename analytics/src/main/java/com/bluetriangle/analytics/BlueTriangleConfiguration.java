@@ -55,6 +55,11 @@ public class BlueTriangleConfiguration {
      */
     private int maxAttempts = 3;
 
+    /**
+     * the instance to cache payloads
+     */
+    private PayloadCache payloadCache = null;
+
     private boolean trackCrashesEnabled = false;
     private boolean performanceMonitorEnabled = true;
     private long performanceMonitorIntervalMs = TimeUnit.SECONDS.toMillis(1);
@@ -127,6 +132,17 @@ public class BlueTriangleConfiguration {
 
     public void setMaxAttempts(int maxAttempts) {
         this.maxAttempts = maxAttempts;
+    }
+
+    public PayloadCache getPayloadCache() {
+        if (payloadCache == null) {
+            payloadCache = new PayloadCache(this);
+        }
+        return payloadCache;
+    }
+
+    public void setPayloadCache(PayloadCache payloadCache) {
+        this.payloadCache = payloadCache;
     }
 
     public boolean isDebug() {
