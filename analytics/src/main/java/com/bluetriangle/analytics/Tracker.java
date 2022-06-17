@@ -3,10 +3,10 @@ package com.bluetriangle.analytics;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.pm.ApplicationInfo;
-import android.os.Build;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
 import android.text.TextUtils;
 
 import java.io.File;
@@ -100,6 +100,11 @@ public class Tracker {
         configuration.setApplicationName(Utils.getAppName(context));
 
         final File cacheDir = new File(context.getCacheDir(), "bta");
+        if (!cacheDir.exists()) {
+            if (!cacheDir.mkdir()) {
+                configuration.getLogger().error("Error creating cache directory: %s", cacheDir.getAbsolutePath());
+            }
+        }
         configuration.setCacheDirectory(cacheDir.getAbsolutePath());
 
         if (!TextUtils.isEmpty(siteId)) {
@@ -197,13 +202,15 @@ public class Tracker {
         return globalUserId;
     }
 
-    @NonNull PerformanceMonitor createPerformanceMonitor() {
+    @NonNull
+    PerformanceMonitor createPerformanceMonitor() {
         final PerformanceMonitor performanceMonitor = new PerformanceMonitor(configuration);
         performanceMonitors.put(performanceMonitor.getId(), performanceMonitor);
         return performanceMonitor;
     }
 
-    @Nullable PerformanceMonitor getPerformanceMonitor(final long id) {
+    @Nullable
+    PerformanceMonitor getPerformanceMonitor(final long id) {
         return performanceMonitors.get(id);
     }
 
@@ -213,7 +220,7 @@ public class Tracker {
 
     /**
      * Submit a timer to the tracker to be sent to the cloud server.
-     *
+     * <p>
      * If the timer has not been ended, it will be ended on submit.
      *
      * @param timer The timer to submit
