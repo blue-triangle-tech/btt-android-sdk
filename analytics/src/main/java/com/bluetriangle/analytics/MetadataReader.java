@@ -15,6 +15,8 @@ final class MetadataReader {
     private static final String SITE_ID = "com.blue-triangle.site-id";
     private static final String DEBUG = "com.blue-triangle.debug";
     private static final String DEBUG_LEVEL = "com.blue-triangle.debug.level";
+    private static final String MAX_CACHE_ITEMS = "com.blue-triangle.cache.max-items";
+    private static final String MAX_RETRY_ATTEMPTS = "com.blue-triangle.cache.max-retry-attempts";
     private static final String PERFORMANCE_MONITOR_ENABLE = "com.blue-triangle.performance-monitor.enable";
     private static final String PERFORMANCE_MONITOR_INTERVAL = "com.blue-triangle.performance-monitor.interval-ms";
     private static final String TRACK_CRASHES_ENABLE = "com.blue-triangle.track-crashes.enable";
@@ -34,6 +36,9 @@ final class MetadataReader {
 
                 configuration.setDebug(readBool(metadata, DEBUG, configuration.isDebug()));
                 configuration.setDebugLevel(readInt(metadata, DEBUG_LEVEL, configuration.getDebugLevel()));
+
+                configuration.setMaxCacheItems(readInt(metadata, MAX_CACHE_ITEMS, configuration.getMaxCacheItems()));
+                configuration.setMaxAttempts(readInt(metadata, MAX_RETRY_ATTEMPTS, configuration.getMaxAttempts()));
 
                 configuration.setPerformanceMonitorEnabled(
                         readBool(metadata, PERFORMANCE_MONITOR_ENABLE, configuration.isPerformanceMonitorEnabled()));
