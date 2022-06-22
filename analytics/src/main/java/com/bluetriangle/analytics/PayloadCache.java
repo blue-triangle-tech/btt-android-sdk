@@ -65,16 +65,18 @@ final class PayloadCache {
     }
 
     public void cachePayload(@NonNull final Payload payload) {
-        if (payload.payloadAttempts >= configuration.getMaxAttempts()) {
-            configuration.getLogger().warn("Payload %s has exceeded max attempts %s", payload.id, payload.payloadAttempts);
-            return;
+        if (maxSize > 0) {
+            if (payload.payloadAttempts >= configuration.getMaxAttempts()) {
+                configuration.getLogger().warn("Payload %s has exceeded max attempts %s", payload.id, payload.payloadAttempts);
+                return;
+            }
+            try {
+                payload.serialize(directory);
+            } catch (IOException e) {
+                configuration.getLogger().error(e, "Failed to cache payload %s", payload.id);
+            }
+            rotateCacheIfNeeded();
         }
-        try {
-            payload.serialize(directory);
-        } catch (IOException e) {
-            configuration.getLogger().error(e, "Failed to cache payload %s", payload.id);
-        }
-        rotateCacheIfNeeded();
     }
 
     @Nullable
