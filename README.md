@@ -27,20 +27,57 @@ dependencies {
 
 ### Initializing the Tracker
 
-The `Tracker` is a singleton instance that is responsible for sending timers to Blue Triangle. Before any timers can be tracked, the `Tracker` needs to be initialized. The best place to do this in the Android `Application`. In the `Application`, the tracker can be initialized via the `init` static methods. If a site ID is not set during the initialization, it will attempt to look up the site ID via the application's String resources with a name `btt_site_id` as shown below. If a tracker URL is not provided, the default tracker URL will be used.
+The `Tracker` is a singleton instance that is responsible for sending timers to Blue Triangle. Before any timers can be tracked, the `Tracker` needs to be initialized. 
 
-```
-<string name="btt_site_id" translatable="false">BTT_SITE_ID</string>
+The best place to do this in the Android `Application`. In the `Application`, the tracker can be initialized via the `init` static methods. 
+
+If a site ID is not set during the initialization, it will attempt to look up the site ID via the application's meta data (as well as fallback to the deprecated String resource lookup).  If a tracker URL is not provided, the default tracker URL will be used.
+
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <meta-data android:name="com.blue-triangle.site-id" android:value="SITE_ID_HERE" />
+    </application>
+</manifest>
 ```
 
 ```java
-// init with all defaults, use site ID in string resources file
+// init with all defaults, use site ID from meta data
 Tracker.init(getApplicationContext());
 // init with given site ID
 Tracker.init(getApplicationContext(), "BTT_SITE_ID");
 // init with given site ID and tracker URL
 Tracker.init(getApplicationContext(), "BTT_SITE_ID", "https://webhook.site/5afd62e7-acde-4cf3-825c-c40c491b0714");
 ```
+
+### Configuration
+
+The tracker's configuration can be updated via `BlueTriangleConfiguration` object returned by `tracker.getConfiguration()` after the tracker is initialized.
+
+The tracker's configuration can also be set using metadata tags in the application's `AndroidManifest.xml` file.
+
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <meta-data android:name="com.blue-triangle.site-id" android:value="SITE_ID_HERE" />
+        <meta-data android:name="com.blue-triangle.debug" android:value="true" />
+        <meta-data android:name="com.blue-triangle.debug.level" android:value="2" />
+        <meta-data android:name="com.blue-triangle.performance-monitor.enable" android:value="true" />
+        <meta-data android:name="com.blue-triangle.track-crashes.enable" android:value="true" />
+    </application>
+</manifest>
+```
+
+The current available meta data configuration names:
+
+* `com.blue-triangle.site-id` configures the tracker's site ID.
+* `com.blue-triangle.debug` enables or disables debug logging.
+* `com.blue-triangle.debug.level` allows setting the debug logging level using the int value for [Android's log levels](https://developer.android.com/reference/android/util/Log#DEBUG).
+* `com.blue-triangle.cache.max-items` sets the max number of timers and crashes to cache and retry in the event the timers cannot be sent to the server. Set this to 0 to disable this feature.
+* `com.blue-triangle.cache.max-retry-attempts` sets the max number of times a timer can be re-tried.
+* `com.blue-triangle.performance-monitor.enable` enables or disables tracking of memory and CPU usage.
+* `com.blue-triangle.performance-monitor.interval-ms` adjusts the interval in milliseconds of how often memory and CPU measurements are taken.
+* `com.blue-triangle.track-crashes.enable` enable or disable collecting and sending crash reports to the server.
 
 ### Using Timers
 
