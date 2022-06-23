@@ -124,6 +124,17 @@ timer.end().submit();
 When a timer is submitted to the tracker, the tracker sets any global fields such as site ID, session ID, and user ID. Additional global fields may be set as needed and applied to all timers. The timer's fields are then converted to JSON and sent via HTTP POST to the configured tracker URL.
 
 
+## Caching
+
+To support offline usage tracking, timer and crash reports that cannot be sent immediately will be cached in the application's cache directory and retried when a successful submission of a timer occurs.
+
+The max number of timer and crashes to cache can be configured and this feature can be completely disabled by setting the max cache items configuration to 0. The default is 100.
+
+If the cache becomes full, the cache will be rotated to remove the oldest item and insert the newest item.
+
+Also the max number of retry attempts can be configured per timer/crash report as well.  If the max number of retries is exceeded, the timer/crash is dropped. The default is 3 tries.
+
+
 ## Publishing the Analytics SDK Package
 
 The Analytics SDK is published through [JitPack](https://jitpack.io/).
