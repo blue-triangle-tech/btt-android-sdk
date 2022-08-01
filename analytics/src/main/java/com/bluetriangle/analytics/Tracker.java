@@ -405,6 +405,18 @@ public class Tracker {
     }
 
     /**
+     * Manually track an error exception caught by your code
+     * @param message optional message included with the stack trace
+     * @param exception the exception to track
+     */
+    public void trackException(@Nullable final String message, @NonNull final Throwable exception) {
+        final String timeStamp = String.valueOf(System.currentTimeMillis());
+        final Timer crashHitsTimer = new Timer().start();
+        final String stacktrace = Utils.exceptionToStacktrace(message, exception);
+        trackerExecutor.submit(new CrashRunnable(configuration, stacktrace, timeStamp, crashHitsTimer));
+    }
+
+    /**
      * Get the Blue Triangle configuration
      *
      * @return the configuration
