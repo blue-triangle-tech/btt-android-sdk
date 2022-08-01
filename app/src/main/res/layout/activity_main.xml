@@ -48,6 +48,11 @@
         android:text="Start Background Thread Timer" />
 
     <Button
+        android:id="@+id/button_track_catch_exception"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Track Caught Exception" />
+    <Button
         android:id="@+id/button_crash"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
