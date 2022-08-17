@@ -33,6 +33,8 @@ public class BlueTriangleConfiguration {
      */
     @Nullable private String applicationName;
 
+    @Nullable private String userAgent;
+
     private boolean debug = false;
     private int debugLevel = Log.DEBUG;
     @Nullable private Logger logger = NoOpLogger.getInstance();
@@ -89,6 +91,15 @@ public class BlueTriangleConfiguration {
 
     public void setGlobalUserId(@Nullable String globalUserId) {
         this.globalUserId = globalUserId;
+    }
+
+    @Nullable
+    public String getUserAgent() {
+        return userAgent;
+    }
+
+    public void setUserAgent(@Nullable String userAgent) {
+        this.userAgent = userAgent;
     }
 
     @Nullable
