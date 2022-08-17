@@ -20,6 +20,7 @@ final class MetadataReader {
     private static final String PERFORMANCE_MONITOR_ENABLE = "com.blue-triangle.performance-monitor.enable";
     private static final String PERFORMANCE_MONITOR_INTERVAL = "com.blue-triangle.performance-monitor.interval-ms";
     private static final String TRACK_CRASHES_ENABLE = "com.blue-triangle.track-crashes.enable";
+    private static final String NETWORK_SAMPLE_RATE = "com.blue-triangle.sample-rate.network";
 
     private MetadataReader() {
     }
@@ -40,15 +41,13 @@ final class MetadataReader {
                 configuration.setMaxCacheItems(readInt(metadata, MAX_CACHE_ITEMS, configuration.getMaxCacheItems()));
                 configuration.setMaxAttempts(readInt(metadata, MAX_RETRY_ATTEMPTS, configuration.getMaxAttempts()));
 
-                configuration.setPerformanceMonitorEnabled(
-                        readBool(metadata, PERFORMANCE_MONITOR_ENABLE, configuration.isPerformanceMonitorEnabled()));
+                configuration.setPerformanceMonitorEnabled(readBool(metadata, PERFORMANCE_MONITOR_ENABLE, configuration.isPerformanceMonitorEnabled()));
 
                 configuration.setPerformanceMonitorIntervalMs(
-                        readLong(metadata, PERFORMANCE_MONITOR_INTERVAL,
-                                configuration.getPerformanceMonitorIntervalMs()));
+                        readLong(metadata, PERFORMANCE_MONITOR_INTERVAL, configuration.getPerformanceMonitorIntervalMs()));
 
-                configuration.setTrackCrashesEnabled(
-                        readBool(metadata, TRACK_CRASHES_ENABLE, configuration.isTrackCrashesEnabled()));
+                configuration.setTrackCrashesEnabled(readBool(metadata, TRACK_CRASHES_ENABLE, configuration.isTrackCrashesEnabled()));
+                configuration.setNetworkSampleRate(readDouble(metadata, NETWORK_SAMPLE_RATE, configuration.getNetworkSampleRate()));
             }
         } catch (Throwable e) {
             configuration.getLogger().error(e, "Error reading metadata configuration");
@@ -56,14 +55,14 @@ final class MetadataReader {
     }
 
 
-    private static @Nullable Bundle getMetadata(@NonNull final Context context) throws PackageManager.NameNotFoundException {
+    private static @Nullable
+    Bundle getMetadata(@NonNull final Context context) throws PackageManager.NameNotFoundException {
         final ApplicationInfo app = context.getPackageManager()
                 .getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
         return app.metaData;
     }
 
-    private static boolean readBool(final @NonNull Bundle metadata, final @NonNull String key,
-            final boolean defaultValue) {
+    private static boolean readBool(final @NonNull Bundle metadata, final @NonNull String key, final boolean defaultValue) {
         final boolean value = metadata.getBoolean(key, defaultValue);
         return value;
     }
@@ -76,6 +75,15 @@ final class MetadataReader {
 
     private static int readInt(final @NonNull Bundle metadata, final @NonNull String key, final int defaultValue) {
         final int value = metadata.getInt(key, defaultValue);
+        return value;
+    }
+
+    private static double readDouble(final @NonNull Bundle metadata, final @NonNull String key, final double defaultValue) {
+        // manifest meta-data only reads float
+        final Double value = ((Float) metadata.getFloat(key, -1)).doubleValue();
+        if (value < 0) {
+            return defaultValue;
+        }
         return value;
     }
 
