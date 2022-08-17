@@ -106,7 +106,7 @@ final class Utils {
         return "UNKNOWN";
     }
 
-    static String getOs() {
+    static @NonNull String getOs() {
         return String.format("Android %s", Build.VERSION.RELEASE);
     }
 
@@ -114,15 +114,34 @@ final class Utils {
         return context.getResources().getBoolean(R.bool.isTablet);
     }
 
-    static String getAppName(@NonNull final Context context) {
-        final ApplicationInfo applicationInfo = context.getApplicationInfo();
-        final int appNameStringResourceId = applicationInfo.labelRes;
-        final String appName = appNameStringResourceId == 0 ? applicationInfo.nonLocalizedLabel.toString() :
-                context.getString(appNameStringResourceId);
-        return String.format("%s %s", appName, getOs());
+    static @NonNull String getAppName(@NonNull final Context context) {
+        try {
+            final ApplicationInfo applicationInfo = context.getApplicationInfo();
+            final int appNameStringResourceId = applicationInfo.labelRes;
+            final String appName = appNameStringResourceId == 0 ? applicationInfo.nonLocalizedLabel.toString() :
+                    context.getString(appNameStringResourceId);
+            return appName;
+        } catch (Exception e) {
+            return "";
+        }
     }
 
-    static String getDeviceName() {
+    static @NonNull String getAppNameAndOs(@NonNull final Context context) {
+        return String.format("%s %s", getAppName(context), getOs());
+    }
+
+    /**
+     * Builds a user agent string
+     * @param context application context
+     * @return User-Agent: My-App/1.0 iOS/15.5 (iPhone14,2) btt-swift-sdk/3.1.0
+     */
+    static String buildUserAgent(@NonNull final Context context) {
+        final String appName = getAppName(context);
+        final String appVersion = getAppVersion(context);
+        return String.format("%s/%s Android/%s (%s) btt-android-sdk/%s", appName, appVersion, Build.VERSION.RELEASE, getDeviceName(), BuildConfig.SDK_VERSION);
+    }
+
+    static @NonNull String getDeviceName() {
         if (Build.MODEL.startsWith(Build.MANUFACTURER)) {
             return capitalize(Build.MODEL);
         }
