@@ -97,7 +97,8 @@ public class Tracker {
         final BlueTriangleConfiguration configuration = new BlueTriangleConfiguration();
         MetadataReader.applyMetadata(context, configuration);
 
-        configuration.setApplicationName(Utils.getAppName(context));
+        configuration.setApplicationName(Utils.getAppNameAndOs(context));
+        configuration.setUserAgent(Utils.buildUserAgent(context));
 
         final File cacheDir = new File(context.getCacheDir(), "bta");
         if (!cacheDir.exists()) {
