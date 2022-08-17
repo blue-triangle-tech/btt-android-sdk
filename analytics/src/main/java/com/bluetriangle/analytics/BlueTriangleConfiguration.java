@@ -35,6 +35,17 @@ public class BlueTriangleConfiguration {
 
     @Nullable private String userAgent;
 
+    /**
+     * Percentage of sessions for which network calls will be captured. A value of `0.05` means that 5% of session's network requests will be tracked.
+     * A value of `0.0` means that no network requests will be captured for the session, a value of `1.0` will track all network requests for a session.
+     */
+    private double networkSampleRate = 0.05;
+
+    /**
+     * if network requests should be captured
+     */
+    private boolean shouldSampleNetwork = false;
+
     private boolean debug = false;
     private int debugLevel = Log.DEBUG;
     @Nullable private Logger logger = NoOpLogger.getInstance();
@@ -100,6 +111,29 @@ public class BlueTriangleConfiguration {
 
     public void setUserAgent(@Nullable String userAgent) {
         this.userAgent = userAgent;
+    }
+
+    public double getNetworkSampleRate() {
+        return networkSampleRate;
+    }
+
+    /**
+     * Set network sample rate percentage as a value between 0.0 and 1.0.
+     * Updating this value will cause re-check if should sample.
+     *
+     * @param networkSampleRate the sample percentage rate between 0.0 and 1.0
+     */
+    public void setNetworkSampleRate(double networkSampleRate) {
+        this.networkSampleRate = Math.min(Math.max(networkSampleRate, 0), 1);
+        setShouldSampleNetwork(Utils.shouldSample(this.networkSampleRate));
+    }
+
+    public boolean shouldSampleNetwork() {
+        return shouldSampleNetwork;
+    }
+
+    public void setShouldSampleNetwork(boolean shouldSampleNetwork) {
+        this.shouldSampleNetwork = shouldSampleNetwork;
     }
 
     @Nullable

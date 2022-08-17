@@ -15,6 +15,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.security.SecureRandom;
 import java.util.Random;
 
 /**
@@ -187,5 +188,15 @@ final class Utils {
         sb.append(lines[lines.length - 1].trim());
         final String stacktrace = sb.toString();
         return stacktrace;
+    }
+
+    /**
+     * determine if samples should be captured
+     * @param sampleRate the rate at which samples should captured
+     * @return true if this instance should sample, false otherwise
+     */
+    static boolean shouldSample(double sampleRate) {
+        final SecureRandom random = new SecureRandom();
+        return !(sampleRate < random.nextDouble());
     }
 }
