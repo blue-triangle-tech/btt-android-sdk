@@ -58,8 +58,9 @@ final class TimerRunnable implements Runnable {
 
         try {
             connection = (HttpsURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+            connection.setRequestMethod(Constants.METHOD_POST);
+            connection.setRequestProperty(Constants.HEADER_CONTENT_TYPE, Constants.CONTENT_TYPE_JSON);
+            connection.setRequestProperty(Constants.HEADER_USER_AGENT, configuration.getUserAgent());
             connection.setDoOutput(true);
             final DataOutputStream dataOutputStream = new DataOutputStream(connection.getOutputStream());
             dataOutputStream.write(Utils.b64encode(payloadData));
