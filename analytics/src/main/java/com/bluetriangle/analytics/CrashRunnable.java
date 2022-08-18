@@ -83,7 +83,7 @@ final class CrashRunnable implements Runnable {
                 .appendQueryParameter(FIELD_ERROR_NAVIGATION_START, crashHitsTimer.getField(Timer.FIELD_NST))
                 .appendQueryParameter(Timer.FIELD_PAGE_NAME, crashHitsTimer.getField(Timer.FIELD_PAGE_NAME, "Android Crash " + deviceName))
                 .appendQueryParameter(Timer.FIELD_TRAFFIC_SEGMENT_NAME, crashHitsTimer.getField(Timer.FIELD_TRAFFIC_SEGMENT_NAME, "Android Crash"))
-                .appendQueryParameter(Timer.FIELD_NATIVE_OS, crashHitsTimer.getField(Timer.FIELD_NATIVE_OS, "Android"))
+                .appendQueryParameter(Timer.FIELD_NATIVE_OS, crashHitsTimer.getField(Timer.FIELD_NATIVE_OS, Constants.OS))
                 .appendQueryParameter(Timer.FIELD_DEVICE, crashHitsTimer.getField(Timer.FIELD_DEVICE, "Mobile"))
                 .appendQueryParameter(Timer.FIELD_BROWSER, Constants.BROWSER)
                 .appendQueryParameter(Timer.FIELD_BROWSER_VERSION, crashHitsTimer.getField(Timer.FIELD_BROWSER_VERSION))
@@ -93,7 +93,7 @@ final class CrashRunnable implements Runnable {
                 .appendQueryParameter(Timer.FIELD_AB_TEST_ID, crashHitsTimer.getField(Timer.FIELD_AB_TEST_ID, "Default"))
                 .appendQueryParameter(Timer.FIELD_DATACENTER, crashHitsTimer.getField(Timer.FIELD_DATACENTER, "Default"))
                 .appendQueryParameter(Timer.FIELD_CAMPAIGN_NAME, crashHitsTimer.getField(Timer.FIELD_CAMPAIGN_NAME, ""))
-                .appendQueryParameter(Timer.FIELD_CAMPAIGN_MEDIUM, crashHitsTimer.getField(Timer.FIELD_CAMPAIGN_MEDIUM, "Android"))
+                .appendQueryParameter(Timer.FIELD_CAMPAIGN_MEDIUM, crashHitsTimer.getField(Timer.FIELD_CAMPAIGN_MEDIUM, Constants.OS))
                 .appendQueryParameter(Timer.FIELD_CAMPAIGN_SOURCE, crashHitsTimer.getField(Timer.FIELD_CAMPAIGN_SOURCE, "Crash"))
                 .build().toString();
         return crashReportUrl;

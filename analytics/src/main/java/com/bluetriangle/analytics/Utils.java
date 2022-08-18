@@ -108,7 +108,7 @@ final class Utils {
     }
 
     static @NonNull String getOs() {
-        return String.format("Android %s", Build.VERSION.RELEASE);
+        return String.format("%s %s", Constants.OS, Build.VERSION.RELEASE);
     }
 
     static boolean isTablet(@NonNull final Context context) {
