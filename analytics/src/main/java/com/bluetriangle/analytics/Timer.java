@@ -55,6 +55,7 @@ public class Timer implements Parcelable {
     public static final String FIELD_NATIVE_OS = "os";
     public static final String FIELD_DEVICE = "device";
     public static final String FIELD_BROWSER_VERSION = "browserVersion";
+    public static final String FIELD_SDK_VERSION = "btV";
 
     /**
      * A map of fields and their associated default values

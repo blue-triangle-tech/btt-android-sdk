@@ -153,6 +153,7 @@ public class Tracker {
         final boolean isTablet = Utils.isTablet(context);
         globalFields.put(Timer.FIELD_DEVICE, isTablet ? "Tablet" : "Mobile");
         globalFields.put(Timer.FIELD_BROWSER_VERSION, String.format("%s-%s-%s", Constants.BROWSER, appVersion, os));
+        globalFields.put(Timer.FIELD_SDK_VERSION, BuildConfig.SDK_VERSION);
 
         final String globalUserId = getOrCreateGlobalUserId();
         final String sessionId = Utils.generateRandomId();
