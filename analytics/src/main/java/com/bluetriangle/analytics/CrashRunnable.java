@@ -8,7 +8,6 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
@@ -17,9 +16,6 @@ import java.util.HashMap;
 import javax.net.ssl.HttpsURLConnection;
 
 final class CrashRunnable implements Runnable {
-
-    private static final String FIELD_ERROR_NAVIGATION_START = "nStart";
-    private static final String FIELD_ERROR_SESSION_ID = "sessionID";
 
     /**
      * Tracker configuration
@@ -80,14 +76,14 @@ final class CrashRunnable implements Runnable {
         final String crashReportUrl = Uri.parse(configuration.getErrorReportingUrl())
                 .buildUpon()
                 .appendQueryParameter(Timer.FIELD_SITE_ID, configuration.getSiteId())
-                .appendQueryParameter(FIELD_ERROR_NAVIGATION_START, crashHitsTimer.getField(Timer.FIELD_NST))
+                .appendQueryParameter(Timer.FIELD_NAVIGATION_START, crashHitsTimer.getField(Timer.FIELD_NST))
                 .appendQueryParameter(Timer.FIELD_PAGE_NAME, crashHitsTimer.getField(Timer.FIELD_PAGE_NAME, "Android Crash " + deviceName))
                 .appendQueryParameter(Timer.FIELD_TRAFFIC_SEGMENT_NAME, crashHitsTimer.getField(Timer.FIELD_TRAFFIC_SEGMENT_NAME, "Android Crash"))
                 .appendQueryParameter(Timer.FIELD_NATIVE_OS, crashHitsTimer.getField(Timer.FIELD_NATIVE_OS, Constants.OS))
                 .appendQueryParameter(Timer.FIELD_DEVICE, crashHitsTimer.getField(Timer.FIELD_DEVICE, "Mobile"))
                 .appendQueryParameter(Timer.FIELD_BROWSER, Constants.BROWSER)
                 .appendQueryParameter(Timer.FIELD_BROWSER_VERSION, crashHitsTimer.getField(Timer.FIELD_BROWSER_VERSION))
-                .appendQueryParameter(FIELD_ERROR_SESSION_ID, configuration.getSessionId())
+                .appendQueryParameter(Timer.FIELD_LONG_SESSION_ID, configuration.getSessionId())
                 .appendQueryParameter(Timer.FIELD_PAGE_TIME, crashHitsTimer.getField("pgTm"))
                 .appendQueryParameter(Timer.FIELD_CONTENT_GROUP_NAME, crashHitsTimer.getField(Timer.FIELD_CONTENT_GROUP_NAME, deviceName))
                 .appendQueryParameter(Timer.FIELD_AB_TEST_ID, crashHitsTimer.getField(Timer.FIELD_AB_TEST_ID, "Default"))

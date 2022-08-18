@@ -22,6 +22,7 @@ public class Timer implements Parcelable {
 
     public static final String FIELD_PAGE_NAME = "pageName";
     public static final String FIELD_NST = "nst";
+    public static final String FIELD_NAVIGATION_START = "nStart";
     public static final String FIELD_UNLOAD_EVENT_START = "unloadEventStart";
     public static final String FIELD_CONTENT_GROUP_NAME = "pageType";
     public static final String FIELD_PAGE_VALUE = "pageValue";
@@ -40,6 +41,7 @@ public class Timer implements Parcelable {
     public static final String FIELD_URL = "thisURL";
     public static final String FIELD_BVZN = "bvzn";
     public static final String FIELD_OS = "EUOS";
+    public static final String FIELD_LONG_SESSION_ID = "sessionID";
     public static final String FIELD_SESSION_ID = "sID";
     public static final String FIELD_GLOBAL_USER_ID = "gID";
     public static final String FIELD_CUSTOM_VALUE_4 = "CV4";
