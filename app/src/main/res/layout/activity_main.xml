@@ -58,4 +58,10 @@
         android:layout_height="wrap_content"
         android:text="CRASH" />
 
+    <Button
+        android:id="@+id/button_network"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Capture Network Requests" />
+
 </LinearLayout>
