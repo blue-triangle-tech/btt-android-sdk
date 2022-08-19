@@ -80,7 +80,7 @@ final class CrashRunnable implements Runnable {
                 .appendQueryParameter(Timer.FIELD_PAGE_NAME, crashHitsTimer.getField(Timer.FIELD_PAGE_NAME, "Android Crash " + deviceName))
                 .appendQueryParameter(Timer.FIELD_TRAFFIC_SEGMENT_NAME, crashHitsTimer.getField(Timer.FIELD_TRAFFIC_SEGMENT_NAME, "Android Crash"))
                 .appendQueryParameter(Timer.FIELD_NATIVE_OS, crashHitsTimer.getField(Timer.FIELD_NATIVE_OS, Constants.OS))
-                .appendQueryParameter(Timer.FIELD_DEVICE, crashHitsTimer.getField(Timer.FIELD_DEVICE, "Mobile"))
+                .appendQueryParameter(Timer.FIELD_DEVICE, crashHitsTimer.getField(Timer.FIELD_DEVICE, Constants.DEVICE_MOBILE))
                 .appendQueryParameter(Timer.FIELD_BROWSER, Constants.BROWSER)
                 .appendQueryParameter(Timer.FIELD_BROWSER_VERSION, crashHitsTimer.getField(Timer.FIELD_BROWSER_VERSION))
                 .appendQueryParameter(Timer.FIELD_LONG_SESSION_ID, configuration.getSessionId())

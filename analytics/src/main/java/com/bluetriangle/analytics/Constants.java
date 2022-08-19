@@ -9,6 +9,8 @@ final class Constants {
      */
     static final String OS = "Android";
     static final String BROWSER = "Native App";
+    static final String DEVICE_TABLET = "Tablet";
+    static final String DEVICE_MOBILE = "Mobile";
 
     static final String UTF_8 = "UTF-8";
 

@@ -156,7 +156,7 @@ public class Tracker {
         final String os = Utils.getOs();
         final String appVersion = Utils.getAppVersion(context);
         final boolean isTablet = Utils.isTablet(context);
-        globalFields.put(Timer.FIELD_DEVICE, isTablet ? "Tablet" : "Mobile");
+        globalFields.put(Timer.FIELD_DEVICE, isTablet ? Constants.DEVICE_TABLET : Constants.DEVICE_MOBILE);
         globalFields.put(Timer.FIELD_BROWSER_VERSION, String.format("%s-%s-%s", Constants.BROWSER, appVersion, os));
         globalFields.put(Timer.FIELD_SDK_VERSION, BuildConfig.SDK_VERSION);
 
