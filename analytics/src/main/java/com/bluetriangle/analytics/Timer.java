@@ -181,6 +181,7 @@ public class Timer implements Parcelable {
     synchronized public Timer start() {
         if (start == 0) {
             start = System.currentTimeMillis();
+            tracker.setMostRecentTimer(this);
         } else {
             logger.error("Timer already started");
         }

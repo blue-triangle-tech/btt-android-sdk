@@ -40,6 +40,11 @@ public class Tracker {
     private final WeakReference<Context> context;
 
     /**
+     * A weak reference to the most recently started timer
+     */
+    private WeakReference<Timer> mostRecentTimer;
+
+    /**
      * The tracker's configuration
      */
     private final BlueTriangleConfiguration configuration;
@@ -174,6 +179,18 @@ public class Tracker {
         final Context ctx = context.get();
         if (ctx != null) {
             return (ActivityManager) ctx.getSystemService(ACTIVITY_SERVICE);
+        }
+        return null;
+    }
+
+    synchronized void setMostRecentTimer(@NonNull final Timer timer) {
+        mostRecentTimer = new WeakReference<>(timer);
+    }
+
+    @Nullable
+    Timer getMostRecentTimer() {
+        if (mostRecentTimer != null) {
+            return mostRecentTimer.get();
         }
         return null;
     }
