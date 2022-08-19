@@ -1,2 +1,3 @@
-include ':app', ':analytics'
+include ':app'
+include ':analytics'
 include ':analytics-okhttp'
