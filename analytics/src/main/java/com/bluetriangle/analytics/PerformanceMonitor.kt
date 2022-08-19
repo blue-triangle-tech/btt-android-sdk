@@ -44,7 +44,7 @@ internal class PerformanceMonitor(configuration: BlueTriangleConfiguration) : Th
                 val memoryInfo = ActivityManager.MemoryInfo()
                 activityManager?.getMemoryInfo(memoryInfo)
                 val usedMemory = memoryInfo.totalMem - memoryInfo.availMem
-                logger.debug("Used Memory: %d", usedMemory)
+                logger?.debug("Used Memory: %d", usedMemory)
                 updateMemory(usedMemory)
                 if (lastCpuInfo == null) {
                     lastCpuInfo = if (clockSpeedHz > 0) readCpuInfo() else null
@@ -58,10 +58,10 @@ internal class PerformanceMonitor(configuration: BlueTriangleConfiguration) : Th
                     val processTimeDeltaSec = cpuInfo.processTime - lastCpuInfo!!.processTime
                     val relAvgUsagePercent = cpuTimeDeltaSec / processTimeDeltaSec * 100.0
                     updateCpu(relAvgUsagePercent)
-                    logger.debug("CPU Usage: %f", relAvgUsagePercent)
+                    logger?.debug("CPU Usage: %f", relAvgUsagePercent)
                 }
             } catch (e: InterruptedException) {
-                logger.error(e, "Performance Monitor thread interrupted")
+                logger?.error(e, "Performance Monitor thread interrupted")
             }
         }
     }
@@ -116,7 +116,7 @@ internal class PerformanceMonitor(configuration: BlueTriangleConfiguration) : Th
             val stats = BufferedReader(FileReader(CPU_STATS_FILE)).use { it.readLine() }
             CpuInfo.fromStats(clockSpeedHz, stats)
         } catch (e: IOException) {
-            logger.error(e, "Error reading CPU info")
+            logger?.error(e, "Error reading CPU info")
             null
         }
     }
