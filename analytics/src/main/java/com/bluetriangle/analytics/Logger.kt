@@ -5,7 +5,7 @@ import android.util.Log
 /**
  * abstract logger interface for handling logging
  */
-internal abstract class Logger {
+abstract class Logger {
     /**
      * Log a message at the given log level
      *
