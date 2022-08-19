@@ -66,19 +66,20 @@ class CapturedRequest {
 
     val payload: Map<String, String?>
         get() {
-            val payload = HashMap<String, String?>(12)
-            payload[FIELD_ENTRY_TYPE] = entryType
-            payload[FIELD_DOMAIN] = domain
-            payload[FIELD_HOST] = host
-            payload[FIELD_URL] = url
-            payload[FIELD_FILE] = file
-            payload[FIELD_START_TIME] = startTime.toString()
-            payload[FIELD_END_TIME] = endTime.toString()
-            payload[FIELD_DURATION] = duration.toString()
-            payload[FIELD_REQUEST_TYPE] = requestType!!.name
-            payload[FIELD_DECODED_BODY_SIZE] = decodedBodySize.toString()
-            payload[FIELD_ENCODED_BODY_SIZE] = encodedBodySize.toString()
-            return payload
+            return mapOf(
+                FIELD_ENTRY_TYPE to entryType,
+                FIELD_DOMAIN to domain,
+                FIELD_HOST to host,
+                FIELD_URL to url,
+                FIELD_FILE to file,
+                FIELD_START_TIME to startTime.toString(),
+                FIELD_END_TIME to endTime.toString(),
+                FIELD_DURATION to duration.toString(),
+                FIELD_REQUEST_TYPE to requestType?.name,
+                FIELD_DECODED_BODY_SIZE to decodedBodySize.toString(),
+                FIELD_ENCODED_BODY_SIZE to encodedBodySize.toString(),
+
+            )
         }
 
     /**

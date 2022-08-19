@@ -16,11 +16,7 @@ class CapturedRequestCollection(
     private var device: String,
     capturedRequest: CapturedRequest
 ) {
-    private val capturedRequests: MutableList<CapturedRequest> = ArrayList()
-
-    init {
-        add(capturedRequest)
-    }
+    private val capturedRequests: MutableList<CapturedRequest> = mutableListOf(capturedRequest)
 
     fun add(capturedRequest: CapturedRequest) {
         capturedRequests.add(capturedRequest)
@@ -28,26 +24,23 @@ class CapturedRequestCollection(
 
     val queryParameters: Map<String, String>
         get() {
-            val parameters = HashMap<String, String>(12)
-            parameters[Timer.FIELD_SITE_ID] = siteId
-            parameters[Timer.FIELD_NAVIGATION_START] = nStart
-            parameters[Timer.FIELD_TRAFFIC_SEGMENT_NAME] = trafficSegment
-            parameters[Timer.FIELD_LONG_SESSION_ID] = sessionId
-            parameters[Timer.FIELD_PAGE_NAME] = pageName
-            parameters[Timer.FIELD_CONTENT_GROUP_NAME] = pageType
-            parameters[Timer.FIELD_WCDTT] = "c"
-            parameters[Timer.FIELD_NATIVE_OS] = Constants.OS
-            parameters[Timer.FIELD_BROWSER] = Constants.BROWSER
-            parameters[Timer.FIELD_BROWSER_VERSION] = browserVersion
-            parameters[Timer.FIELD_DEVICE] = device
-            return parameters
+            return mapOf(
+                Timer.FIELD_SITE_ID to siteId,
+                Timer.FIELD_NAVIGATION_START to nStart,
+                Timer.FIELD_TRAFFIC_SEGMENT_NAME to trafficSegment,
+                Timer.FIELD_LONG_SESSION_ID to sessionId,
+                Timer.FIELD_PAGE_NAME to pageName,
+                Timer.FIELD_CONTENT_GROUP_NAME to pageType,
+                Timer.FIELD_WCDTT to "c",
+                Timer.FIELD_NATIVE_OS to Constants.OS,
+                Timer.FIELD_BROWSER to Constants.BROWSER,
+                Timer.FIELD_BROWSER_VERSION to browserVersion,
+                Timer.FIELD_DEVICE to device,
+            )
         }
 
     fun buildCapturedRequestData(): String {
-        val requests = JSONArray()
-        for (capturedRequest in capturedRequests) {
-            requests.put(JSONObject(capturedRequest.payload))
-        }
+        val requests = JSONArray(capturedRequests.map { JSONObject(it.payload) })
         return requests.toString()
     }
 }
