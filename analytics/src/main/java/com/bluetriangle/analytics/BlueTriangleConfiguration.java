@@ -48,7 +48,7 @@ public class BlueTriangleConfiguration {
 
     private boolean debug = false;
     private int debugLevel = Log.DEBUG;
-    @Nullable private Logger logger = NoOpLogger.getInstance();
+    @Nullable private Logger logger = NoOpLogger.Companion.getInstance();
 
     @NonNull private String trackerUrl = DEFAULT_TRACKER_URL;
     @NonNull private String errorReportingUrl = DEFAULT_ERROR_REPORTING_URL;
@@ -212,7 +212,7 @@ public class BlueTriangleConfiguration {
             if (debug) {
                 logger = new AndroidLogger(debugLevel);
             } else {
-                logger = NoOpLogger.getInstance();
+                logger = NoOpLogger.Companion.getInstance();
             }
         }
         return logger;
