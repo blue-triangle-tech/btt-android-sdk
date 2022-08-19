@@ -1,6 +1,6 @@
 package com.bluetriangle.analytics
 
-internal data class PerformanceReport(
+data class PerformanceReport(
     private val minMemory: Long,
     private val maxMemory: Long,
     private val averageMemory: Long,
