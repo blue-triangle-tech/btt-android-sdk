@@ -386,6 +386,7 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
         /**
          * Singleton instance of the tracker
          */
+        @JvmStatic
         var instance: Tracker? = null
             private set
 
