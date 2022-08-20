@@ -434,7 +434,7 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
             val cacheDir = File(context.cacheDir, "bta")
             if (!cacheDir.exists()) {
                 if (!cacheDir.mkdir()) {
-                    configuration.logger?.error("Error creating cache directory: %s", cacheDir.absolutePath)
+                    configuration.logger?.error("Error creating cache directory: ${cacheDir.absolutePath}")
                 }
             }
             configuration.cacheDirectory = cacheDir.absolutePath

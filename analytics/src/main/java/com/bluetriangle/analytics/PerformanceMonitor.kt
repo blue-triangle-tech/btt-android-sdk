@@ -44,7 +44,7 @@ class PerformanceMonitor(configuration: BlueTriangleConfiguration) : Thread(THRE
                 val memoryInfo = ActivityManager.MemoryInfo()
                 activityManager?.getMemoryInfo(memoryInfo)
                 val usedMemory = memoryInfo.totalMem - memoryInfo.availMem
-                logger?.debug("Used Memory: %d", usedMemory)
+                logger?.debug("Used Memory: $usedMemory", )
                 updateMemory(usedMemory)
                 if (lastCpuInfo == null) {
                     lastCpuInfo = if (clockSpeedHz > 0) readCpuInfo() else null

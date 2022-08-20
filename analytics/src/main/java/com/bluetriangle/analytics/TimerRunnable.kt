@@ -56,7 +56,7 @@ internal class TimerRunnable(
             }
             connection.getHeaderField(0)
         } catch (e: Exception) {
-            configuration.logger?.error(e, "Android Error submitting %s: %s", timer, e.message)
+            configuration.logger?.error(e, "Android Error submitting $timer: ${e.message}")
             cachePayload(configuration.trackerUrl, payloadData)
         } finally {
             connection?.disconnect()
@@ -81,7 +81,7 @@ internal class TimerRunnable(
      * @param payloadData payload data to send
      */
     private fun cachePayload(url: String, payloadData: String) {
-        configuration.logger?.info("Caching timer %s", timer)
+        configuration.logger?.info("Caching timer $timer")
         configuration.payloadCache?.cachePayload(Payload(url = url, data = payloadData));
     }
 }

@@ -13,7 +13,7 @@ abstract class Logger {
      * @param message the message
      * @param args optional args to format the message
      */
-    abstract fun log(logLevel: Int, message: String, vararg args: Any?)
+    abstract fun log(logLevel: Int, message: String)
 
     /**
      * Log a throwable and message at the given log level
@@ -23,7 +23,7 @@ abstract class Logger {
      * @param message the message to log
      * @param args optional args to format the message
      */
-    abstract fun log(logLevel: Int, throwable: Throwable?, message: String, vararg args: Any?)
+    abstract fun log(logLevel: Int, throwable: Throwable?, message: String)
 
     /**
      * Log a DEBUG message
@@ -31,8 +31,8 @@ abstract class Logger {
      * @param message message to log
      * @param args optional args to format the message
      */
-    fun debug(message: String, vararg args: Any?) {
-        log(Log.DEBUG, message, *args)
+    fun debug(message: String) {
+        log(Log.DEBUG, message)
     }
 
     /**
@@ -41,8 +41,8 @@ abstract class Logger {
      * @param message message to log
      * @param args optional args to format the message
      */
-    fun info(message: String, vararg args: Any?) {
-        log(Log.INFO, message, *args)
+    fun info(message: String) {
+        log(Log.INFO, message)
     }
 
     /**
@@ -51,8 +51,8 @@ abstract class Logger {
      * @param message message to log
      * @param args optional args to format the message
      */
-    fun warn(message: String, vararg args: Any?) {
-        log(Log.WARN, message, *args)
+    fun warn(message: String) {
+        log(Log.WARN, message)
     }
 
     /**
@@ -62,8 +62,8 @@ abstract class Logger {
      * @param message message to log
      * @param args optional args to format the message
      */
-    fun warn(throwable: Throwable?, message: String, vararg args: Any?) {
-        log(Log.WARN, throwable, message, *args)
+    fun warn(throwable: Throwable?, message: String) {
+        log(Log.WARN, throwable, message)
     }
 
     /**
@@ -72,8 +72,8 @@ abstract class Logger {
      * @param message message to log
      * @param args optional args to format the message
      */
-    fun error(message: String, vararg args: Any?) {
-        log(Log.ERROR, message, *args)
+    fun error(message: String) {
+        log(Log.ERROR, message)
     }
 
     /**
@@ -83,7 +83,7 @@ abstract class Logger {
      * @param message message to log
      * @param args optional args to format the message
      */
-    fun error(throwable: Throwable?, message: String, vararg args: Any?) {
-        log(Log.ERROR, throwable, message, *args)
+    fun error(throwable: Throwable?, message: String) {
+        log(Log.ERROR, throwable, message)
     }
 }

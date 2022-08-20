@@ -43,7 +43,7 @@ internal class PayloadRunnable(private val configuration: BlueTriangleConfigurat
             }
             connection.getHeaderField(0)
         } catch (e: Exception) {
-            configuration.logger?.error(e, "Error submitting payload %s", payload.id)
+            configuration.logger?.error(e, "Error submitting payload ${payload.id}")
             cachePayload()
         } finally {
             connection?.disconnect()
