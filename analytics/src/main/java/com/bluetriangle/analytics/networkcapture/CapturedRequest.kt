@@ -102,8 +102,7 @@ class CapturedRequest {
      * convenience method to submit this captured request to the tracker
      */
     fun submit() {
-        val tracker = Tracker.getInstance()
-        tracker?.submitCapturedRequest(this)
+        Tracker.instance?.submitCapturedRequest(this)
     }
 
     companion object {

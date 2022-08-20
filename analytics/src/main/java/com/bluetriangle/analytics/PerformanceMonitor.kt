@@ -14,9 +14,9 @@ import java.io.IOException
 /**
  * CPU monitoring adapted from https://eng.lyft.com/monitoring-cpu-performance-of-lyfts-android-applications-4e36fafffe12
  */
-internal class PerformanceMonitor(configuration: BlueTriangleConfiguration) : Thread(THREAD_NAME) {
+class PerformanceMonitor(configuration: BlueTriangleConfiguration) : Thread(THREAD_NAME) {
     private val logger = configuration.logger
-    private val activityManager = Tracker.getInstance().activityManager
+    private val activityManager = Tracker.instance?.activityManager
     private var isRunning = true
     private val interval = configuration.performanceMonitorIntervalMs
 

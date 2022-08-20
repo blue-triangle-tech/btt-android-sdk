@@ -51,7 +51,7 @@ internal class TimerRunnable(
                 // successfully submitted a timer, lets check if there are any cached timers that we can try and submit too
                 val nextCachedPayload = configuration.payloadCache?.nextCachedPayload
                 if (nextCachedPayload != null) {
-                    Tracker.getInstance().submitPayload(nextCachedPayload)
+                    Tracker.instance?.submitPayload(nextCachedPayload)
                 }
             }
             connection.getHeaderField(0)
