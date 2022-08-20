@@ -56,9 +56,12 @@ class PerformanceMonitor(configuration: BlueTriangleConfiguration) : Thread(THRE
                 if (lastCpuInfo != null && cpuInfo != null) {
                     val cpuTimeDeltaSec = cpuInfo.cpuTime - lastCpuInfo!!.cpuTime
                     val processTimeDeltaSec = cpuInfo.processTime - lastCpuInfo!!.processTime
-                    val relAvgUsagePercent = cpuTimeDeltaSec / processTimeDeltaSec * 100.0
-                    updateCpu(relAvgUsagePercent)
-                    logger?.debug("CPU Usage: %f", relAvgUsagePercent)
+                    if (processTimeDeltaSec > 0) {
+                        val relAvgUsagePercent = (cpuTimeDeltaSec / processTimeDeltaSec) * 100.0
+                        updateCpu(relAvgUsagePercent)
+                        logger?.debug("CPU Usage: $relAvgUsagePercent")
+                    }
+                    lastCpuInfo = cpuInfo
                 }
             } catch (e: InterruptedException) {
                 logger?.error(e, "Performance Monitor thread interrupted")
