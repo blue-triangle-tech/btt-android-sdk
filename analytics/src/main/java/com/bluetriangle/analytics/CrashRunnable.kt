@@ -41,17 +41,17 @@ internal class CrashRunnable(
     }
 
     private fun submitTimer() {
-        val deviceName = Utils.getDeviceName()
-        val tracker = Tracker.getInstance()
+        val deviceName = Utils.deviceName
+        val tracker = Tracker.instance
         crashHitsTimer.end()
         crashHitsTimer.setPageName("Android Crash $deviceName")
-        crashHitsTimer.fields = tracker.globalFields
+        crashHitsTimer.setFields(tracker?.globalFields?.toMap() ?: emptyMap())
         val timerRunnable = TimerRunnable(configuration, crashHitsTimer)
         timerRunnable.run()
     }
 
     private fun buildCrashReportUrl(): String {
-        val deviceName = Utils.getDeviceName()
+        val deviceName = Utils.deviceName
         return Uri.parse(configuration.errorReportingUrl)
             .buildUpon()
             .appendQueryParameter(Timer.FIELD_SITE_ID, configuration.siteId)
@@ -116,7 +116,7 @@ internal class CrashRunnable(
             }
             connection.getHeaderField(0)
         } catch (e: Exception) {
-            configuration.logger?.error(e, "Error submitting crash report: %s", e.message)
+            configuration.logger?.error(e, "Error submitting crash report: ${e.message}")
             cachePayload(crashReportUrl, payloadData)
         } finally {
             connection?.disconnect()

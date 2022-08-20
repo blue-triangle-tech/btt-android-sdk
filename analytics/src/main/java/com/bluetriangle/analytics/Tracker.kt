@@ -54,11 +54,10 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
         globalFields = HashMap(8)
         configuration.siteId?.let { globalFields[Timer.FIELD_SITE_ID] = it }
         globalFields[Timer.FIELD_BROWSER] = Constants.BROWSER
-        val os = Utils.getOs()
         val appVersion = Utils.getAppVersion(context)
         val isTablet = Utils.isTablet(context)
         globalFields[Timer.FIELD_DEVICE] = if (isTablet) Constants.DEVICE_TABLET else Constants.DEVICE_MOBILE
-        globalFields[Timer.FIELD_BROWSER_VERSION] = "${Constants.BROWSER}-$appVersion-$os"
+        globalFields[Timer.FIELD_BROWSER_VERSION] = "${Constants.BROWSER}-$appVersion-${Utils.os}"
         globalFields[Timer.FIELD_SDK_VERSION] = BuildConfig.SDK_VERSION
 
         setGlobalUserId(globalUserId)

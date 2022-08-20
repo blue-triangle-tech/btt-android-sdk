@@ -85,6 +85,7 @@ class Timer : Parcelable {
             FIELD_CONTENT_GROUP_NAME to "",
         )
 
+        @JvmField
         val CREATOR: Parcelable.Creator<Timer> = object : Parcelable.Creator<Timer> {
             override fun createFromParcel(`in`: Parcel): Timer {
                 return Timer(`in`)
@@ -99,12 +100,12 @@ class Timer : Parcelable {
     /**
      * Tracker
      */
-    private val tracker = Tracker.getInstance()
+    private val tracker = Tracker.instance
 
     /**
      * Logger
      */
-    private val logger = tracker.configuration.logger
+    private val logger = tracker?.configuration?.logger
 
     /**
      * A map of all fields for this timer to be sent to the cloud server
@@ -137,7 +138,7 @@ class Timer : Parcelable {
      */
     constructor() : super() {
         fields = DEFAULT_VALUES.toMutableMap()
-        if (tracker.configuration.isPerformanceMonitorEnabled) {
+        if (tracker?.configuration?.isPerformanceMonitorEnabled == true) {
             performanceMonitor = tracker.createPerformanceMonitor()
         }
     }
@@ -189,7 +190,7 @@ class Timer : Parcelable {
     fun start(): Timer {
         if (start == 0L) {
             start = System.currentTimeMillis()
-            tracker.setMostRecentTimer(this)
+            tracker?.setMostRecentTimer(this)
         } else {
             logger?.error("Timer already started")
         }
@@ -197,6 +198,14 @@ class Timer : Parcelable {
             performanceMonitor!!.start()
         }
         return this
+    }
+
+    internal fun startWithoutPerformanceMonitor(): Timer {
+        if (performanceMonitor != null) {
+            tracker?.clearPerformanceMonitor(performanceMonitor!!.id)
+            performanceMonitor = null
+        }
+        return start()
     }
 
     /**
@@ -245,7 +254,7 @@ class Timer : Parcelable {
             val performanceReport = performanceMonitor!!.performanceReport
             logger?.debug(performanceReport.toString())
             setPerformanceReportFields(performanceReport)
-            tracker.clearPerformanceMonitor(performanceMonitor!!.id)
+            tracker?.clearPerformanceMonitor(performanceMonitor!!.id)
         }
         return this
     }
@@ -276,7 +285,7 @@ class Timer : Parcelable {
      * Convenience method to submit this timer to the global tracker
      */
     fun submit() {
-        val tracker = Tracker.getInstance()
+        val tracker = Tracker.instance
         if (tracker != null) {
             tracker.submitTimer(this)
         } else {
@@ -588,7 +597,7 @@ class Timer : Parcelable {
         end = `in`.readLong()
         val performanceMonitorId = `in`.readLong()
         if (performanceMonitorId > 0) {
-            performanceMonitor = tracker.getPerformanceMonitor(performanceMonitorId)
+            performanceMonitor = tracker?.getPerformanceMonitor(performanceMonitorId)
         }
         val size = `in`.readInt()
         fields = HashMap(size)
