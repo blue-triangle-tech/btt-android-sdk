@@ -39,9 +39,9 @@ class CapturedRequestCollection(
             .build().toString()
     }
 
-    fun buildCapturedRequestData(): String {
+    fun buildCapturedRequestData(indentSpaces: Int): String {
         val requests = JSONArray(capturedRequests.map { JSONObject(it.payload) })
-        return requests.toString()
+        return requests.toString(indentSpaces)
     }
 
     override fun toString(): String {

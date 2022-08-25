@@ -22,7 +22,7 @@ class CapturedRequestRunnable(
 
     private fun submitCapturedRequestCollection(capturedRequestCollection: CapturedRequestCollection) {
         var connection: HttpsURLConnection? = null
-        val payloadData = capturedRequestCollection.buildCapturedRequestData()
+        val payloadData = capturedRequestCollection.buildCapturedRequestData(if (configuration.isDebug) 2 else 0)
         try {
             val url = capturedRequestCollection.buildUrl(configuration.networkCaptureUrl)
             configuration.logger?.debug("Submitting $capturedRequestCollection to $url")

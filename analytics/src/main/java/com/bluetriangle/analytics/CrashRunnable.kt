@@ -150,7 +150,7 @@ internal class CrashRunnable(
         )
 
         val crashDataArray = JSONArray(listOf(JSONObject(crashReport)))
-        val jsonData = crashDataArray.toString()
+        val jsonData = crashDataArray.toString(if (configuration.isDebug) 2 else 0)
         configuration.logger?.debug("Crash Report Data: $jsonData")
         return jsonData
     }
