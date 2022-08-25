@@ -7,6 +7,7 @@ import com.bluetriangle.analytics.networkcapture.CapturedRequest
 import com.bluetriangle.analytics.networkcapture.CapturedRequestCollection
 import java.io.File
 import java.lang.ref.WeakReference
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * The tracker is a global object responsible for taking submitted timers and reporting them to the cloud server via a
@@ -46,7 +47,7 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
     /**
      * Captured requests awaiting to be bulk sent to Blue Triangle API
      */
-    private val capturedRequests = HashMap<String, CapturedRequestCollection>()
+    private val capturedRequests = ConcurrentHashMap<Long, CapturedRequestCollection>()
 
     init {
         this.context = WeakReference(context)
@@ -149,15 +150,13 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
      * @param capturedRequest
      */
     fun submitCapturedRequest(capturedRequest: CapturedRequest?) {
-        val timer = getMostRecentTimer()
-        val nStart = getTimerValue(Timer.FIELD_NST, timer)
-        synchronized(capturedRequests) {
-            if (capturedRequests.containsKey(nStart)) {
-                capturedRequests[nStart]!!.add(capturedRequest!!)
+        getMostRecentTimer()?.let { timer ->
+            if (capturedRequests.containsKey(timer.start)) {
+                capturedRequests[timer.start]!!.add(capturedRequest!!)
             } else {
                 val capturedRequestCollection = CapturedRequestCollection(
                     configuration.siteId!!,
-                    nStart,
+                    timer.start.toString(),
                     getTimerValue(Timer.FIELD_PAGE_NAME, timer),
                     getTimerValue(Timer.FIELD_CONTENT_GROUP_NAME, timer),
                     getTimerValue(Timer.FIELD_TRAFFIC_SEGMENT_NAME, timer),
@@ -166,7 +165,7 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
                     globalFields[Timer.FIELD_DEVICE]!!,
                     capturedRequest!!
                 )
-                capturedRequests.put(nStart, capturedRequestCollection)
+                capturedRequests[timer.start] = capturedRequestCollection
             }
         }
     }
