@@ -1,5 +1,6 @@
 package com.bluetriangle.analytics.networkcapture
 
+import android.net.Uri
 import com.bluetriangle.analytics.Constants
 import com.bluetriangle.analytics.Timer
 import org.json.JSONArray
@@ -22,25 +23,28 @@ class CapturedRequestCollection(
         capturedRequests.add(capturedRequest)
     }
 
-    val queryParameters: Map<String, String>
-        get() {
-            return mapOf(
-                Timer.FIELD_SITE_ID to siteId,
-                Timer.FIELD_NAVIGATION_START to nStart,
-                Timer.FIELD_TRAFFIC_SEGMENT_NAME to trafficSegment,
-                Timer.FIELD_LONG_SESSION_ID to sessionId,
-                Timer.FIELD_PAGE_NAME to pageName,
-                Timer.FIELD_CONTENT_GROUP_NAME to pageType,
-                Timer.FIELD_WCDTT to "c",
-                Timer.FIELD_NATIVE_OS to Constants.OS,
-                Timer.FIELD_BROWSER to Constants.BROWSER,
-                Timer.FIELD_BROWSER_VERSION to browserVersion,
-                Timer.FIELD_DEVICE to device,
-            )
-        }
+    fun buildUrl(baseUrl: String): String {
+        return Uri.parse(baseUrl).buildUpon()
+            .appendQueryParameter(Timer.FIELD_SITE_ID, siteId)
+            .appendQueryParameter(Timer.FIELD_NAVIGATION_START, nStart)
+            .appendQueryParameter(Timer.FIELD_TRAFFIC_SEGMENT_NAME, trafficSegment)
+            .appendQueryParameter(Timer.FIELD_LONG_SESSION_ID, sessionId)
+            .appendQueryParameter(Timer.FIELD_PAGE_NAME, pageName)
+            .appendQueryParameter(Timer.FIELD_CONTENT_GROUP_NAME, pageType)
+            .appendQueryParameter(Timer.FIELD_WCDTT, "c")
+            .appendQueryParameter(Timer.FIELD_NATIVE_OS, Constants.OS)
+            .appendQueryParameter(Timer.FIELD_BROWSER, Constants.BROWSER)
+            .appendQueryParameter(Timer.FIELD_BROWSER_VERSION, browserVersion)
+            .appendQueryParameter(Timer.FIELD_DEVICE, device)
+            .build().toString()
+    }
 
     fun buildCapturedRequestData(): String {
         val requests = JSONArray(capturedRequests.map { JSONObject(it.payload) })
         return requests.toString()
+    }
+
+    override fun toString(): String {
+        return "Captured Request Collection $nStart (${capturedRequests.size})"
     }
 }
