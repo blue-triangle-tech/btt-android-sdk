@@ -1,6 +1,6 @@
 # Blue Triangle Tech Android Analytics SDK
 
-![jitpack.io build status](https://jitpack.io/v/blue-triangle-tech/btt-android-sdk.svg)
+[![jitpack.io build status](https://jitpack.io/v/blue-triangle-tech/btt-android-sdk.svg)](https://jitpack.io/#blue-triangle-tech/btt-android-sdk)
 
 ## Installation
 
