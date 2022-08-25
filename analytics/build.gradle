@@ -4,6 +4,8 @@ plugins {
     id 'maven-publish'
 }
 
+version = "2.6.8"
+
 android {
     namespace 'com.bluetriangle.analytics'
     compileSdk 32
