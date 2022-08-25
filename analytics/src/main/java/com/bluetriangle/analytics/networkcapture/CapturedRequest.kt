@@ -1,6 +1,7 @@
 package com.bluetriangle.analytics.networkcapture
 
 import com.bluetriangle.analytics.Tracker
+import java.net.URI
 
 class CapturedRequest {
     /**
@@ -23,9 +24,17 @@ class CapturedRequest {
         }
 
     /**
-     * Full request URL
+     * Full request URL. Sets host, domain, and file parameters as well.
      */
     var url: String? = null
+        set(value) {
+            field = value
+            value?.let {
+                val parsedUri = URI(it)
+                host = parsedUri.host
+                file = parsedUri.path.split("/").filter { segment -> segment.isNotEmpty() }.last()
+            }
+        }
 
     /**
      * name of file requested
