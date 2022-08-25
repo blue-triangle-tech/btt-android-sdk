@@ -170,7 +170,17 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
         }
     }
 
-    fun getTimerValue(fieldName: String, timer: Timer?): String {
+    /**
+     * Returns a list of captured request collections for the current timer as well as all past timers to send
+     */
+    fun getCapturedRequestCollectionsForTimer(timer: Timer): List<CapturedRequestCollection> {
+        val keysToSend = capturedRequests.keys().toList().filter { it <= timer.start }
+        val capturedRequestCollections = mutableListOf<CapturedRequestCollection>()
+        keysToSend.forEach { capturedRequests.remove(it)?.let { collection -> capturedRequestCollections.add(collection) } }
+        return capturedRequestCollections.toList()
+    }
+
+    private fun getTimerValue(fieldName: String, timer: Timer?): String {
         if (timer != null) {
             val value = timer.getField(fieldName)
             if (!TextUtils.isEmpty(value)) {
