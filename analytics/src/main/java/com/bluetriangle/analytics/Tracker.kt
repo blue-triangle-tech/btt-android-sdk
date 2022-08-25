@@ -150,22 +150,24 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
      * @param capturedRequest
      */
     fun submitCapturedRequest(capturedRequest: CapturedRequest?) {
-        getMostRecentTimer()?.let { timer ->
-            if (capturedRequests.containsKey(timer.start)) {
-                capturedRequests[timer.start]!!.add(capturedRequest!!)
-            } else {
-                val capturedRequestCollection = CapturedRequestCollection(
-                    configuration.siteId!!,
-                    timer.start.toString(),
-                    getTimerValue(Timer.FIELD_PAGE_NAME, timer),
-                    getTimerValue(Timer.FIELD_CONTENT_GROUP_NAME, timer),
-                    getTimerValue(Timer.FIELD_TRAFFIC_SEGMENT_NAME, timer),
-                    configuration.sessionId!!,
-                    globalFields[Timer.FIELD_BROWSER_VERSION]!!,
-                    globalFields[Timer.FIELD_DEVICE]!!,
-                    capturedRequest!!
-                )
-                capturedRequests[timer.start] = capturedRequestCollection
+        if (configuration.shouldSampleNetwork) {
+            getMostRecentTimer()?.let { timer ->
+                if (capturedRequests.containsKey(timer.start)) {
+                    capturedRequests[timer.start]!!.add(capturedRequest!!)
+                } else {
+                    val capturedRequestCollection = CapturedRequestCollection(
+                        configuration.siteId!!,
+                        timer.start.toString(),
+                        getTimerValue(Timer.FIELD_PAGE_NAME, timer),
+                        getTimerValue(Timer.FIELD_CONTENT_GROUP_NAME, timer),
+                        getTimerValue(Timer.FIELD_TRAFFIC_SEGMENT_NAME, timer),
+                        configuration.sessionId!!,
+                        globalFields[Timer.FIELD_BROWSER_VERSION]!!,
+                        globalFields[Timer.FIELD_DEVICE]!!,
+                        capturedRequest!!
+                    )
+                    capturedRequests[timer.start] = capturedRequestCollection
+                }
             }
         }
     }
@@ -176,7 +178,9 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
     fun getCapturedRequestCollectionsForTimer(timer: Timer): List<CapturedRequestCollection> {
         val keysToSend = capturedRequests.keys().toList().filter { it <= timer.start }
         val capturedRequestCollections = mutableListOf<CapturedRequestCollection>()
-        keysToSend.forEach { capturedRequests.remove(it)?.let { collection -> capturedRequestCollections.add(collection) } }
+        keysToSend.forEach {
+            capturedRequests.remove(it)?.let { collection -> capturedRequestCollections.add(collection) }
+        }
         return capturedRequestCollections.toList()
     }
 

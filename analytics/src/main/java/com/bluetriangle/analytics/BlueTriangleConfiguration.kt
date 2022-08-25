@@ -42,7 +42,7 @@ class BlueTriangleConfiguration {
     /**
      * if network requests should be captured
      */
-    private var shouldSampleNetwork = false
+    var shouldSampleNetwork = false
 
     var isDebug = false
     var debugLevel = Log.DEBUG
