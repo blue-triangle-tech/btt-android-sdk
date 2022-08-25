@@ -58,6 +58,8 @@ class BlueTriangleConfiguration {
 
     var errorReportingUrl = DEFAULT_ERROR_REPORTING_URL
 
+    var networkCaptureUrl = DEFAULT_NETWORK_CAPTURE_URL
+
     /**
      * Cache directory path
      */
@@ -92,5 +94,6 @@ class BlueTriangleConfiguration {
     companion object {
         const val DEFAULT_TRACKER_URL = "https://d.btttag.com/analytics.rcv"
         const val DEFAULT_ERROR_REPORTING_URL = "https://d.btttag.com/err.rcv"
+        const val DEFAULT_NETWORK_CAPTURE_URL = "https://d.btttag.com/wcdv02.rcv"
     }
 }
