@@ -125,6 +125,56 @@ timer.end().submit();
 When a timer is submitted to the tracker, the tracker sets any global fields such as site ID, session ID, and user ID. Additional global fields may be set as needed and applied to all timers. The timer's fields are then converted to JSON and sent via HTTP POST to the configured tracker URL.
 
 
+## Network Capture
+
+The tracker now also supports capturing network requests. This can be done automatically using [OkHttp Interceptors](https://square.github.io/okhttp/features/interceptors/) or manually.
+
+### OkHttp Support
+
+OkHttp support is provided in an additional library that can be included via the following dependency:
+
+```
+dependencies {
+    ...
+    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.6.8'
+    implementation 'com.github.blue-triangle-tech:btt-android-sdk-okhttp:2.6.8' 
+}
+```
+
+Once included, the `BlueTriangleOkHttpInterceptor` becomes available to add as an interceptor to the OkHttp client.
+
+```kotlin
+val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor(BlueTriangleOkHttpInterceptor(Tracker.instance!!.configuration))
+            .build()
+```
+
+The `BlueTriangleOkHttpInterceptor` will automatically handle capturing network requests and submitting them to the tracker.
+
+### Manual Network Capture
+
+For other network capture requirements, captured requests can be manually created and submitted to the tracker.
+
+```kotlin
+// create a captured request object
+val capturedRequest = CapturedRequest()
+// set the URL which also sets the host, domain, and file parameters that could be set otherwise
+capturedRequest.url = "https://bluetriangle.com/platform/business-analytics/"
+// start timing the request
+capturedRequest.start()
+// make the network request
+// end timing the request
+capturedRequest.stop()
+
+// set encoded body size based on response content length header
+capturedRequest.encodedBodySize = 12341
+// set based on response content type
+capturedRequest.requestType = RequestType.html
+
+// submit the captured request to the tracker instance
+Tracker.instance?.submitCapturedRequest(capturedRequest)
+```
+
 ## Caching
 
 To support offline usage tracking, timer and crash reports that cannot be sent immediately will be cached in the application's cache directory and retried when a successful submission of a timer occurs.
