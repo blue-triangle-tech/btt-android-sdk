@@ -1,11 +1,10 @@
 package com.bluetriangle.analytics
 
+import com.bluetriangle.analytics.networkcapture.CapturedRequestRunnable
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.DataOutputStream
 import java.io.InputStreamReader
-import java.io.UnsupportedEncodingException
-import java.net.MalformedURLException
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
@@ -47,6 +46,11 @@ internal class TimerRunnable(
                 }
             } else {
                 configuration.logger?.debug("$timer submitted successfully")
+
+                val capturedRequestCollections = Tracker.instance?.getCapturedRequestCollectionsForTimer(timer)
+                if (!capturedRequestCollections.isNullOrEmpty()) {
+                    CapturedRequestRunnable(configuration, capturedRequestCollections).run()
+                }
 
                 // successfully submitted a timer, lets check if there are any cached timers that we can try and submit too
                 val nextCachedPayload = configuration.payloadCache?.nextCachedPayload
