@@ -1,8 +1,6 @@
 package com.bluetriangle.analytics.networkcapture
 
 import com.bluetriangle.analytics.Tracker
-import com.bluetriangle.analytics.networkcapture.CapturedRequest
-import java.util.HashMap
 
 class CapturedRequest {
     /**
@@ -21,7 +19,7 @@ class CapturedRequest {
     var host: String? = null
         set(value) {
             field = value
-            domain = value?.split("\\.")?.takeLast(2)?.joinToString(".")
+            domain = value?.split(".")?.takeLast(2)?.joinToString(".")
         }
 
     /**
@@ -103,6 +101,10 @@ class CapturedRequest {
      */
     fun submit() {
         Tracker.instance?.submitCapturedRequest(this)
+    }
+
+    override fun toString(): String {
+        return "CapturedRequest{ $host...$file $requestType $duration $encodedBodySize }"
     }
 
     companion object {
