@@ -115,17 +115,20 @@ class Timer : Parcelable {
     /**
      * Start time in milliseconds
      */
-    private var start: Long = 0
+    var start: Long = 0
+        private set
 
     /**
      * The current time when the interactive call was made in milliseconds
      */
-    private var interactive: Long = 0
+    var interactive: Long = 0
+        private set
 
     /**
      * The time in milliseconds this timer was ended
      */
-    private var end: Long = 0
+    var end: Long = 0
+        private set
 
     /**
      * Performance monitor thread
@@ -190,6 +193,8 @@ class Timer : Parcelable {
     fun start(): Timer {
         if (start == 0L) {
             start = System.currentTimeMillis()
+            setField(FIELD_UNLOAD_EVENT_START, start)
+            setField(FIELD_NST, start)
             tracker?.setMostRecentTimer(this)
         } else {
             logger?.error("Timer already started")
@@ -239,8 +244,6 @@ class Timer : Parcelable {
     fun end(): Timer {
         if (start > 0 && end == 0L) {
             end = System.currentTimeMillis()
-            setField(FIELD_UNLOAD_EVENT_START, start)
-            setField(FIELD_NST, start)
             setField(FIELD_PAGE_TIME, end - start)
         } else {
             if (start == 0L) {
