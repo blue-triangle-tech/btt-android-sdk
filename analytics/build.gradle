@@ -12,6 +12,8 @@ android {
         minSdkVersion 16
         targetSdkVersion 32
 
+        buildConfigField "String", "SDK_VERSION", "\"$version\""
+
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 
@@ -39,7 +41,7 @@ afterEvaluate {
                 from components.release
                 groupId = 'com.github.blue-triangle-tech'
                 artifactId = 'btt-android-sdk'
-                version = '2.6.8'
+                version = "$version"
             }
         }
     }

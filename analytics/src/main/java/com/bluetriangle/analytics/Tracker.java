@@ -97,7 +97,8 @@ public class Tracker {
         final BlueTriangleConfiguration configuration = new BlueTriangleConfiguration();
         MetadataReader.applyMetadata(context, configuration);
 
-        configuration.setApplicationName(Utils.getAppName(context));
+        configuration.setApplicationName(Utils.getAppNameAndOs(context));
+        configuration.setUserAgent(Utils.buildUserAgent(context));
 
         final File cacheDir = new File(context.getCacheDir(), "bta");
         if (!cacheDir.exists()) {
@@ -152,6 +153,7 @@ public class Tracker {
         final boolean isTablet = Utils.isTablet(context);
         globalFields.put(Timer.FIELD_DEVICE, isTablet ? "Tablet" : "Mobile");
         globalFields.put(Timer.FIELD_BROWSER_VERSION, String.format("%s-%s-%s", Constants.BROWSER, appVersion, os));
+        globalFields.put(Timer.FIELD_SDK_VERSION, BuildConfig.SDK_VERSION);
 
         final String globalUserId = getOrCreateGlobalUserId();
         final String sessionId = Utils.generateRandomId();
