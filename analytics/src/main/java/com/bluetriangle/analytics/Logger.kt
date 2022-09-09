@@ -1,9 +1,6 @@
-package com.bluetriangle.analytics;
+package com.bluetriangle.analytics
 
-import android.util.Log;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import android.util.Log
 
 /**
  * abstract logger interface for handling logging
@@ -16,7 +13,7 @@ abstract class Logger {
      * @param message the message
      * @param args optional args to format the message
      */
-    abstract void log(int logLevel, @NonNull String message, @Nullable Object... args);
+    abstract fun log(logLevel: Int, message: String)
 
     /**
      * Log a throwable and message at the given log level
@@ -26,7 +23,7 @@ abstract class Logger {
      * @param message the message to log
      * @param args optional args to format the message
      */
-    abstract void log(int logLevel, @Nullable Throwable throwable, @NonNull String message, @Nullable Object... args);
+    abstract fun log(logLevel: Int, throwable: Throwable?, message: String)
 
     /**
      * Log a DEBUG message
@@ -34,8 +31,8 @@ abstract class Logger {
      * @param message message to log
      * @param args optional args to format the message
      */
-    void debug(@NonNull String message, @Nullable Object... args) {
-        log(Log.DEBUG, message, args);
+    fun debug(message: String) {
+        log(Log.DEBUG, message)
     }
 
     /**
@@ -44,8 +41,8 @@ abstract class Logger {
      * @param message message to log
      * @param args optional args to format the message
      */
-    void info(@NonNull String message, @Nullable Object... args) {
-        log(Log.INFO, message, args);
+    fun info(message: String) {
+        log(Log.INFO, message)
     }
 
     /**
@@ -54,8 +51,8 @@ abstract class Logger {
      * @param message message to log
      * @param args optional args to format the message
      */
-    void warn(@NonNull String message, @Nullable Object... args) {
-        log(Log.WARN, message, args);
+    fun warn(message: String) {
+        log(Log.WARN, message)
     }
 
     /**
@@ -65,8 +62,8 @@ abstract class Logger {
      * @param message message to log
      * @param args optional args to format the message
      */
-    void warn(@Nullable Throwable throwable, @NonNull String message, @Nullable Object... args) {
-        log(Log.WARN, throwable, message, args);
+    fun warn(throwable: Throwable?, message: String) {
+        log(Log.WARN, throwable, message)
     }
 
     /**
@@ -75,8 +72,8 @@ abstract class Logger {
      * @param message message to log
      * @param args optional args to format the message
      */
-    void error(@NonNull String message, @Nullable Object... args) {
-        log(Log.ERROR, message, args);
+    fun error(message: String) {
+        log(Log.ERROR, message)
     }
 
     /**
@@ -86,7 +83,7 @@ abstract class Logger {
      * @param message message to log
      * @param args optional args to format the message
      */
-    void error(@Nullable Throwable throwable, @NonNull String message, @Nullable Object... args) {
-        log(Log.ERROR, throwable, message, args);
+    fun error(throwable: Throwable?, message: String) {
+        log(Log.ERROR, throwable, message)
     }
 }

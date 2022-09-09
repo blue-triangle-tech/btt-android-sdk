@@ -26,6 +26,7 @@
         <meta-data android:name="com.blue-triangle.debug" android:value="true" />
         <meta-data android:name="com.blue-triangle.performance-monitor.enable" android:value="true" />
         <meta-data android:name="com.blue-triangle.track-crashes.enable" android:value="true" />
+        <meta-data android:name="com.blue-triangle.sample-rate.network" android:value="1.0" />
 
     </application>
 
