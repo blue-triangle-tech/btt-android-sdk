@@ -27,22 +27,7 @@ final class BtCrashHandler implements Thread.UncaughtExceptionHandler {
     public void uncaughtException(@NonNull Thread t, Throwable e) {
         final String timeStamp = String.valueOf(System.currentTimeMillis());
         this.crashHitsTimer = new Timer().start();
-        final Writer result = new StringWriter();
-        final PrintWriter printWriter = new PrintWriter(result);
-        e.printStackTrace(printWriter);
-        printWriter.close();
-
-        final String[] lines = result.toString().split("\\r?\\n");
-        final StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < lines.length - 1; i++) {
-            //data.length - 1 => to not add separator at the end
-            if (!lines[i].matches(" *")) {//empty string are ""; " "; "  "; and so on
-                sb.append(lines[i]);
-                sb.append("~~");
-            }
-        }
-        sb.append(lines[lines.length - 1].trim());
-        final String stacktrace = sb.toString();
+        final String stacktrace = Utils.exceptionToStacktrace(null, e);
 
         try {
             sendToServer(stacktrace, timeStamp);

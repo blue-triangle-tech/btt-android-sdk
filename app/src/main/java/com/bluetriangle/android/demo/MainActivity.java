@@ -89,6 +89,15 @@ public class MainActivity extends AppCompatActivity {
         }.execute();
     }
 
+    @OnClick(R.id.button_track_catch_exception)
+    public void trackCatchExceptionButtonClicked() {
+        try {
+            Tracker.getInstance().raiseTestException();
+        } catch (Throwable e) {
+            Tracker.getInstance().trackException("A test exception caught!", e);
+        }
+    }
+
     @OnClick(R.id.button_crash)
     public void crashButtonClicked() {
         Tracker.getInstance().raiseTestException();

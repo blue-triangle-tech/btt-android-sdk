@@ -5,12 +5,16 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.text.TextUtils;
 import android.util.Base64;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 import java.util.Random;
 
 /**
@@ -140,5 +144,29 @@ final class Utils {
      */
     static byte[] b64encode(final String data) throws UnsupportedEncodingException {
         return Base64.encode(data.getBytes(Constants.UTF_8), Base64.DEFAULT);
+    }
+
+    static String exceptionToStacktrace(@Nullable final String message, @NonNull Throwable e) {
+        final Writer result = new StringWriter();
+        final PrintWriter printWriter = new PrintWriter(result);
+        e.printStackTrace(printWriter);
+        printWriter.close();
+
+        final String[] lines = result.toString().split("\\r?\\n");
+        final StringBuilder sb = new StringBuilder();
+        if (!TextUtils.isEmpty(message)) {
+            sb.append(message);
+            sb.append("~~");
+        }
+        for (int i = 0; i < lines.length - 1; i++) {
+            //data.length - 1 => to not add separator at the end
+            if (!lines[i].matches(" *")) {//empty string are ""; " "; "  "; and so on
+                sb.append(lines[i]);
+                sb.append("~~");
+            }
+        }
+        sb.append(lines[lines.length - 1].trim());
+        final String stacktrace = sb.toString();
+        return stacktrace;
     }
 }
