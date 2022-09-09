@@ -1,16 +1,20 @@
 package com.bluetriangle.analytics;
 
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.pm.ApplicationInfo;
-import android.os.Build;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
 import android.text.TextUtils;
 
+import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
+
+import static android.content.Context.ACTIVITY_SERVICE;
 
 /**
  * The tracker is a global object responsible for taking submitted timers and reporting them to the cloud server via a
@@ -26,19 +30,6 @@ public class Tracker {
     private static final String SITE_ID_RESOURCE_KEY = "btt_site_id";
 
     /**
-     * Default URL to submit the timer data to
-     * old url https://d.btttag.com/btt.gif
-     */
-    //https://3.221.132.81/analytics.rcv
-    //https://d.btttag.com/analytics.rcv
-    private static final String TRACKER_URL = "https://d.btttag.com/analytics.rcv";
-
-    /**
-     * The hardcoded browser
-     */
-    static final String BROWSER = "Native App";
-
-    /**
      * Singleton instance of the tracker
      */
     private static Tracker instance;
@@ -49,35 +40,24 @@ public class Tracker {
     private final WeakReference<Context> context;
 
     /**
+     * The tracker's configuration
+     */
+    private final BlueTriangleConfiguration configuration;
+
+    /**
      * A map of fields that should be applied to all timers such as
      */
-    public final Map<String, String> globalFields;
-
-    /**
-     * URL to submit timers to
-     */
-    private final String trackerUrl;
-
-    /**
-     * The Users BTT site prefix
-     */
-    public static String sitePrefix;
-
-    /**
-     * The Users BTT site session
-     */
-    public static String siteSession;
-
-    /**
-     * The Users BTT application name
-     */
-    public static String applicationName;
-
+    final Map<String, String> globalFields;
 
     /**
      * Executor service to queue and submit timers
      */
     private final TrackerExecutor trackerExecutor;
+
+    /**
+     * Performance monitoring threads
+     */
+    private final HashMap<Long, PerformanceMonitor> performanceMonitors = new HashMap<>();
 
     /**
      * Initialize the tracker with default tracker URL and Site ID from string resources.
@@ -114,19 +94,40 @@ public class Tracker {
             return instance;
         }
 
-        String siteIdentifier = siteId;
+        final BlueTriangleConfiguration configuration = new BlueTriangleConfiguration();
+        MetadataReader.applyMetadata(context, configuration);
 
-        sitePrefix = siteId;
-        if (TextUtils.isEmpty(siteIdentifier)) {
-            siteIdentifier = Utils.getResourceString(context, SITE_ID_RESOURCE_KEY);
+        configuration.setApplicationName(Utils.getAppName(context));
+
+        final File cacheDir = new File(context.getCacheDir(), "bta");
+        if (!cacheDir.exists()) {
+            if (!cacheDir.mkdir()) {
+                configuration.getLogger().error("Error creating cache directory: %s", cacheDir.getAbsolutePath());
+            }
+        }
+        configuration.setCacheDirectory(cacheDir.getAbsolutePath());
+
+        if (!TextUtils.isEmpty(siteId)) {
+            configuration.setSiteId(siteId);
         }
 
-        String url = trackerUrl;
-        if (url == null || url.isEmpty()) {
-            url = TRACKER_URL;
+        if (!TextUtils.isEmpty(trackerUrl)) {
+            configuration.setTrackerUrl(trackerUrl);
         }
 
-        instance = new Tracker(context, siteIdentifier, url);
+        // if site id is still not configured, try legacy resource string method
+        if (TextUtils.isEmpty(configuration.getSiteId())) {
+            final String resourceSiteID = Utils.getResourceString(context, SITE_ID_RESOURCE_KEY);
+            if (!TextUtils.isEmpty(resourceSiteID)) {
+                configuration.setSiteId(resourceSiteID);
+            }
+        }
+
+        if (configuration.isDebug()) {
+            configuration.setLogger(new AndroidLogger(configuration.getDebugLevel()));
+        }
+
+        instance = new Tracker(context, configuration);
         return instance;
     }
 
@@ -139,37 +140,40 @@ public class Tracker {
         return instance;
     }
 
-    private Tracker(@NonNull final Context context, @NonNull final String siteId, @NonNull final String trackerUrl) {
+    private Tracker(@NonNull final Context context, @NonNull final BlueTriangleConfiguration configuration) {
         super();
         this.context = new WeakReference<>(context);
-        this.trackerUrl = trackerUrl;
+        this.configuration = configuration;
         globalFields = new HashMap<>(8);
-        globalFields.put(Timer.FIELD_SITE_ID, siteId);
-        sitePrefix = siteId;
-        globalFields.put(Timer.FIELD_BROWSER, BROWSER);
-        final String os = String.format("Android %s", Build.VERSION.RELEASE);
+        globalFields.put(Timer.FIELD_SITE_ID, configuration.getSiteId());
+        globalFields.put(Timer.FIELD_BROWSER, Constants.BROWSER);
+        final String os = Utils.getOs();
         final String appVersion = Utils.getAppVersion(context);
-        final boolean isTablet = context.getResources().getBoolean(R.bool.isTablet);
+        final boolean isTablet = Utils.isTablet(context);
         globalFields.put(Timer.FIELD_DEVICE, isTablet ? "Tablet" : "Mobile");
-        globalFields.put(Timer.FIELD_BROWSER_VERSION, String.format("%s-%s-%s", BROWSER, appVersion, os));
-        this.applicationName = getApplicationName(context);
+        globalFields.put(Timer.FIELD_BROWSER_VERSION, String.format("%s-%s-%s", Constants.BROWSER, appVersion, os));
 
-        final String sessionId = Utils.generateRandomId();
         final String globalUserId = getOrCreateGlobalUserId();
-        siteSession = sessionId;
+        final String sessionId = Utils.generateRandomId();
         setSessionId(sessionId);
+        configuration.setSessionId(sessionId);
         setGlobalUserId(globalUserId);
+        configuration.setGlobalUserId(globalUserId);
 
-        this.trackerExecutor = new TrackerExecutor();
+        this.trackerExecutor = new TrackerExecutor(configuration);
+
+        if (configuration.isTrackCrashesEnabled()) {
+            trackCrashes();
+        }
     }
 
-    public static String getApplicationName(Context context) {
-        ApplicationInfo applicationInfo = context.getApplicationInfo();
-        int stringId = applicationInfo.labelRes;
-        String appName = stringId == 0 ? applicationInfo.nonLocalizedLabel.toString() : context.getString(stringId);
-        appName = appName +"%20"+ String.format("Android%s", Build.VERSION.RELEASE);
-
-        return appName.replaceAll(" ", "%20");
+    public @Nullable
+    ActivityManager getActivityManager() {
+        final Context ctx = context.get();
+        if (ctx != null) {
+            return (ActivityManager) ctx.getSystemService(ACTIVITY_SERVICE);
+        }
+        return null;
     }
 
     /**
@@ -198,6 +202,22 @@ public class Tracker {
         return globalUserId;
     }
 
+    @NonNull
+    PerformanceMonitor createPerformanceMonitor() {
+        final PerformanceMonitor performanceMonitor = new PerformanceMonitor(configuration);
+        performanceMonitors.put(performanceMonitor.getId(), performanceMonitor);
+        return performanceMonitor;
+    }
+
+    @Nullable
+    PerformanceMonitor getPerformanceMonitor(final long id) {
+        return performanceMonitors.get(id);
+    }
+
+    void clearPerformanceMonitor(final long id) {
+        performanceMonitors.remove(id);
+    }
+
     /**
      * Submit a timer to the tracker to be sent to the cloud server.
      * <p>
@@ -212,7 +232,15 @@ public class Tracker {
 
         timer.setFields(globalFields);
 
-        trackerExecutor.submit(new TrackerExecutor.TimerRunnable(this.trackerUrl, timer));
+        trackerExecutor.submit(new TimerRunnable(configuration, timer));
+    }
+
+    /**
+     * Submit a cached payload to the executor
+     * @param payload cached payload to retry sending
+     */
+    void submitPayload(@NonNull final Payload payload) {
+        trackerExecutor.submit(new PayloadRunnable(configuration, payload));
     }
 
     /**
@@ -371,12 +399,18 @@ public class Tracker {
     }
 
     public void trackCrashes() {
-        //http://3.221.132.81/err.rcv
-        //https://d.btttag.com/err.rcv
         if (!(Thread.getDefaultUncaughtExceptionHandler() instanceof BtCrashHandler)) {
-            Thread.setDefaultUncaughtExceptionHandler(new BtCrashHandler(
-                    "https://d.btttag.com/err.rcv", sitePrefix, siteSession, this.trackerUrl, applicationName));
+            Thread.setDefaultUncaughtExceptionHandler(new BtCrashHandler(configuration));
         }
+    }
+
+    /**
+     * Get the Blue Triangle configuration
+     *
+     * @return the configuration
+     */
+    public BlueTriangleConfiguration getConfiguration() {
+        return configuration;
     }
 
     public void raiseTestException() {

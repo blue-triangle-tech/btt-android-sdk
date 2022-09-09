@@ -2,12 +2,12 @@ package com.bluetriangle.analytics;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import android.util.Log;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * A timer instance that can be started, marked interactive, and ended.
@@ -18,8 +18,6 @@ import java.util.Map;
  * Additional attributes beyond the ones defined below can be set on a timer as well.
  */
 public class Timer implements Parcelable {
-    private static final String LOG_TAG = "BTT_TIMER";
-
     public static final String EXTRA_TIMER = "BTT_TIMER";
 
     public static final String FIELD_PAGE_NAME = "pageName";
@@ -91,6 +89,16 @@ public class Timer implements Parcelable {
     }
 
     /**
+     * Tracker
+     */
+    private final Tracker tracker = Tracker.getInstance();
+
+    /**
+     * Logger
+     */
+    private final Logger logger = tracker.getConfiguration().getLogger();
+
+    /**
      * A map of all fields for this timer to be sent to the cloud server
      */
     private final Map<String, String> fields;
@@ -111,12 +119,20 @@ public class Timer implements Parcelable {
     private long end;
 
     /**
+     * Performance monitor thread
+     */
+    @Nullable private PerformanceMonitor performanceMonitor = null;
+
+    /**
      * Create a timer instance with no page name or traffic segment name. These will need to be set later before
      * submitting the timer.
      */
     public Timer() {
         super();
         fields = new HashMap<>(DEFAULT_VALUES);
+        if (this.tracker.getConfiguration().isPerformanceMonitorEnabled()) {
+            performanceMonitor = tracker.createPerformanceMonitor();
+        }
     }
 
     /**
@@ -163,8 +179,13 @@ public class Timer implements Parcelable {
         if (start == 0) {
             start = System.currentTimeMillis();
         } else {
-            Log.e(LOG_TAG, "Timer already started");
+            logger.error("Timer already started");
         }
+
+        if (performanceMonitor != null) {
+            performanceMonitor.start();
+        }
+
         return this;
     }
 
@@ -181,9 +202,9 @@ public class Timer implements Parcelable {
             setField(FIELD_DOM_INTERACTIVE, interactive);
         } else {
             if (start == 0) {
-                Log.e(LOG_TAG, "Timer never started");
+                logger.error("Timer never started");
             } else if (interactive != 0) {
-                Log.e(LOG_TAG, "Timer already marked as interactive");
+                logger.error("Timer already marked as interactive");
             }
         }
         return this;
@@ -202,10 +223,18 @@ public class Timer implements Parcelable {
             setField(FIELD_PAGE_TIME, end - start);
         } else {
             if (start == 0) {
-                Log.e(LOG_TAG, "Timer never started");
+                logger.error("Timer never started");
             } else if (end != 0) {
-                Log.e(LOG_TAG, "Timer already ended");
+                logger.error("Timer already ended");
             }
+        }
+
+        if (performanceMonitor != null) {
+            performanceMonitor.stopRunning();
+            final PerformanceReport performanceReport = performanceMonitor.getPerformanceReport();
+            logger.debug(performanceReport.toString());
+            setPerformanceReportFields(performanceReport);
+            tracker.clearPerformanceMonitor(performanceMonitor.getId());
         }
 
         return this;
@@ -246,7 +275,7 @@ public class Timer implements Parcelable {
         if (tracker != null) {
             tracker.submitTimer(this);
         } else {
-            Log.w(LOG_TAG, "Tracker not initialized");
+            logger.error("Tracker not initialized");
         }
     }
 
@@ -455,6 +484,13 @@ public class Timer implements Parcelable {
         return this;
     }
 
+    public Timer setPerformanceReportFields(@NonNull final PerformanceReport performanceReport) {
+        synchronized (fields) {
+            fields.putAll(performanceReport.getTimerFields());
+        }
+        return this;
+    }
+
     /**
      * Sets a field name with the given value
      *
@@ -556,6 +592,10 @@ public class Timer implements Parcelable {
         start = in.readLong();
         interactive = in.readLong();
         end = in.readLong();
+        final long performanceMonitorId = in.readLong();
+        if (performanceMonitorId > 0) {
+            performanceMonitor = tracker.getPerformanceMonitor(performanceMonitorId);
+        }
         final int size = in.readInt();
         fields = new HashMap<>(size);
         for (int i = 0; i < size; i++) {
@@ -575,6 +615,7 @@ public class Timer implements Parcelable {
         dest.writeLong(start);
         dest.writeLong(interactive);
         dest.writeLong(end);
+        dest.writeLong(performanceMonitor != null ? performanceMonitor.getId() : 0);
         dest.writeInt(fields.size());
         for (final Map.Entry<String, String> entry : fields.entrySet()) {
             dest.writeString(entry.getKey());

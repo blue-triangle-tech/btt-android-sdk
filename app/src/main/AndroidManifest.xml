@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+
     <application
         android:name=".DemoApplication"
         android:allowBackup="true"
@@ -20,6 +21,12 @@
             </intent-filter>
         </activity>
         <activity android:name=".NextActivity"></activity>
+
+        <meta-data android:name="com.blue-triangle.site-id" android:value="mobelux3271241z" />
+        <meta-data android:name="com.blue-triangle.debug" android:value="true" />
+        <meta-data android:name="com.blue-triangle.performance-monitor.enable" android:value="true" />
+        <meta-data android:name="com.blue-triangle.track-crashes.enable" android:value="true" />
+
     </application>
 
 </manifest>

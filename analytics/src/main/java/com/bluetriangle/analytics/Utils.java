@@ -5,15 +5,18 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.util.Base64;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Random;
 
 /**
  * Utility methods
  */
-public class Utils {
+final class Utils {
 
     /**
      * Return the string resource for the given key or null if not found.
@@ -22,7 +25,7 @@ public class Utils {
      * @param key     name of the identifier to look up
      * @return string resource for the given key or null if not found.
      */
-    protected static String getResourceString(final Context context, final String key) {
+    static String getResourceString(final Context context, final String key) {
         final int id = getIdentifier(context, "string", key);
         if (id != 0) {
             return context.getResources().getString(id);
@@ -49,7 +52,7 @@ public class Utils {
      * @param context application context
      * @return true if application flag for debugging is set, else false
      */
-    protected static boolean isDebuggable(final Context context) {
+    static boolean isDebuggable(final Context context) {
         try {
             final String packageName = context.getPackageName();
             final int flags = context.getPackageManager().getApplicationInfo(packageName, 0).flags;
@@ -64,7 +67,7 @@ public class Utils {
      *
      * @return random long
      */
-    public static String generateRandomId() {
+    static String generateRandomId() {
         final long random = Math.abs((new Random()).nextLong());
         return String.format("%019d", random).substring(0, 19);
     }
@@ -91,7 +94,7 @@ public class Utils {
      * @param context application context
      * @return The application's version or UNKNOWN if not found
      */
-    protected static String getAppVersion(@NonNull final Context context) {
+    static String getAppVersion(@NonNull final Context context) {
         final PackageInfo packageInfo = getAppPackageInfo(context);
         if (packageInfo != null) {
             return packageInfo.versionName;
@@ -99,18 +102,43 @@ public class Utils {
         return "UNKNOWN";
     }
 
-    public static String getDeviceName() {
+    static String getOs() {
+        return String.format("Android %s", Build.VERSION.RELEASE);
+    }
+
+    static boolean isTablet(@NonNull final Context context) {
+        return context.getResources().getBoolean(R.bool.isTablet);
+    }
+
+    static String getAppName(@NonNull final Context context) {
+        final ApplicationInfo applicationInfo = context.getApplicationInfo();
+        final int appNameStringResourceId = applicationInfo.labelRes;
+        final String appName = appNameStringResourceId == 0 ? applicationInfo.nonLocalizedLabel.toString() :
+                context.getString(appNameStringResourceId);
+        return String.format("%s %s", appName, getOs());
+    }
+
+    static String getDeviceName() {
         if (Build.MODEL.startsWith(Build.MANUFACTURER)) {
             return capitalize(Build.MODEL);
         }
         return capitalize(Build.MANUFACTURER) + " " + Build.MODEL;
     }
 
-    public static String capitalize(@Nullable final String str) {
+    static String capitalize(@Nullable final String str) {
         if (str == null || str.isEmpty()) {
             return "";
         }
         return str.substring(0, 1).toUpperCase() + str.substring(1);
     }
 
+    /**
+     * Build the base 64 encoded data to POST to the API
+     *
+     * @return base 64 encoded JSON payload
+     * @throws UnsupportedEncodingException if UTF-8 encoding is not supported
+     */
+    static byte[] b64encode(final String data) throws UnsupportedEncodingException {
+        return Base64.encode(data.getBytes(Constants.UTF_8), Base64.DEFAULT);
+    }
 }
