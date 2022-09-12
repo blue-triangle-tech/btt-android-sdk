@@ -43,6 +43,7 @@ internal class CrashRunnable(
     private fun submitTimer() {
         val tracker = Tracker.instance
         crashHitsTimer.end()
+        crashHitsTimer.setField(Timer.FIELD_EXCLUDED, "20")
         crashHitsTimer.setPageName(Constants.CRASH_PAGE_NAME)
         crashHitsTimer.setFields(tracker?.globalFields?.toMap() ?: emptyMap())
         val timerRunnable = TimerRunnable(configuration, crashHitsTimer)
