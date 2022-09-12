@@ -41,10 +41,9 @@ internal class CrashRunnable(
     }
 
     private fun submitTimer() {
-        val deviceName = Utils.deviceName
         val tracker = Tracker.instance
         crashHitsTimer.end()
-        crashHitsTimer.setPageName("Android Crash $deviceName")
+        crashHitsTimer.setPageName(Constants.CRASH_PAGE_NAME)
         crashHitsTimer.setFields(tracker?.globalFields?.toMap() ?: emptyMap())
         val timerRunnable = TimerRunnable(configuration, crashHitsTimer)
         timerRunnable.run()
@@ -58,11 +57,11 @@ internal class CrashRunnable(
             .appendQueryParameter(Timer.FIELD_NAVIGATION_START, crashHitsTimer.getField(Timer.FIELD_NST))
             .appendQueryParameter(
                 Timer.FIELD_PAGE_NAME,
-                crashHitsTimer.getField(Timer.FIELD_PAGE_NAME, "Android Crash $deviceName")
+                crashHitsTimer.getField(Timer.FIELD_PAGE_NAME, Constants.CRASH_PAGE_NAME)
             )
             .appendQueryParameter(
                 Timer.FIELD_TRAFFIC_SEGMENT_NAME,
-                crashHitsTimer.getField(Timer.FIELD_TRAFFIC_SEGMENT_NAME, "Android Crash")
+                crashHitsTimer.getField(Timer.FIELD_TRAFFIC_SEGMENT_NAME, Constants.CRASH_PAGE_NAME)
             )
             .appendQueryParameter(Timer.FIELD_NATIVE_OS, crashHitsTimer.getField(Timer.FIELD_NATIVE_OS, Constants.OS))
             .appendQueryParameter(
