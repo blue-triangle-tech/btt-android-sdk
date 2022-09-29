@@ -55,6 +55,7 @@ class Timer : Parcelable {
         const val FIELD_BROWSER_VERSION = "browserVersion"
         const val FIELD_SDK_VERSION = "btV"
         const val FIELD_WCDTT = "WCDtt"
+        const val FIELD_EXCLUDED = "excluded"
 
         /**
          * A map of fields and their associated default values

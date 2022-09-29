@@ -5,6 +5,7 @@ package com.bluetriangle.analytics
  */
 object Constants {
     const val OS = "Android"
+    const val CRASH_PAGE_NAME = "Android Crash"
     const val BROWSER = "Native App"
     const val DEVICE_TABLET = "Tablet"
     const val DEVICE_MOBILE = "Mobile"
