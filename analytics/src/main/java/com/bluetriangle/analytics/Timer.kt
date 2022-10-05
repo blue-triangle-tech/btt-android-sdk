@@ -68,7 +68,7 @@ class Timer : Parcelable {
             FIELD_NAVIGATION_TYPE to "9",
             FIELD_RV to "0",
             FIELD_CUSTOM_VALUE_4 to "0",
-            FIELD_WCD to "0",
+            FIELD_WCD to "1",
             FIELD_DATACENTER to "Default",
             FIELD_AB_TEST_ID to "Default",
             FIELD_BRAND_VALUE to "0",
