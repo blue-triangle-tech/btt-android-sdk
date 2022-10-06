@@ -86,7 +86,7 @@ class CapturedRequest {
                 FIELD_DECODED_BODY_SIZE to decodedBodySize.toString(),
                 FIELD_ENCODED_BODY_SIZE to encodedBodySize.toString(),
 
-            )
+                )
         }
 
     /**
@@ -98,11 +98,23 @@ class CapturedRequest {
         }
     }
 
+    /**
+     * stop the request timer if not already stopped
+     */
     fun stop() {
         if (startTime > 0 && endTime == 0L) {
             endTime = System.currentTimeMillis()
             duration = endTime - startTime
         }
+    }
+
+    /**
+     * Give the captured request the navigation start time so it can report request start and end relative to the
+     * navigation start time
+     */
+    fun setNavigationStart(navigationStart: Long) {
+        startTime -= navigationStart
+        endTime -= navigationStart
     }
 
     /**

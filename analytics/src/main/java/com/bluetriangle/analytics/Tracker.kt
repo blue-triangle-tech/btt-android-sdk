@@ -152,6 +152,7 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
     fun submitCapturedRequest(capturedRequest: CapturedRequest?) {
         if (configuration.shouldSampleNetwork) {
             getMostRecentTimer()?.let { timer ->
+                capturedRequest?.setNavigationStart(timer.start)
                 if (capturedRequests.containsKey(timer.start)) {
                     capturedRequests[timer.start]!!.add(capturedRequest!!)
                 } else {
