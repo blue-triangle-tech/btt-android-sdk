@@ -15,12 +15,26 @@ allprojects {
 }
 ```
 
+**Or** `settings.gradle` file:
+
+```
+dependencyResolutionManagement {
+    ...
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
+```
+
+
 Add the package dependency to your application's `build.gradle` file:
 
 ```
 dependencies {
     ...
-    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.6.8'
+    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.7.3'
 }
 ```
 
@@ -136,8 +150,8 @@ OkHttp support is provided in an additional library that can be included via the
 ```
 dependencies {
     ...
-    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.6.8'
-    implementation 'com.github.blue-triangle-tech:btt-android-sdk-okhttp:2.6.8' 
+    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.7.3'
+    implementation 'com.github.blue-triangle-tech:btt-android-sdk-okhttp:2.7.3' 
 }
 ```
 
