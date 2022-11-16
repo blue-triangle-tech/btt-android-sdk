@@ -144,7 +144,7 @@ When a timer is submitted to the tracker, the tracker sets any global fields suc
 ## Network Capture
 
 The tracker now also supports capturing network requests. This can be done automatically using [OkHttp Interceptors](https://square.github.io/okhttp/features/interceptors/) or manually.
-Check the application's `AndroidManifest.xml` file for the metadata configuration `com.blue-triangle.sample-rate.network`. The recommended setting is 1.0 to capture all network requests.
+Check the application's `AndroidManifest.xml` file for the metadata configuration `com.blue-triangle.sample-rate.network` The recommended setting is 1.0 to capture all network requests.
 
 ### OkHttp Support
 
@@ -183,9 +183,9 @@ capturedRequest.start()
 // end timing the request
 capturedRequest.stop()
 
-// set encoded body size based on response content length header
+// (Optional) set encoded body size based on response content length header
 capturedRequest.encodedBodySize = 12341
-// set based on response content type
+// (Optional) set based on response content type
 capturedRequest.requestType = RequestType.html
 
 // submit the captured request to the tracker instance
