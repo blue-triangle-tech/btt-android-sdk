@@ -1,4 +1,3 @@
 <resources>
     <string name="app_name">Blue Triangle Android Demo</string>
-    <string name="btt_site_id" translatable="false">testsite1</string>
 </resources>
