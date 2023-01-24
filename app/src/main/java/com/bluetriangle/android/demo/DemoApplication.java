@@ -16,6 +16,9 @@ public class DemoApplication extends Application {
         final BlueTriangleConfiguration configuration = new BlueTriangleConfiguration();
         configuration.setTrackCrashesEnabled(true);
         configuration.setSiteId("mobelux3271241z");
+        configuration.setDebug(true);
+        configuration.setNetworkSampleRate(1.0);
+        configuration.setPerformanceMonitorEnabled(true);
         tracker = Tracker.init(getApplicationContext(), configuration);
 
         tracker.setSessionTrafficSegmentName("Demo Traffic Segment");
