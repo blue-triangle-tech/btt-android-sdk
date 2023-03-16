@@ -71,9 +71,14 @@ class CapturedRequest {
      */
     var encodedBodySize: Long = 0
 
+    /**
+     * The HTTP status code of the response
+     */
+    var responseStatusCode: Int? = null
+
     val payload: Map<String, String?>
         get() {
-            return mapOf(
+            val payload = mutableMapOf(
                 FIELD_ENTRY_TYPE to entryType,
                 FIELD_DOMAIN to domain,
                 FIELD_HOST to host,
@@ -85,8 +90,13 @@ class CapturedRequest {
                 FIELD_REQUEST_TYPE to requestType?.name,
                 FIELD_DECODED_BODY_SIZE to decodedBodySize.toString(),
                 FIELD_ENCODED_BODY_SIZE to encodedBodySize.toString(),
+            )
 
-                )
+            responseStatusCode?.let { code ->
+                payload[FIELD_RESPONSE_CODE] = code.toString()
+            }
+
+            return payload.toMap()
         }
 
     /**
@@ -141,5 +151,6 @@ class CapturedRequest {
         const val FIELD_REQUEST_TYPE = "i"
         const val FIELD_DECODED_BODY_SIZE = "dz"
         const val FIELD_ENCODED_BODY_SIZE = "ez"
+        const val FIELD_RESPONSE_CODE = "rCd"
     }
 }

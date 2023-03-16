@@ -25,6 +25,7 @@ class BlueTriangleOkHttpInterceptor(private val configuration: BlueTriangleConfi
         val response: Response = chain.proceed(request)
         capturedRequest.stop()
 
+        capturedRequest.responseStatusCode = response.code
         capturedRequest.encodedBodySize = response.body?.contentLength() ?: 0
         capturedRequest.requestType = requestTypeFromMediaType(capturedRequest.file, response.body?.contentType())
         capturedRequest.submit()
