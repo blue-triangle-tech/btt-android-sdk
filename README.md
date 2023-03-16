@@ -79,6 +79,7 @@ The tracker's configuration can also be set using metadata tags in the applicati
         <meta-data android:name="com.blue-triangle.debug.level" android:value="2" />
         <meta-data android:name="com.blue-triangle.performance-monitor.enable" android:value="true" />
         <meta-data android:name="com.blue-triangle.track-crashes.enable" android:value="true" />
+	<meta-data android:name="com.blue-triangle.sample-rate.network" android:value="1.0" />
     </application>
 </manifest>
 ```
@@ -93,6 +94,7 @@ The current available meta data configuration names:
 * `com.blue-triangle.performance-monitor.enable` enables or disables tracking of memory and CPU usage.
 * `com.blue-triangle.performance-monitor.interval-ms` adjusts the interval in milliseconds of how often memory and CPU measurements are taken.
 * `com.blue-triangle.track-crashes.enable` enable or disable collecting and sending crash reports to the server.
+* `com.blue-triangle.sample-rate.network` percentage of sessions for which network calls will be captured. A value of 0.05 means that 5% of session's network requests will be tracked. A value of 0.0 means that no network requests will be captured for the session, a value of 1.0 will track all network requests for a session.
 
 ### Using Timers
 
@@ -142,6 +144,7 @@ When a timer is submitted to the tracker, the tracker sets any global fields suc
 ## Network Capture
 
 The tracker now also supports capturing network requests. This can be done automatically using [OkHttp Interceptors](https://square.github.io/okhttp/features/interceptors/) or manually.
+Check the application's `AndroidManifest.xml` file for the metadata configuration `com.blue-triangle.sample-rate.network` The recommended setting is 1.0 to capture all network requests.
 
 ### OkHttp Support
 
@@ -180,9 +183,9 @@ capturedRequest.start()
 // end timing the request
 capturedRequest.stop()
 
-// set encoded body size based on response content length header
+// (Optional) set encoded body size based on response content length header
 capturedRequest.encodedBodySize = 12341
-// set based on response content type
+// (Optional) set based on response content type
 capturedRequest.requestType = RequestType.html
 
 // submit the captured request to the tracker instance
