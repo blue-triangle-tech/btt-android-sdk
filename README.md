@@ -79,7 +79,7 @@ The tracker's configuration can also be set using metadata tags in the applicati
         <meta-data android:name="com.blue-triangle.debug.level" android:value="2" />
         <meta-data android:name="com.blue-triangle.performance-monitor.enable" android:value="true" />
         <meta-data android:name="com.blue-triangle.track-crashes.enable" android:value="true" />
-	<meta-data android:name="com.blue-triangle.sample-rate.network" android:value="1.0" />
+	<meta-data android:name="com.blue-triangle.sample-rate.network" android:value="0.025" />
     </application>
 </manifest>
 ```
@@ -94,7 +94,7 @@ The current available meta data configuration names:
 * `com.blue-triangle.performance-monitor.enable` enables or disables tracking of memory and CPU usage.
 * `com.blue-triangle.performance-monitor.interval-ms` adjusts the interval in milliseconds of how often memory and CPU measurements are taken.
 * `com.blue-triangle.track-crashes.enable` enable or disable collecting and sending crash reports to the server.
-* `com.blue-triangle.sample-rate.network` percentage of sessions for which network calls will be captured. A value of 0.05 means that 5% of session's network requests will be tracked. A value of 0.0 means that no network requests will be captured for the session, a value of 1.0 will track all network requests for a session.
+* `com.blue-triangle.sample-rate.network` percentage of user sessions for which network calls will be captured. A value of 0.025 means that 2.5% of user session's network requests will be tracked. A value of 0.0 means that no network requests will be captured for any user sessions, and a value of 1.0 will track all network requests for all user sessions. Whether network requests will be tracked is determined on application start, and will either be set to on or off for the entirety of the user session.
 
 ### Using Timers
 
