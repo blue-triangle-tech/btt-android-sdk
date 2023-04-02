@@ -632,16 +632,6 @@ class Timer : Parcelable {
     }
 
     override fun toString(): String {
-        return String.format("BTT Timer: %s", getField(FIELD_PAGE_NAME))
+        return "BTT Timer: ${getField(FIELD_PAGE_NAME)}"
     }
-
-//    companion object CREATOR : Parcelable.Creator<Timer> {
-//        override fun createFromParcel(parcel: Parcel): Timer {
-//            return Timer(parcel)
-//        }
-//
-//        override fun newArray(size: Int): Array<Timer?> {
-//            return arrayOfNulls(size)
-//        }
-//    }
 }
