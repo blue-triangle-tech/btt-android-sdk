@@ -53,7 +53,7 @@ class Timer : Parcelable {
         const val FIELD_NATIVE_OS = "os"
         const val FIELD_DEVICE = "device"
         const val FIELD_BROWSER_VERSION = "browserVersion"
-        const val FIELD_SDK_VERSION = "btV"
+        const val FIELD_SDK_VERSION = "VER"
         const val FIELD_WCDTT = "WCDtt"
         const val FIELD_EXCLUDED = "excluded"
 
