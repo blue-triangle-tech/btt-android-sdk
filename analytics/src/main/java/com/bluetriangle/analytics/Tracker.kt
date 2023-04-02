@@ -5,9 +5,12 @@ import android.content.Context
 import android.text.TextUtils
 import com.bluetriangle.analytics.networkcapture.CapturedRequest
 import com.bluetriangle.analytics.networkcapture.CapturedRequestCollection
+import org.json.JSONObject
 import java.io.File
 import java.lang.ref.WeakReference
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.collections.HashMap
 
 /**
  * The tracker is a global object responsible for taking submitted timers and reporting them to the cloud server via a
@@ -35,6 +38,11 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
     val globalFields: MutableMap<String, String>
 
     /**
+     * A map of extended custom variables
+     */
+    private val customVariables: MutableMap<String, String>
+
+    /**
      * Executor service to queue and submit timers
      */
     private val trackerExecutor: TrackerExecutor
@@ -53,6 +61,7 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
         this.context = WeakReference(context)
         this.configuration = configuration
         globalFields = HashMap(8)
+        customVariables = mutableMapOf()
         configuration.siteId?.let { globalFields[Timer.FIELD_SITE_ID] = it }
         globalFields[Timer.FIELD_BROWSER] = Constants.BROWSER
         val appVersion = Utils.getAppVersion(context)
@@ -141,6 +150,16 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
             timer.end()
         }
         timer.setFields(globalFields.toMap())
+        if (customVariables.isNotEmpty()) {
+            kotlin.runCatching {
+                val extendedCustomVariables = JSONObject(customVariables as Map<*, *>?).toString()
+                if (extendedCustomVariables.length > Constants.EXTENDED_CUSTOM_VARIABLE_MAX_PAYLOAD) {
+                    configuration.logger?.warn("Dropping extended custom variables for $timer. Payload ${extendedCustomVariables.length} exceeds max size of ${Constants.EXTENDED_CUSTOM_VARIABLE_MAX_PAYLOAD}")
+                } else {
+                    timer.setField(Timer.FIELD_EXTENDED_CUSTOM_VARIABLES, extendedCustomVariables)
+                }
+            }
+        }
         trackerExecutor.submit(TimerRunnable(configuration, timer))
     }
 
@@ -356,6 +375,90 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
      */
     fun clearGlobalField(fieldName: String) {
         synchronized(globalFields) { globalFields.remove(fieldName) }
+    }
+
+    /**
+     * Set custom variable for the given name to the given value
+     * @param name name of the custom variable to set
+     * @param value value of the custom variable to set
+     */
+    fun setCustomVariable(name: String, value: String) {
+        if (value.length > Constants.EXTENDED_CUSTOM_VARIABLE_MAX_LENGTH) {
+            configuration.logger?.warn("Extended Custom Variable \"$name\" exceeds max length of ${Constants.EXTENDED_CUSTOM_VARIABLE_MAX_LENGTH}")
+        }
+        synchronized(customVariables) {
+            customVariables.put(name, value)
+        }
+    }
+
+    /**
+     * Set custom variable for the given name to the given value
+     * @param name name of the custom variable to set
+     * @param value value of the custom variable to set
+     */
+    fun setCustomVariable(name: String, value: Number) {
+        setCustomVariable(name, "$value")
+    }
+
+    /**
+     * Set custom variable for the given name to the given value
+     * @param name name of the custom variable to set
+     * @param value value of the custom variable to set
+     */
+    fun setCustomVariable(name: String, value: Boolean) {
+        setCustomVariable(name, "$value")
+    }
+
+    /**
+     * Set all of the variables in the given flat map.  Values must be a String, Number, or Boolean.
+     * Does not clear any existing variables.
+     */
+    fun setCustomVariables(variables: Map<String, String>) {
+        for (entry in variables.entries.iterator()) {
+            if (entry.value.length > Constants.EXTENDED_CUSTOM_VARIABLE_MAX_LENGTH) {
+                configuration.logger?.warn("Extended Custom Variable \"${entry.key}\" exceeds max length of ${Constants.EXTENDED_CUSTOM_VARIABLE_MAX_LENGTH}")
+            }
+        }
+        synchronized(customVariables) {
+            customVariables.putAll(variables)
+        }
+    }
+
+    /**
+     * Return the named custom variable, or null
+     *
+     * @param name of the custom variable to return
+     * @return the value of the custom variable or null
+     */
+    fun getCustomVariable(name: String): String? {
+        return kotlin.runCatching { customVariables[name] }.getOrNull()
+    }
+
+    /**
+     * Get the current custom variables
+     * @return a copy of the current custom variables
+     */
+    fun getCustomVariables(): Map<String, String> {
+        return customVariables.toMap()
+    }
+
+    /**
+     * Clears the given custom variable, if set
+     * @param name key of the custom variable to remove
+     */
+    fun clearCustomVariable(name: String) {
+        synchronized(customVariables) {
+            customVariables.remove(name)
+        }
+    }
+
+    /**
+     * Removes all custom variables
+     */
+    fun clearAllCustomVariables() {
+        synchronized(customVariables) {
+            customVariables.clear()
+        }
     }
 
     fun trackCrashes() {
