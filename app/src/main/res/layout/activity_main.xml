@@ -64,4 +64,26 @@
         android:layout_height="wrap_content"
         android:text="Capture Network Requests" />
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        >
+
+        <Button
+            android:id="@+id/button_set_custom_vars"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Set Custom Vars" />
+
+        <Button
+            android:id="@+id/button_clear_custom_vars"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Clear Custom Vars" />
+
+    </LinearLayout>
+
 </LinearLayout>

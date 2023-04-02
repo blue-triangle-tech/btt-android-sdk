@@ -120,6 +120,20 @@ public class MainActivity extends AppCompatActivity {
         Tracker.getInstance().raiseTestException();
     }
 
+    @OnClick(R.id.button_set_custom_vars)
+    public void setCustomVars() {
+        Tracker.getInstance().setCustomVariable("custom string", "custom string");
+        Tracker.getInstance().setCustomVariable("custom bool", true);
+        Tracker.getInstance().setCustomVariable("custom number", 3.14);
+    }
+
+    @OnClick(R.id.button_clear_custom_vars)
+    public void clearCustomVariables() {
+        Tracker.getInstance().clearAllCustomVariables();
+    }
+
+
+
     @OnClick(R.id.button_network)
     public void captureNetworkRequests() {
         final Timer timer = new Timer("Test Network Capture", "Android Traffic").start();
