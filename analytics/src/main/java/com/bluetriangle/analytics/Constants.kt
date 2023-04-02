@@ -14,4 +14,14 @@ object Constants {
     const val HEADER_USER_AGENT = "User-Agent"
     const val HEADER_CONTENT_TYPE = "Content-Type"
     const val CONTENT_TYPE_JSON = "application/json; charset=utf-8"
+
+    /**
+     * Max length of extended custom variable strings
+     */
+    const val EXTENDED_CUSTOM_VARIABLE_MAX_LENGTH = 1024
+
+    /**
+     * The max size of the extended custom variable JSON payload
+     */
+    const val EXTENDED_CUSTOM_VARIABLE_MAX_PAYLOAD = 1024 * 1024 * 3  // 3 MB
 }

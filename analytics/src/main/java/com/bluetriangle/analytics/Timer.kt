@@ -56,6 +56,7 @@ class Timer : Parcelable {
         const val FIELD_SDK_VERSION = "btV"
         const val FIELD_WCDTT = "WCDtt"
         const val FIELD_EXCLUDED = "excluded"
+        const val FIELD_EXTENDED_CUSTOM_VARIABLES = "ECV"
 
         /**
          * A map of fields and their associated default values
