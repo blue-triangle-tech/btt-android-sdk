@@ -1,7 +1,7 @@
 package com.bluetriangle.android.demo;
 
 import android.app.Application;
-import com.bluetriangle.analytics.Tracker;
+import com.bluetriangle.analytics.tracker.Tracker;
 
 public class DemoApplication extends Application {
 

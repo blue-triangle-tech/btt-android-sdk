@@ -1,4 +1,4 @@
-package com.bluetriangle.analytics
+package com.bluetriangle.analytics.performance
 
 import android.app.ActivityManager
 import android.os.Build
@@ -6,6 +6,8 @@ import android.os.Process
 import android.os.SystemClock
 import android.system.Os
 import android.system.OsConstants
+import com.bluetriangle.analytics.BlueTriangleConfiguration
+import com.bluetriangle.analytics.tracker.Tracker
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader

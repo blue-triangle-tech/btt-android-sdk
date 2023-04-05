@@ -1,8 +1,8 @@
-package com.bluetriangle.analytics
+package com.bluetriangle.analytics.payload
 
+import com.bluetriangle.analytics.BlueTriangleConfiguration
 import java.io.File
 import java.io.IOException
-import java.util.*
 
 class PayloadCache(private val configuration: BlueTriangleConfiguration) {
     private val directory: File = File(configuration.cacheDirectory!!)

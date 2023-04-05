@@ -1,17 +1,17 @@
-package com.bluetriangle.analytics
+package com.bluetriangle.analytics.util
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
-import android.text.TextUtils
 import android.util.Base64
+import com.bluetriangle.analytics.BuildConfig
+import com.bluetriangle.analytics.R
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.io.UnsupportedEncodingException
 import java.io.Writer
-import java.nio.charset.StandardCharsets.UTF_8
 import java.security.SecureRandom
 import java.util.*
 

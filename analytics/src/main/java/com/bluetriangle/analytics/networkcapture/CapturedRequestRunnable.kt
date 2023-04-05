@@ -1,9 +1,9 @@
 package com.bluetriangle.analytics.networkcapture
 
 import com.bluetriangle.analytics.BlueTriangleConfiguration
-import com.bluetriangle.analytics.Constants
-import com.bluetriangle.analytics.Payload
-import com.bluetriangle.analytics.Utils
+import com.bluetriangle.analytics.util.Constants
+import com.bluetriangle.analytics.payload.Payload
+import com.bluetriangle.analytics.util.Utils
 import java.io.BufferedReader
 import java.io.DataOutputStream
 import java.io.InputStreamReader

@@ -1,5 +1,9 @@
-package com.bluetriangle.analytics
+package com.bluetriangle.analytics.payload
 
+import com.bluetriangle.analytics.BlueTriangleConfiguration
+import com.bluetriangle.analytics.tracker.Tracker
+import com.bluetriangle.analytics.util.Constants
+import com.bluetriangle.analytics.util.Utils
 import java.io.BufferedReader
 import java.io.DataOutputStream
 import java.io.InputStreamReader

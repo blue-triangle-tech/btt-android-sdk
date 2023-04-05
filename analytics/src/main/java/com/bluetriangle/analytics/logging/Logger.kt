@@ -1,4 +1,4 @@
-package com.bluetriangle.analytics
+package com.bluetriangle.analytics.logging
 
 import android.util.Log
 

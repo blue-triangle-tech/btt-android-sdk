@@ -1,9 +1,10 @@
-package com.bluetriangle.analytics
+package com.bluetriangle.analytics.util
 
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.text.TextUtils
+import com.bluetriangle.analytics.BlueTriangleConfiguration
 
 internal object MetadataReader {
     private const val SITE_ID = "com.blue-triangle.site-id"

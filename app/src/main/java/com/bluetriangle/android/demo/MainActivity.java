@@ -1,21 +1,31 @@
 package com.bluetriangle.android.demo;
 
+import static androidx.core.app.NotificationManagerCompat.IMPORTANCE_HIGH;
+
+import android.app.Notification;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 
-import com.bluetriangle.analytics.Timer;
-import com.bluetriangle.analytics.Tracker;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationChannelCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+
+import com.bluetriangle.analytics.anrwatchdog.AnrException;
+import com.bluetriangle.analytics.anrwatchdog.AnrManager;
 import com.bluetriangle.analytics.okhttp.BlueTriangleOkHttpInterceptor;
+import com.bluetriangle.analytics.timer.Timer;
+import com.bluetriangle.analytics.tracker.Tracker;
 
 import java.io.IOException;
 import java.util.Arrays;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -48,7 +58,34 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         updateButtonState();
+        setUpAnrManager();
         okHttpClient = new OkHttpClient.Builder().addInterceptor(new BlueTriangleOkHttpInterceptor(Tracker.getInstance().getConfiguration())).build();
+    }
+
+    private void setUpAnrManager() {
+        AnrManager anrManager = new AnrManager();
+        anrManager.start();
+        anrManager.getDetector().addAnrListener("UIThread", error -> {
+            showAnrNotification(error);
+        });
+    }
+
+    private void showAnrNotification(AnrException error) {
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannelCompat channel = new NotificationChannelCompat
+                    .Builder("ANR", IMPORTANCE_HIGH)
+                    .setName("ANR Channel")
+                    .build();
+            notificationManager.createNotificationChannel(channel);
+        }
+        Notification notification = new NotificationCompat.Builder(this, "ANR")
+                .setContentTitle("ANR Detected")
+                .setContentText("Main thread is being blocked for the last " + error.getDelay() + "ms")
+                .setSmallIcon(R.drawable.ic_launcher_background)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .build();
+        notificationManager.notify(2, notification);
     }
 
     private void updateButtonState() {
@@ -118,6 +155,15 @@ public class MainActivity extends AppCompatActivity {
     @OnClick(R.id.button_crash)
     public void crashButtonClicked() {
         Tracker.getInstance().raiseTestException();
+    }
+
+    @OnClick(R.id.button_anr)
+    public void blockMainThread() {
+        try {
+            Thread.sleep(25000);
+        } catch (InterruptedException e) {
+
+        }
     }
 
     @OnClick(R.id.button_network)

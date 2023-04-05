@@ -1,6 +1,4 @@
-package com.bluetriangle.analytics
-
-import com.bluetriangle.analytics.NoOpLogger
+package com.bluetriangle.analytics.logging
 
 /**
  * A logger that does not actually log anything
