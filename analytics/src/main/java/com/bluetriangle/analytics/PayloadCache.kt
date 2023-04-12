@@ -1,6 +1,5 @@
-package com.bluetriangle.analytics.payload
+package com.bluetriangle.analytics
 
-import com.bluetriangle.analytics.BlueTriangleConfiguration
 import java.io.File
 import java.io.IOException
 

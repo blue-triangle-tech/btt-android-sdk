@@ -1,4 +1,4 @@
-package com.bluetriangle.analytics.util
+package com.bluetriangle.analytics
 
 /**
  * constant values used across the SDK

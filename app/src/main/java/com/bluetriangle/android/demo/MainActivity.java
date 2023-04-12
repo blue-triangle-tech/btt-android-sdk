@@ -20,8 +20,8 @@ import androidx.core.app.NotificationManagerCompat;
 import com.bluetriangle.analytics.anrwatchdog.AnrException;
 import com.bluetriangle.analytics.anrwatchdog.AnrManager;
 import com.bluetriangle.analytics.okhttp.BlueTriangleOkHttpInterceptor;
-import com.bluetriangle.analytics.timer.Timer;
-import com.bluetriangle.analytics.tracker.Tracker;
+import com.bluetriangle.analytics.Timer;
+import com.bluetriangle.analytics.Tracker;
 
 import java.io.IOException;
 import java.util.Arrays;

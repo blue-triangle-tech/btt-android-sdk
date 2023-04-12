@@ -1,8 +1,8 @@
 package com.bluetriangle.analytics.networkcapture
 
 import android.net.Uri
-import com.bluetriangle.analytics.util.Constants
-import com.bluetriangle.analytics.timer.Timer
+import com.bluetriangle.analytics.Constants
+import com.bluetriangle.analytics.Timer
 import org.json.JSONArray
 import org.json.JSONObject
 

@@ -1,10 +1,8 @@
-package com.bluetriangle.analytics.crash
+package com.bluetriangle.analytics
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import com.bluetriangle.analytics.BlueTriangleConfiguration
-import com.bluetriangle.analytics.timer.Timer
-import com.bluetriangle.analytics.util.Utils.exceptionToStacktrace
+import com.bluetriangle.analytics.Utils.exceptionToStacktrace
 
 internal class BtCrashHandler(private val configuration: BlueTriangleConfiguration) : Thread.UncaughtExceptionHandler {
     private val defaultUEH: Thread.UncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler()
@@ -14,6 +12,7 @@ internal class BtCrashHandler(private val configuration: BlueTriangleConfigurati
     override fun uncaughtException(t: Thread, e: Throwable) {
         val timeStamp = System.currentTimeMillis().toString()
         crashHitsTimer = Timer().startWithoutPerformanceMonitor()
+
         val stacktrace = exceptionToStacktrace(null, e)
         try {
             sendToServer(stacktrace, timeStamp)

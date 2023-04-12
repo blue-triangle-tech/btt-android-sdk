@@ -1,7 +1,6 @@
-package com.bluetriangle.analytics.tracker
+package com.bluetriangle.analytics
 
 import android.os.Process
-import com.bluetriangle.analytics.BlueTriangleConfiguration
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.ThreadPoolExecutor

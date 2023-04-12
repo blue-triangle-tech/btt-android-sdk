@@ -1,10 +1,6 @@
 package com.bluetriangle.analytics
 
 import android.util.Log
-import com.bluetriangle.analytics.logging.AndroidLogger
-import com.bluetriangle.analytics.logging.Logger
-import com.bluetriangle.analytics.payload.PayloadCache
-import com.bluetriangle.analytics.util.Utils
 import java.util.concurrent.TimeUnit
 
 class BlueTriangleConfiguration {

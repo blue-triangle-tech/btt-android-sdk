@@ -1,6 +1,6 @@
 package com.bluetriangle.analytics.networkcapture
 
-import com.bluetriangle.analytics.tracker.Tracker
+import com.bluetriangle.analytics.Tracker
 import java.net.URI
 
 class CapturedRequest {

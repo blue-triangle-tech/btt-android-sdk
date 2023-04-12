@@ -5,7 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.widget.Button;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import com.bluetriangle.analytics.timer.Timer;
+import com.bluetriangle.analytics.Timer;
 
 public class NextActivity extends AppCompatActivity {
 

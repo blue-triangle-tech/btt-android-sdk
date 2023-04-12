@@ -1,13 +1,6 @@
-package com.bluetriangle.analytics.crash
+package com.bluetriangle.analytics
 
 import android.net.Uri
-import com.bluetriangle.analytics.BlueTriangleConfiguration
-import com.bluetriangle.analytics.timer.Timer
-import com.bluetriangle.analytics.timer.TimerRunnable
-import com.bluetriangle.analytics.payload.Payload
-import com.bluetriangle.analytics.tracker.Tracker
-import com.bluetriangle.analytics.util.Constants
-import com.bluetriangle.analytics.util.Utils
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader

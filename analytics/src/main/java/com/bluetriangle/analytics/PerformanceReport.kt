@@ -1,4 +1,4 @@
-package com.bluetriangle.analytics.performance
+package com.bluetriangle.analytics
 
 data class PerformanceReport(
     private val minMemory: Long,

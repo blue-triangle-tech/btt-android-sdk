@@ -1,22 +1,11 @@
-package com.bluetriangle.analytics.tracker
+package com.bluetriangle.analytics
 
 import android.app.ActivityManager
 import android.content.Context
 import android.text.TextUtils
 import com.bluetriangle.analytics.*
-import com.bluetriangle.analytics.crash.BtCrashHandler
-import com.bluetriangle.analytics.crash.CrashRunnable
-import com.bluetriangle.analytics.timer.TimerRunnable
-import com.bluetriangle.analytics.logging.AndroidLogger
 import com.bluetriangle.analytics.networkcapture.CapturedRequest
 import com.bluetriangle.analytics.networkcapture.CapturedRequestCollection
-import com.bluetriangle.analytics.payload.Payload
-import com.bluetriangle.analytics.payload.PayloadRunnable
-import com.bluetriangle.analytics.performance.PerformanceMonitor
-import com.bluetriangle.analytics.timer.Timer
-import com.bluetriangle.analytics.util.Constants
-import com.bluetriangle.analytics.util.MetadataReader
-import com.bluetriangle.analytics.util.Utils
 import java.io.File
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap

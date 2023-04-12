@@ -1,4 +1,4 @@
-package com.bluetriangle.analytics.logging
+package com.bluetriangle.analytics
 
 /**
  * A logger that does not actually log anything

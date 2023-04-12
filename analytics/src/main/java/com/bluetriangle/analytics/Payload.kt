@@ -1,4 +1,4 @@
-package com.bluetriangle.analytics.payload
+package com.bluetriangle.analytics
 
 import java.io.*
 import java.util.*

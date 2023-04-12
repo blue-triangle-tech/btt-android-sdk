@@ -1,11 +1,7 @@
-package com.bluetriangle.analytics.timer
+package com.bluetriangle.analytics
 
 import android.os.Parcel
 import android.os.Parcelable
-import com.bluetriangle.analytics.performance.PerformanceMonitor
-import com.bluetriangle.analytics.performance.PerformanceReport
-import com.bluetriangle.analytics.tracker.Tracker
-import com.bluetriangle.analytics.util.Constants
 
 /**
  * A timer instance that can be started, marked interactive, and ended.
