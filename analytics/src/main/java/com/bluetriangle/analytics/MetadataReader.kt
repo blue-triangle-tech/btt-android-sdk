@@ -15,6 +15,7 @@ internal object MetadataReader {
     private const val PERFORMANCE_MONITOR_INTERVAL = "com.blue-triangle.performance-monitor.interval-ms"
     private const val TRACK_CRASHES_ENABLE = "com.blue-triangle.track-crashes.enable"
     private const val NETWORK_SAMPLE_RATE = "com.blue-triangle.sample-rate.network"
+    private const val ANR_DELAY = "com.blue-triangle.anr.delay"
 
     fun applyMetadata(context: Context, configuration: BlueTriangleConfiguration) {
         try {
@@ -33,6 +34,7 @@ internal object MetadataReader {
                 configuration.performanceMonitorIntervalMs = readLong(metadata, PERFORMANCE_MONITOR_INTERVAL, configuration.performanceMonitorIntervalMs)
                 configuration.isTrackCrashesEnabled = readBool(metadata, TRACK_CRASHES_ENABLE, configuration.isTrackCrashesEnabled)
                 configuration.networkSampleRate = readDouble(metadata, NETWORK_SAMPLE_RATE, configuration.networkSampleRate)
+                configuration.anrDelay = readLong(metadata, ANR_DELAY, configuration.anrDelay)
             }
         } catch (e: Throwable) {
             configuration.logger?.error(e, "Error reading metadata configuration")

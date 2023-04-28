@@ -44,6 +44,8 @@ class BlueTriangleConfiguration {
      */
     var shouldSampleNetwork = false
 
+    var anrDelay = 5L
+
     var isDebug = false
     var debugLevel = Log.DEBUG
     var logger: Logger? = null

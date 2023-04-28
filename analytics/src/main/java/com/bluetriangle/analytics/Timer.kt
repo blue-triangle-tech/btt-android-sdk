@@ -494,8 +494,8 @@ class Timer : Parcelable {
         return this
     }
 
-    fun setPerformanceReportFields(performanceReport: PerformanceReport): Timer {
-        synchronized(fields) { fields.putAll(performanceReport.timerFields) }
+    fun setPerformanceReportFields(performanceReport: Map<String, String>): Timer {
+        synchronized(fields) { fields.putAll(performanceReport) }
         return this
     }
 
