@@ -32,5 +32,6 @@ data class PerformanceReport(
         const val FIELD_MIN_MEMORY = "minMemory"
         const val FIELD_MAX_MEMORY = "maxMemory"
         const val FIELD_AVG_MEMORY = "avgMemory"
+        const val FIELD_MAX_MAIN_THREAD_BLOCK = "maxMainThreadBlock"
     }
 }

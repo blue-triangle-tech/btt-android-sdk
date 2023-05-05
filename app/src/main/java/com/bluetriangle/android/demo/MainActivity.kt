@@ -34,6 +34,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        setTitle(R.string.main_title)
 
         updateButtonState()
         addButtonClickListeners()
@@ -56,7 +57,7 @@ class MainActivity : AppCompatActivity() {
         binding.buttonTrackCatchException.setOnClickListener(this::trackCatchExceptionButtonClicked)
         binding.buttonNetwork.setOnClickListener(this::captureNetworkRequests)
         binding.buttonAnr.setOnClickListener {
-            startActivity(Intent(this, AnrTestActivity::class.java))
+            startActivity(Intent(this, ANRTestActivity::class.java))
         }
     }
 

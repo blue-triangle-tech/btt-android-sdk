@@ -33,7 +33,9 @@ internal class CrashRunnable(
     /**
      * Timer to track crash reporting
      */
-    private val crashHitsTimer: Timer
+    private val crashHitsTimer: Timer,
+
+    private val errorType:Tracker.BTErrorType = Tracker.BTErrorType.NativeAppCrash
 ) : Runnable {
     override fun run() {
         submitTimer()
@@ -141,7 +143,7 @@ internal class CrashRunnable(
     private fun buildCrashReportData(): String {
         val crashReport = mapOf(
             "msg" to stackTrace,
-            "eTp" to "NativeAppCrash",
+            "eTp" to errorType.value,
             "eCnt" to "1",
             "url" to configuration.applicationName,
             "line" to "1",
