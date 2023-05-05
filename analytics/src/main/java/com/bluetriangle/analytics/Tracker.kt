@@ -4,6 +4,7 @@ import android.app.ActivityManager
 import android.content.Context
 import android.text.TextUtils
 import com.bluetriangle.analytics.*
+import com.bluetriangle.analytics.anrwatchdog.AnrManager
 import com.bluetriangle.analytics.networkcapture.CapturedRequest
 import com.bluetriangle.analytics.networkcapture.CapturedRequestCollection
 import java.io.File
@@ -15,6 +16,8 @@ import java.util.concurrent.ConcurrentHashMap
  * background thread.
  */
 class Tracker private constructor(context: Context, configuration: BlueTriangleConfiguration) {
+    private var anrManager: AnrManager
+
     /**
      * Weak reference to Android application context
      */
@@ -70,6 +73,9 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
         configuration.sessionId = sessionId
 
         trackerExecutor = TrackerExecutor(configuration)
+
+        anrManager = AnrManager()
+        anrManager.start()
 
         if (configuration.isTrackCrashesEnabled) {
             trackCrashes()

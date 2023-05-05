@@ -1,6 +1,8 @@
 package com.bluetriangle.analytics.anrwatchdog
 
 import android.util.Log
+import com.bluetriangle.analytics.BtCrashHandler
+import com.bluetriangle.analytics.Tracker
 
 class AnrManager : AnrListener {
 
@@ -19,6 +21,6 @@ class AnrManager : AnrListener {
 
     override fun onAppNotResponding(error: AnrException) {
         Log.d("AnrManager", "Anr Received: ${error.message}")
-        error.printStackTrace()
+
     }
 }

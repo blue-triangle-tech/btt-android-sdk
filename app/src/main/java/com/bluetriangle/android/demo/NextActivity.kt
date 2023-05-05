@@ -1,34 +1,29 @@
-package com.bluetriangle.android.demo;
+package com.bluetriangle.android.demo
 
-import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
-import android.widget.Button;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import com.bluetriangle.analytics.Timer;
+import android.os.Bundle
+import android.view.View
+import android.widget.Button
+import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.DataBindingUtil
+import com.bluetriangle.analytics.Timer
+import com.bluetriangle.android.demo.databinding.ActivityNextBinding
 
-public class NextActivity extends AppCompatActivity {
+class NextActivity : AppCompatActivity() {
+    private var timer: Timer? = null
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val binding = DataBindingUtil.setContentView<ActivityNextBinding>(this, R.layout.activity_next)
+        timer = intent.getParcelableExtra(Timer.EXTRA_TIMER)
 
-    private Timer timer;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_next);
-        ButterKnife.bind(this);
-        timer = getIntent().getParcelableExtra(Timer.EXTRA_TIMER);
+        binding.buttonStop.setOnClickListener{
+            timer?.end()?.submit()
+            binding.buttonStop.isEnabled = false
+        }
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        timer.interactive();
-    }
-
-    @OnClick(R.id.button_stop)
-    public void stopButtonClicked(final Button button) {
-        timer.end().submit();
-        button.setEnabled(false);
+    override fun onResume() {
+        super.onResume()
+        timer?.interactive()
     }
 
 }

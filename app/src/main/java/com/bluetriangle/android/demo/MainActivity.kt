@@ -1,215 +1,198 @@
-package com.bluetriangle.android.demo;
+package com.bluetriangle.android.demo
 
-import static androidx.core.app.NotificationManagerCompat.IMPORTANCE_HIGH;
+import android.content.Intent
+import android.os.Build
+import android.os.Bundle
+import android.util.Log
+import android.view.View
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationChannelCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.lifecycleScope
+import com.bluetriangle.analytics.Timer
+import com.bluetriangle.analytics.Tracker.Companion.instance
+import com.bluetriangle.analytics.anrwatchdog.AnrException
+import com.bluetriangle.analytics.anrwatchdog.AnrListener
+import com.bluetriangle.analytics.anrwatchdog.AnrManager
+import com.bluetriangle.analytics.okhttp.BlueTriangleOkHttpInterceptor
+import com.bluetriangle.android.demo.databinding.ActivityMainBinding
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import okhttp3.*
+import java.io.IOException
+import java.util.*
 
-import android.app.Notification;
-import android.content.Intent;
-import android.os.AsyncTask;
-import android.os.Build;
-import android.os.Bundle;
-import android.util.Log;
-import android.widget.Button;
+@Suppress("UNUSED_PARAMETER")
+class MainActivity : AppCompatActivity() {
+    private var timer: Timer? = null
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.NotificationChannelCompat;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
+    private var okHttpClient: OkHttpClient? = null
 
-import com.bluetriangle.analytics.anrwatchdog.AnrException;
-import com.bluetriangle.analytics.anrwatchdog.AnrManager;
-import com.bluetriangle.analytics.okhttp.BlueTriangleOkHttpInterceptor;
-import com.bluetriangle.analytics.Timer;
-import com.bluetriangle.analytics.Tracker;
+    private lateinit var binding: ActivityMainBinding
 
-import java.io.IOException;
-import java.util.Arrays;
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.FormBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+        updateButtonState()
+        addButtonClickListeners()
 
-public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "BlueTriangle";
-    private Timer timer;
+        setUpAnrManager()
 
-    @BindView(R.id.button_start)
-    protected Button startButton;
-    @BindView(R.id.button_interactive)
-    protected Button interactiveButton;
-    @BindView(R.id.button_stop)
-    protected Button stopButton;
-    @BindView(R.id.button_crash)
-    protected Button crashButton;
-
-    private OkHttpClient okHttpClient;
-
-    @Override
-    protected void onCreate(@Nullable final Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
-        updateButtonState();
-        setUpAnrManager();
-        okHttpClient = new OkHttpClient.Builder().addInterceptor(new BlueTriangleOkHttpInterceptor(Tracker.getInstance().getConfiguration())).build();
+        okHttpClient =
+            OkHttpClient.Builder()
+                .addInterceptor(BlueTriangleOkHttpInterceptor(instance!!.configuration))
+                .build()
     }
 
-    private void setUpAnrManager() {
-        AnrManager anrManager = new AnrManager();
-        anrManager.start();
-        anrManager.getDetector().addAnrListener("UIThread", error -> {
-            showAnrNotification(error);
-        });
-    }
-
-    private void showAnrNotification(AnrException error) {
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannelCompat channel = new NotificationChannelCompat
-                    .Builder("ANR", IMPORTANCE_HIGH)
-                    .setName("ANR Channel")
-                    .build();
-            notificationManager.createNotificationChannel(channel);
+    private fun addButtonClickListeners() {
+        binding.buttonStart.setOnClickListener(this::startButtonClicked)
+        binding.buttonInteractive.setOnClickListener(this::interactiveButtonClicked)
+        binding.buttonStop.setOnClickListener(this::stopButtonClicked)
+        binding.buttonNext.setOnClickListener(this::nextButtonClicked)
+        binding.buttonBackground.setOnClickListener(this::backgroundButtonClicked)
+        binding.buttonCrash.setOnClickListener(this::crashButtonClicked)
+        binding.buttonTrackCatchException.setOnClickListener(this::trackCatchExceptionButtonClicked)
+        binding.buttonNetwork.setOnClickListener(this::captureNetworkRequests)
+        binding.buttonAnr.setOnClickListener {
+            startActivity(Intent(this, AnrTestActivity::class.java))
         }
-        Notification notification = new NotificationCompat.Builder(this, "ANR")
-                .setContentTitle("ANR Detected")
-                .setContentText("Main thread is being blocked for the last " + error.getDelay() + "ms")
-                .setSmallIcon(R.drawable.ic_launcher_background)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .build();
-        notificationManager.notify(2, notification);
     }
 
-    private void updateButtonState() {
-        startButton.setEnabled(timer == null || !timer.isRunning() || timer.hasEnded());
-        interactiveButton.setEnabled(timer != null && timer.isRunning() && !timer.isInteractive() && !timer.hasEnded());
-        stopButton.setEnabled(timer != null && timer.isRunning() && !timer.hasEnded());
-    }
-
-    @OnClick(R.id.button_start)
-    public void startButtonClicked() {
-        timer = new Timer(MainActivity.class.getSimpleName(), "Ä Traffic Šegment").start();
-        updateButtonState();
-    }
-
-    @OnClick(R.id.button_interactive)
-    public void interactiveButtonClicked() {
-        if (timer.isRunning()) {
-            timer.interactive();
-        }
-        updateButtonState();
-    }
-
-    @OnClick(R.id.button_stop)
-    public void stopButtonClicked() {
-        if (timer.isRunning()) {
-            timer.end().submit();
-        }
-        updateButtonState();
-    }
-
-    @OnClick(R.id.button_next)
-    public void nextButtonClicked() {
-        final Timer timer = new Timer("Next Page", "Android Traffic").start();
-        final Intent intent = new Intent(this, NextActivity.class);
-        intent.putExtra(Timer.EXTRA_TIMER, timer);
-        startActivity(intent);
-    }
-
-    @OnClick(R.id.button_background)
-    public void backgroundButtonClicked() {
-        final Timer backgroundTimer = new Timer("Background Timer", "background traffic").start();
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(final Void... voids) {
-                try {
-                    Thread.sleep(500);
-                    backgroundTimer.interactive();
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+    private fun setUpAnrManager() {
+        val anrManager = AnrManager()
+        anrManager.start()
+        anrManager.detector.addAnrListener(
+            "UIThread",
+            object : AnrListener {
+                override fun onAppNotResponding(error: AnrException) {
+                    showAnrNotification(error)
                 }
-                backgroundTimer.end().submit();
-                return null;
-            }
-        }.execute();
+            })
     }
 
-    @OnClick(R.id.button_track_catch_exception)
-    public void trackCatchExceptionButtonClicked() {
-        try {
-            Tracker.getInstance().raiseTestException();
-        } catch (Throwable e) {
-            Tracker.getInstance().trackException("A test exception caught!", e);
+    private fun showAnrNotification(error: AnrException) {
+        val notificationManager = NotificationManagerCompat.from(this)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel =
+                NotificationChannelCompat.Builder("ANR", NotificationManagerCompat.IMPORTANCE_HIGH)
+                    .setName("ANR Channel")
+                    .build()
+            notificationManager.createNotificationChannel(channel)
+        }
+//        val notification = NotificationCompat.Builder(this, "ANR")
+//            .setContentTitle("ANR Detected")
+//            .setContentText("Main thread is being blocked for the last " + error.delay + "ms")
+//            .setSmallIcon(R.drawable.ic_launcher_background)
+//            .setPriority(NotificationCompat.PRIORITY_HIGH)
+//            .build()
+//        notificationManager.notify(2, notification)
+    }
+
+    private fun updateButtonState() {
+        binding.buttonStart.isEnabled = timer == null || !timer!!.isRunning() || timer!!.hasEnded()
+        binding.buttonInteractive.isEnabled =
+            timer != null && timer!!.isRunning() && !timer!!.isInteractive() && !timer!!.hasEnded()
+        binding.buttonStop.isEnabled = timer != null && timer!!.isRunning() && !timer!!.hasEnded()
+    }
+
+    private fun startButtonClicked(view: View) {
+        timer = Timer(MainActivity::class.java.simpleName, "Ä Traffic Šegment").start()
+        updateButtonState()
+    }
+
+    private fun interactiveButtonClicked(view: View) {
+        if (timer!!.isRunning()) {
+            timer!!.interactive()
+        }
+        updateButtonState()
+    }
+
+    private fun stopButtonClicked(view: View) {
+        if (timer!!.isRunning()) {
+            timer!!.end().submit()
+        }
+        updateButtonState()
+    }
+
+    private fun nextButtonClicked(view: View) {
+        val timer = Timer("Next Page", "Android Traffic").start()
+        val intent = Intent(this, NextActivity::class.java)
+        intent.putExtra(Timer.EXTRA_TIMER, timer)
+        startActivity(intent)
+    }
+
+    private fun backgroundButtonClicked(view: View) {
+        val backgroundTimer = Timer("Background Timer", "background traffic").start()
+
+        lifecycleScope.launch {
+            try {
+                delay(500)
+                backgroundTimer.interactive()
+                delay(2000)
+            } catch (e: InterruptedException) {
+                e.printStackTrace()
+            }
+            backgroundTimer.end().submit()
         }
     }
 
-    @OnClick(R.id.button_crash)
-    public void crashButtonClicked() {
-        Tracker.getInstance().raiseTestException();
-    }
-
-    @OnClick(R.id.button_anr)
-    public void blockMainThread() {
+    private fun trackCatchExceptionButtonClicked(view: View) {
         try {
-            Thread.sleep(25000);
-        } catch (InterruptedException e) {
-
+            instance!!.raiseTestException()
+        } catch (e: Throwable) {
+            instance!!.trackException("A test exception caught!", e)
         }
     }
 
-    @OnClick(R.id.button_network)
-    public void captureNetworkRequests() {
-        final Timer timer = new Timer("Test Network Capture", "Android Traffic").start();
+    private fun crashButtonClicked(view: View) {
+        instance!!.raiseTestException()
+    }
 
-        final Request imageRequest = new Request.Builder().url("https://www.httpbin.org/image/jpeg").build();
-        okHttpClient.newCall(imageRequest).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                Log.d(TAG, "onFailure: " + call.request());
+    private fun captureNetworkRequests(view: View) {
+        val timer = Timer("Test Network Capture", "Android Traffic").start()
+        val imageRequest: Request =
+            Request.Builder().url("https://www.httpbin.org/image/jpeg").build()
+        okHttpClient!!.newCall(imageRequest).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.d(TAG, "onFailure: " + call.request())
             }
 
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                Log.d(TAG, "onResponse: " + call.request());
+            @Throws(IOException::class)
+            override fun onResponse(call: Call, response: Response) {
+                Log.d(TAG, "onResponse: " + call.request())
             }
-        });
-
-        final Request jsonRequest = new Request.Builder().url("https://www.httpbin.org/json").build();
-        okHttpClient.newCall(jsonRequest).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                Log.d(TAG, "onFailure: " + call.request());
+        })
+        val jsonRequest: Request = Request.Builder().url("https://www.httpbin.org/json").build()
+        okHttpClient!!.newCall(jsonRequest).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.d(TAG, "onFailure: " + call.request())
             }
 
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                Log.d(TAG, "onResponse: " + call.request());
-                timer.end().submit();
-
-                RequestBody body = new FormBody(Arrays.asList("test"), Arrays.asList("value"));
-                final Request postRequest = new Request.Builder().url("https://httpbin.org/post").method("POST", body).build();
-                okHttpClient.newCall(postRequest).enqueue(new Callback() {
-                    @Override
-                    public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                        Log.d(TAG, "onFailure: " + call.request());
+            @Throws(IOException::class)
+            override fun onResponse(call: Call, response: Response) {
+                Log.d(TAG, "onResponse: " + call.request())
+                timer.end().submit()
+                val body: RequestBody = FormBody.Builder().add("test", "value").build()
+                val postRequest: Request =
+                    Request.Builder().url("https://httpbin.org/post").method("POST", body).build()
+                okHttpClient!!.newCall(postRequest).enqueue(object : Callback {
+                    override fun onFailure(call: Call, e: IOException) {
+                        Log.d(TAG, "onFailure: " + call.request())
                     }
 
-                    @Override
-                    public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                        Log.d(TAG, "onResponse: " + call.request());
-                        new Timer("Test Network Capture 2", "Android Traffic").start().end().submit();
+                    @Throws(IOException::class)
+                    override fun onResponse(call: Call, response: Response) {
+                        Log.d(TAG, "onResponse: " + call.request())
+                        Timer("Test Network Capture 2", "Android Traffic").start().end().submit()
                     }
-                });
+                })
             }
-        });
+        })
+    }
+
+    companion object {
+        private const val TAG = "BlueTriangle"
     }
 }

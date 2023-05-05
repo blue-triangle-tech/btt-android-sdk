@@ -1,25 +1,20 @@
-package com.bluetriangle.android.demo;
+package com.bluetriangle.android.demo
 
-import android.app.Application;
-import com.bluetriangle.analytics.Tracker;
+import android.app.Application
+import com.bluetriangle.analytics.Tracker
+import com.bluetriangle.analytics.Tracker.Companion.init
 
-public class DemoApplication extends Application {
-
-    private Tracker tracker;
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
+class DemoApplication : Application() {
+    private var tracker: Tracker? = null
+    override fun onCreate() {
+        super.onCreate()
         // d.btttag.com => 107.22.227.162
         //"http://107.22.227.162/btt.gif"
         //https://d.btttag.com/analytics.rcv
         //sdkdemo26621z
         //bluetriangledemo500z
-        tracker = Tracker.init(getApplicationContext());
-        tracker.setSessionTrafficSegmentName("Demo Traffic Segment");
+        tracker = init(applicationContext)
+        tracker!!.setSessionTrafficSegmentName("Demo Traffic Segment")
         //tracker.raiseTestException();
-
     }
 }
-
-
