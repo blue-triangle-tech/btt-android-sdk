@@ -4,6 +4,7 @@ import android.os.Process
 import com.bluetriangle.analytics.monitor.CpuMonitor
 import com.bluetriangle.analytics.monitor.MainThreadMonitor
 import com.bluetriangle.analytics.monitor.MemoryMonitor
+import com.bluetriangle.analytics.monitor.MetricMonitor
 
 /**
  * CPU monitoring adapted from https://eng.lyft.com/monitoring-cpu-performance-of-lyfts-android-applications-4e36fafffe12
@@ -13,11 +14,13 @@ class PerformanceMonitor(configuration: BlueTriangleConfiguration) : Thread(THRE
     private var isRunning = true
     private val interval = configuration.performanceMonitorIntervalMs
 
-    private val metricMonitors = listOf(
-        CpuMonitor(configuration),
-        MemoryMonitor(configuration),
-        MainThreadMonitor(configuration)
-    )
+    private val metricMonitors = arrayListOf<MetricMonitor>()
+
+    init {
+        metricMonitors.add(CpuMonitor(configuration))
+        metricMonitors.add(MemoryMonitor(configuration))
+        metricMonitors.add(MainThreadMonitor(configuration))
+    }
 
     override fun run() {
         Process.setThreadPriority(Process.THREAD_PRIORITY_LOWEST)

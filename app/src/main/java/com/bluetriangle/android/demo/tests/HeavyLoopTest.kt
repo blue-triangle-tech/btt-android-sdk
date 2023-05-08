@@ -21,10 +21,10 @@ class HeavyLoopTest : BTTTestCase {
     private fun task(taskStartTime : Long){
         val list = arrayListOf<String>()
         val intervalInMillis = interval * 1000
-        repeat(20000){
+        while(list.size <= 20000) {
             list.add("${Random.nextDouble() * Int.MAX_VALUE}")
 
-            if(System.currentTimeMillis() - taskStartTime >= intervalInMillis) return
+            if((System.currentTimeMillis() - taskStartTime) >= intervalInMillis) return
         }
 
         var duplicates = 0
@@ -35,14 +35,14 @@ class HeavyLoopTest : BTTTestCase {
                 if(n == number) {
                     currentDuplicate += 1
                 }
-                if(System.currentTimeMillis() - taskStartTime >= intervalInMillis) return
+                if((System.currentTimeMillis() - taskStartTime) >= intervalInMillis) return
             }
 
             duplicates += (currentDuplicate - 1)
-            if(System.currentTimeMillis() - taskStartTime >= intervalInMillis) return
+            if((System.currentTimeMillis() - taskStartTime) >= intervalInMillis) return
         }
 
-        if(System.currentTimeMillis() - taskStartTime < intervalInMillis) {
+        if((System.currentTimeMillis() - taskStartTime) < intervalInMillis) {
             task(taskStartTime)
         }
     }

@@ -15,7 +15,6 @@ class DownloadTest : BTTTestCase {
         get() = "This test downloads 200MB file in loop until $interval Sec."
     
     override fun run():String? {
-
         val taskStartTime = System.currentTimeMillis()
         var totalBytesDownloded = 0
         val intervalInMillis = interval * 1000
@@ -23,13 +22,11 @@ class DownloadTest : BTTTestCase {
         while(System.currentTimeMillis() - taskStartTime < intervalInMillis) {
             val connection = URL("http://ipv4.download.thinkbroadband.com/200MB.zip").openConnection()
             connection.connect()
-            connection.getInputStream().readBytes()
+            val inputStream = connection.getInputStream()
+            while(inputStream.read() != -1) {
+                totalBytesDownloded++
+            }
         }
-//
-//        repeat{
-//            let data = try? Data(contentsOf: URL("http://ipv4.download.thinkbroadband.com/200MB.zip"))
-//            totalBytesDownloded += data?.count ?? 0
-//        }while(Date().timeIntervalSince(taskStartTime) < interval)
         return null
     }
 
