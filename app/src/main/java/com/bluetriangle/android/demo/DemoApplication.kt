@@ -16,7 +16,7 @@ class DemoApplication : Application() {
         configuration.isDebug = true
         configuration.networkSampleRate = 1.0
         configuration.isPerformanceMonitorEnabled = true
-        tracker = init(applicationContext, configuration)
+        tracker = init(this, configuration)
 
         tracker!!.setSessionTrafficSegmentName("Demo Traffic Segment")
     }
