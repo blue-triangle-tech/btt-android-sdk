@@ -1,67 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        >
+        android:layout_height="match_parent"
+        android:padding="8dp"
+        android:orientation="vertical">
 
-        <Button
-            android:id="@+id/button_start"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_start"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:maxLines="1"
+                app:autoSizeTextType="uniform"
+                app:autoSizeMinTextSize="12sp"
+                app:autoSizeMaxTextSize="14sp"
+                android:text="Start Timer" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_interactive"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:maxLines="1"
+                app:autoSizeTextType="uniform"
+                app:autoSizeMinTextSize="12sp"
+                app:autoSizeMaxTextSize="14sp"
+                android:text="Interactive" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_stop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:maxLines="1"
+                app:autoSizeTextType="uniform"
+                app:autoSizeMinTextSize="12sp"
+                app:autoSizeMaxTextSize="14sp"
+                android:text="Stop Timer" />
+
+        </LinearLayout>
+
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_next"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Start Timer" />
+            android:text="Goto Next Activity Timer" />
 
-        <Button
-            android:id="@+id/button_interactive"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_background"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Interactive" />
+            android:text="Start Background Thread Timer" />
 
-        <Button
-            android:id="@+id/button_stop"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_track_catch_exception"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Stop Timer" />
+            android:text="Track Caught Exception" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_crash"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CRASH" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_network"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Capture Network Requests" />
 
     </LinearLayout>
-
-
-
-    <Button
-        android:id="@+id/button_next"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Goto Next Activity Timer" />
-
-    <Button
-        android:id="@+id/button_background"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Start Background Thread Timer" />
-
-    <Button
-        android:id="@+id/button_track_catch_exception"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Track Caught Exception" />
-    <Button
-        android:id="@+id/button_crash"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="CRASH" />
-
-    <Button
-        android:id="@+id/button_network"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Capture Network Requests" />
-
-</LinearLayout>
+</layout>

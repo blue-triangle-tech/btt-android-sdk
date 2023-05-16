@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Blue Triangle Android Demo</string>
+    <string name="btt_site_id" translatable="false">testsite1</string>
+    <string name="run">Run</string>
+    <string name="main_title">BlueTriangle Tests</string>
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
+    <string name="bttimer">BTTimer:</string>
 </resources>
