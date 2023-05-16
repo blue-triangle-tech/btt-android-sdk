@@ -62,7 +62,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setUpAnrManager() {
-        val anrManager = AnrManager()
+        val anrManager = AnrManager(instance!!.configuration)
         anrManager.start()
         anrManager.detector.addAnrListener(
             "UIThread",

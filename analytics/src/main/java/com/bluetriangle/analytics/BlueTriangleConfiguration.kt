@@ -44,8 +44,6 @@ class BlueTriangleConfiguration {
      */
     var shouldSampleNetwork = false
 
-    var anrDelay = 5L
-
     var isDebug = false
     var debugLevel = Log.DEBUG
     var logger: Logger? = null
@@ -92,6 +90,16 @@ class BlueTriangleConfiguration {
 
     var isPerformanceMonitorEnabled = false
     var performanceMonitorIntervalMs = TimeUnit.SECONDS.toMillis(1)
+
+    /**
+     * Enable or disable ANR detection and sending reports to the server.
+     */
+    var isTrackAnrEnabled: Boolean = true
+
+    /**
+     * time interval for ANR warning based on track ANR is enabled or disabled, default to 5 seconds, minimum is 3 second, if set less then minimum allowed set value is ignored
+     */
+    var trackAnrIntervalSec = Constants.ANR_DEFAULT_INTERVAL
 
     companion object {
         const val DEFAULT_TRACKER_URL = "https://d.btttag.com/analytics.rcv"

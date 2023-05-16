@@ -15,7 +15,8 @@ class MainThreadMonitor(configuration: BlueTriangleConfiguration) : MetricMonito
             FIELD_MAX_MAIN_THREAD_BLOCK to maxMainThreadBlock.toString()
         )
 
-    private val anrDelay = configuration.anrDelay * 1000L
+    private val isTrackAnrEnabled = configuration.isTrackAnrEnabled
+    private val trackAnrIntervalSec = configuration.trackAnrIntervalSec
 
     private val handler = Handler(Looper.getMainLooper())
     private var dummyTask = Runnable { }
@@ -37,7 +38,7 @@ class MainThreadMonitor(configuration: BlueTriangleConfiguration) : MetricMonito
 
         maxMainThreadBlock = maxMainThreadBlock.coerceAtLeast(threadBlockDelay)
 
-        if (threadBlockDelay > anrDelay) {
+        if (isTrackAnrEnabled && threadBlockDelay > (trackAnrIntervalSec * 1000L)) {
             if (!isANRNotified) {
                 isANRNotified = true
                 logger?.debug("Sending ANR as Exception")

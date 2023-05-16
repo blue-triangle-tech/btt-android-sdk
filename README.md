@@ -79,6 +79,8 @@ The tracker's configuration can also be set using metadata tags in the applicati
         <meta-data android:name="com.blue-triangle.debug.level" android:value="2" />
         <meta-data android:name="com.blue-triangle.performance-monitor.enable" android:value="true" />
         <meta-data android:name="com.blue-triangle.track-crashes.enable" android:value="true" />
+        <meta-data android:name="com.blue-triangle.track-anr.enable" android:value="true" />
+        <meta-data android:name="com.blue-triangle.track-anr.interval-sec" android:value="5" />
     </application>
 </manifest>
 ```
@@ -87,12 +89,22 @@ The current available meta data configuration names:
 
 * `com.blue-triangle.site-id` configures the tracker's site ID.
 * `com.blue-triangle.debug` enables or disables debug logging.
-* `com.blue-triangle.debug.level` allows setting the debug logging level using the int value for [Android's log levels](https://developer.android.com/reference/android/util/Log#DEBUG).
-* `com.blue-triangle.cache.max-items` sets the max number of timers and crashes to cache and retry in the event the timers cannot be sent to the server. Set this to 0 to disable this feature.
+* `com.blue-triangle.debug.level` allows setting the debug logging level using the int value
+  for [Android's log levels](https://developer.android.com/reference/android/util/Log#DEBUG).
+* `com.blue-triangle.cache.max-items` sets the max number of timers and crashes to cache and retry
+  in the event the timers cannot be sent to the server. Set this to 0 to disable this feature.
 * `com.blue-triangle.cache.max-retry-attempts` sets the max number of times a timer can be re-tried.
-* `com.blue-triangle.performance-monitor.enable` enables or disables tracking of memory and CPU usage.
-* `com.blue-triangle.performance-monitor.interval-ms` adjusts the interval in milliseconds of how often memory and CPU measurements are taken.
-* `com.blue-triangle.track-crashes.enable` enable or disable collecting and sending crash reports to the server.
+* `com.blue-triangle.performance-monitor.enable` enables or disables tracking of memory and CPU
+  usage.
+* `com.blue-triangle.performance-monitor.interval-ms` adjusts the interval in milliseconds of how
+  often memory and CPU measurements are taken.
+* `com.blue-triangle.track-crashes.enable` enable or disable collecting and sending crash reports to
+  the server.
+* `com.blue-triangle.track-anr.enable` enable or disable ANR detection and sending reports to the
+  server.
+* `com.blue-triangle.track-anr.interval-sec` time interval for ANR warning based on track ANR is
+  enabled or disabled, default to 5 seconds, minimum is 3 second, if set less then minimum allowed
+  set value is ignored
 
 ### Using Timers
 

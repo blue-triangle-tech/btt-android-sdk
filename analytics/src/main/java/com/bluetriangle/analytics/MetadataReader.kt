@@ -12,10 +12,12 @@ internal object MetadataReader {
     private const val MAX_CACHE_ITEMS = "com.blue-triangle.cache.max-items"
     private const val MAX_RETRY_ATTEMPTS = "com.blue-triangle.cache.max-retry-attempts"
     private const val PERFORMANCE_MONITOR_ENABLE = "com.blue-triangle.performance-monitor.enable"
-    private const val PERFORMANCE_MONITOR_INTERVAL = "com.blue-triangle.performance-monitor.interval-ms"
+    private const val PERFORMANCE_MONITOR_INTERVAL =
+        "com.blue-triangle.performance-monitor.interval-ms"
     private const val TRACK_CRASHES_ENABLE = "com.blue-triangle.track-crashes.enable"
     private const val NETWORK_SAMPLE_RATE = "com.blue-triangle.sample-rate.network"
-    private const val ANR_DELAY = "com.blue-triangle.anr.delay"
+    private const val TRACK_ANR_ENABLE = "com.blue-triangle.track-anr.enable"
+    private const val TRACK_ANR_INTERVAL_SECONDS = "com.blue-triangle.track-anr.interval-sec"
 
     fun applyMetadata(context: Context, configuration: BlueTriangleConfiguration) {
         try {
@@ -28,13 +30,30 @@ internal object MetadataReader {
                 configuration.siteId = siteId
                 configuration.isDebug = readBool(metadata, DEBUG, configuration.isDebug)
                 configuration.debugLevel = readInt(metadata, DEBUG_LEVEL, configuration.debugLevel)
-                configuration.maxCacheItems = readInt(metadata, MAX_CACHE_ITEMS, configuration.maxCacheItems)
-                configuration.maxAttempts = readInt(metadata, MAX_RETRY_ATTEMPTS, configuration.maxAttempts)
-                configuration.isPerformanceMonitorEnabled = readBool(metadata, PERFORMANCE_MONITOR_ENABLE, configuration.isPerformanceMonitorEnabled)
-                configuration.performanceMonitorIntervalMs = readLong(metadata, PERFORMANCE_MONITOR_INTERVAL, configuration.performanceMonitorIntervalMs)
-                configuration.isTrackCrashesEnabled = readBool(metadata, TRACK_CRASHES_ENABLE, configuration.isTrackCrashesEnabled)
-                configuration.networkSampleRate = readDouble(metadata, NETWORK_SAMPLE_RATE, configuration.networkSampleRate)
-                configuration.anrDelay = readLong(metadata, ANR_DELAY, configuration.anrDelay)
+                configuration.maxCacheItems =
+                    readInt(metadata, MAX_CACHE_ITEMS, configuration.maxCacheItems)
+                configuration.maxAttempts =
+                    readInt(metadata, MAX_RETRY_ATTEMPTS, configuration.maxAttempts)
+                configuration.isPerformanceMonitorEnabled = readBool(
+                    metadata,
+                    PERFORMANCE_MONITOR_ENABLE,
+                    configuration.isPerformanceMonitorEnabled
+                )
+                configuration.performanceMonitorIntervalMs = readLong(
+                    metadata,
+                    PERFORMANCE_MONITOR_INTERVAL,
+                    configuration.performanceMonitorIntervalMs
+                )
+                configuration.isTrackCrashesEnabled =
+                    readBool(metadata, TRACK_CRASHES_ENABLE, configuration.isTrackCrashesEnabled)
+                configuration.networkSampleRate =
+                    readDouble(metadata, NETWORK_SAMPLE_RATE, configuration.networkSampleRate)
+                configuration.isTrackAnrEnabled =
+                    readBool(metadata, TRACK_ANR_ENABLE, configuration.isTrackAnrEnabled)
+                configuration.trackAnrIntervalSec =
+                    readInt(metadata, TRACK_ANR_INTERVAL_SECONDS, configuration.trackAnrIntervalSec)
+                if (configuration.trackAnrIntervalSec < 3) configuration.trackAnrIntervalSec =
+                    3 // minimum interval is 3 seconds
             }
         } catch (e: Throwable) {
             configuration.logger?.error(e, "Error reading metadata configuration")

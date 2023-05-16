@@ -131,6 +131,7 @@ internal class CrashRunnable(
      * @param payloadData payload data to send
      */
     private fun cachePayload(url: String, payloadData: String) {
+        if (errorType == Tracker.BTErrorType.ANRWarning) return
         configuration.logger?.info("Caching crash report")
         configuration.payloadCache?.cachePayload(Payload(url = url, data = payloadData))
     }

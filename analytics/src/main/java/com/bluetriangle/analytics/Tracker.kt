@@ -74,7 +74,7 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
 
         trackerExecutor = TrackerExecutor(configuration)
 
-        anrManager = AnrManager()
+        anrManager = AnrManager(configuration)
         anrManager.start()
 
         if (configuration.isTrackCrashesEnabled) {
@@ -379,16 +379,28 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
      * @param message   optional message included with the stack trace
      * @param exception the exception to track
      */
-    fun trackException(message: String?, exception: Throwable, errorType:BTErrorType = BTErrorType.NativeAppCrash) {
+    fun trackException(
+        message: String?,
+        exception: Throwable,
+        errorType: BTErrorType = BTErrorType.NativeAppCrash
+    ) {
         val timeStamp = System.currentTimeMillis().toString()
         val crashHitsTimer = Timer().start()
         val stacktrace = Utils.exceptionToStacktrace(message, exception)
-        trackerExecutor.submit(CrashRunnable(configuration, stacktrace, timeStamp, crashHitsTimer, errorType))
+        trackerExecutor.submit(
+            CrashRunnable(
+                configuration,
+                stacktrace,
+                timeStamp,
+                crashHitsTimer,
+                errorType
+            )
+        )
     }
 
     sealed class BTErrorType(val value: String) {
-        object NativeAppCrash:BTErrorType("NativeAppCrash")
-        object ANRWarning:BTErrorType("ANRWarning")
+        object NativeAppCrash : BTErrorType("NativeAppCrash")
+        object ANRWarning : BTErrorType("ANRWarning")
     }
 
     fun raiseTestException() {

@@ -15,5 +15,5 @@ object Constants {
     const val HEADER_CONTENT_TYPE = "Content-Type"
     const val CONTENT_TYPE_JSON = "application/json; charset=utf-8"
     const val CHECK_INTERVAL: Long = 1000
-    const val ANR_DEFAULT_INTERVAL: Long = 5000
+    const val ANR_DEFAULT_INTERVAL: Int = 5 // in seconds
 }
