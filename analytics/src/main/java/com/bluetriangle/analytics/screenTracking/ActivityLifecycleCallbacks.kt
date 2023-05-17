@@ -6,7 +6,6 @@ import android.app.Application
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.fragment.app.FragmentActivity
 
 class ActivityLifecycleCallbacks : Application.ActivityLifecycleCallbacks {
@@ -14,8 +13,7 @@ class ActivityLifecycleCallbacks : Application.ActivityLifecycleCallbacks {
     private var visibleActivity: Activity? = null
 
     override fun onActivityCreated(activity: Activity, bundle: Bundle?) {
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O && activity is FragmentActivity)
-            registerFragmentLifecycleCallbacks(activity)
+        registerFragmentLifecycleCallbacks(activity)
     }
 
     override fun onActivityDestroyed(activity: Activity) {
@@ -43,11 +41,14 @@ class ActivityLifecycleCallbacks : Application.ActivityLifecycleCallbacks {
         startedActivities.remove(activity)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun registerFragmentLifecycleCallbacks(activity: FragmentActivity) {
-        activity.supportFragmentManager.registerFragmentLifecycleCallbacks(
-            FragmentLifecycleCallbacks(),
-            false
-        )
+    private fun registerFragmentLifecycleCallbacks(activity: Activity) {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
+            if (activity is FragmentActivity) {
+                activity.supportFragmentManager.registerFragmentLifecycleCallbacks(
+                    FragmentLifecycleCallbacks(),
+                    false
+                )
+            }
+        }
     }
 }
