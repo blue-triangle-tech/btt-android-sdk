@@ -398,9 +398,9 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
         )
     }
 
-    sealed class BTErrorType(val value: String) {
-        object NativeAppCrash : BTErrorType("NativeAppCrash")
-        object ANRWarning : BTErrorType("ANRWarning")
+    enum class BTErrorType(val value: String) {
+        NativeAppCrash("NativeAppCrash"),
+        ANRWarning("ANRWarning"),
     }
 
     fun raiseTestException() {

@@ -2,10 +2,13 @@
 <layout xmlns:tools="http://schemas.android.com/tools"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <data>
+
         <variable
             name="adapter"
-            type="com.bluetriangle.android.demo.kotlin.ANRTestAdapter" />
+            type="com.bluetriangle.android.demo.java.ANRTestAdapter" />
+
         <variable
             name="status"
             type="androidx.lifecycle.LiveData&lt;Boolean&gt;" />

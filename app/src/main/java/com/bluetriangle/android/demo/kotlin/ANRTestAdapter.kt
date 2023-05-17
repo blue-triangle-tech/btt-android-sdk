@@ -1,12 +1,12 @@
-package com.bluetriangle.android.demo
+package com.bluetriangle.android.demo.kotlin
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
+import com.bluetriangle.android.demo.R
 import com.bluetriangle.android.demo.databinding.AnrTestCaseItemLayoutBinding
 import com.bluetriangle.android.demo.tests.BTTTestCase
 
