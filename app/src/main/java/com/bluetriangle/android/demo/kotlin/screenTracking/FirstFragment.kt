@@ -1,4 +1,4 @@
-package com.bluetriangle.android.demo.screenTracking
+package com.bluetriangle.android.demo.kotlin.screenTracking
 
 import android.os.Bundle
 import android.view.LayoutInflater

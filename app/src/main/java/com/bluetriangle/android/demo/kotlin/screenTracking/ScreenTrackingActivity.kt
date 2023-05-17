@@ -1,4 +1,4 @@
-package com.bluetriangle.android.demo.screenTracking
+package com.bluetriangle.android.demo.kotlin.screenTracking
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity

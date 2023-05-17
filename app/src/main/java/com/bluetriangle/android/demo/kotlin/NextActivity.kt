@@ -1,9 +1,10 @@
-package com.bluetriangle.android.demo
+package com.bluetriangle.android.demo.kotlin
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.bluetriangle.analytics.Timer
+import com.bluetriangle.android.demo.R
 import com.bluetriangle.android.demo.databinding.ActivityNextBinding
 
 class NextActivity : AppCompatActivity() {

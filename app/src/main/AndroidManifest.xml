@@ -11,7 +11,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
+            android:name=".HomeActivity"
             android:exported="true"
             android:label="@string/app_name">
             <intent-filter>
@@ -20,16 +20,32 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".NextActivity" />
+
         <activity
-            android:name=".screenTracking.ScreenTrackingActivity"
+            android:name=".java.TestListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".java.NextActivity"
+            android:exported="false" />
+        <activity
+            android:name=".java.screenTracking.ScreenTrackingActivity"
             android:exported="false" />
 
-<!--        <meta-data android:name="com.blue-triangle.site-id" android:value="mobelux3271241z" />-->
-<!--        <meta-data android:name="com.blue-triangle.debug" android:value="true" />-->
-<!--        <meta-data android:name="com.blue-triangle.performance-monitor.enable" android:value="true" />-->
-<!--        <meta-data android:name="com.blue-triangle.track-crashes.enable" android:value="true" />-->
-<!--        <meta-data android:name="com.blue-triangle.sample-rate.network" android:value="1.0" />-->
+        <activity
+            android:name=".kotlin.TestListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".kotlin.NextActivity"
+            android:exported="false" />
+        <activity
+            android:name=".kotlin.screenTracking.ScreenTrackingActivity"
+            android:exported="false" />
+
+        <!--        <meta-data android:name="com.blue-triangle.site-id" android:value="mobelux3271241z" />-->
+        <!--        <meta-data android:name="com.blue-triangle.debug" android:value="true" />-->
+        <!--        <meta-data android:name="com.blue-triangle.performance-monitor.enable" android:value="true" />-->
+        <!--        <meta-data android:name="com.blue-triangle.track-crashes.enable" android:value="true" />-->
+        <!--        <meta-data android:name="com.blue-triangle.sample-rate.network" android:value="1.0" />-->
 
     </application>
 

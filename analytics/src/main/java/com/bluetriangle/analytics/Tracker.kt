@@ -59,7 +59,8 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
         globalFields[Timer.FIELD_BROWSER] = Constants.BROWSER
         val appVersion = Utils.getAppVersion(context)
         val isTablet = Utils.isTablet(context)
-        globalFields[Timer.FIELD_DEVICE] = if (isTablet) Constants.DEVICE_TABLET else Constants.DEVICE_MOBILE
+        globalFields[Timer.FIELD_DEVICE] =
+            if (isTablet) Constants.DEVICE_TABLET else Constants.DEVICE_MOBILE
         globalFields[Timer.FIELD_BROWSER_VERSION] = "${Constants.BROWSER}-$appVersion-${Utils.os}"
         globalFields[Timer.FIELD_SDK_VERSION] = BuildConfig.SDK_VERSION
 
@@ -105,7 +106,8 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
         get() {
             var globalUserId: String? = null
             val context = context.get() ?: return Utils.generateRandomId()
-            val sharedPreferences = context.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
+            val sharedPreferences =
+                context.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
             if (sharedPreferences.contains(Timer.FIELD_GLOBAL_USER_ID)) {
                 globalUserId = sharedPreferences.getString(Timer.FIELD_GLOBAL_USER_ID, null)
             }
@@ -182,7 +184,8 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
         val keysToSend = capturedRequests.keys().toList().filter { it <= timer.start }
         val capturedRequestCollections = mutableListOf<CapturedRequestCollection>()
         keysToSend.forEach {
-            capturedRequests.remove(it)?.let { collection -> capturedRequestCollections.add(collection) }
+            capturedRequests.remove(it)
+                ?.let { collection -> capturedRequestCollections.add(collection) }
         }
         return capturedRequestCollections.toList()
     }
