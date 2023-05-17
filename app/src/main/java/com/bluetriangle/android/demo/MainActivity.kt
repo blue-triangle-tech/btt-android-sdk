@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity() {
         binding.buttonCrash.setOnClickListener(this::crashButtonClicked)
         binding.buttonTrackCatchException.setOnClickListener(this::trackCatchExceptionButtonClicked)
         binding.buttonNetwork.setOnClickListener(this::captureNetworkRequests)
+        binding.buttonScreenTrack.setOnClickListener(this::screenTrackButtonClicked)
     }
 
     private fun updateButtonState() {
@@ -79,6 +80,13 @@ class MainActivity : AppCompatActivity() {
     private fun nextButtonClicked(view: View) {
         val timer = Timer("Next Page", "Android Traffic").start()
         val intent = Intent(this, NextActivity::class.java)
+        intent.putExtra(Timer.EXTRA_TIMER, timer)
+        startActivity(intent)
+    }
+
+    private fun screenTrackButtonClicked(view: View) {
+        val timer = Timer("Next Page", "Android Traffic").start()
+        val intent = Intent(this, ScreenTrackingActivity::class.java)
         intent.putExtra(Timer.EXTRA_TIMER, timer)
         startActivity(intent)
     }

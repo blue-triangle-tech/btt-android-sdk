@@ -1,15 +1,21 @@
 package com.bluetriangle.analytics.screenTracking
 
+
 import android.app.Activity
 import android.app.Application
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import androidx.annotation.RequiresApi
+import androidx.fragment.app.FragmentActivity
 
-class AppLifecycleManager : Application.ActivityLifecycleCallbacks {
+class ActivityLifecycleCallbacks : Application.ActivityLifecycleCallbacks {
     private val startedActivities: MutableList<Activity?> = ArrayList()
     private var visibleActivity: Activity? = null
 
     override fun onActivityCreated(activity: Activity, bundle: Bundle?) {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O && activity is FragmentActivity)
+            registerFragmentLifecycleCallbacks(activity)
     }
 
     override fun onActivityDestroyed(activity: Activity) {
@@ -22,9 +28,9 @@ class AppLifecycleManager : Application.ActivityLifecycleCallbacks {
     }
 
     override fun onActivityResumed(activity: Activity) {
-        if (visibleActivity == null || visibleActivity!!.taskId != activity.taskId) {
+        if (visibleActivity == null || visibleActivity!!.localClassName != activity.localClassName) {
             visibleActivity = activity
-            Log.i("Screen Tracking", activity.localClassName)
+            Log.i("Act Screen Tracking", activity.localClassName)
             //TODO:: report screen view event
         }
     }
@@ -35,5 +41,13 @@ class AppLifecycleManager : Application.ActivityLifecycleCallbacks {
 
     override fun onActivityStopped(activity: Activity) {
         startedActivities.remove(activity)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun registerFragmentLifecycleCallbacks(activity: FragmentActivity) {
+        activity.supportFragmentManager.registerFragmentLifecycleCallbacks(
+            FragmentLifecycleCallbacks(),
+            false
+        )
     }
 }

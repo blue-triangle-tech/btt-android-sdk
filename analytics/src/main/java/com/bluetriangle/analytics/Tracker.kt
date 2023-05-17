@@ -6,7 +6,7 @@ import android.content.Context
 import android.text.TextUtils
 import com.bluetriangle.analytics.networkcapture.CapturedRequest
 import com.bluetriangle.analytics.networkcapture.CapturedRequestCollection
-import com.bluetriangle.analytics.screenTracking.AppLifecycleManager
+import com.bluetriangle.analytics.screenTracking.ActivityLifecycleCallbacks
 import java.io.File
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
@@ -462,7 +462,7 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
                 return instance
             }
 
-            application.registerActivityLifecycleCallbacks(AppLifecycleManager())
+            application.registerActivityLifecycleCallbacks(ActivityLifecycleCallbacks())
 
             if (configuration.isDebug) {
                 configuration.logger = AndroidLogger(configuration.debugLevel)
