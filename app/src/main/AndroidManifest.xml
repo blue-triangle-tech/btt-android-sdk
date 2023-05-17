@@ -22,7 +22,7 @@
         </activity>
         <activity android:name=".NextActivity" />
         <activity
-            android:name=".ScreenTrackingActivity"
+            android:name=".screenTracking.ScreenTrackingActivity"
             android:exported="false" />
 
 <!--        <meta-data android:name="com.blue-triangle.site-id" android:value="mobelux3271241z" />-->

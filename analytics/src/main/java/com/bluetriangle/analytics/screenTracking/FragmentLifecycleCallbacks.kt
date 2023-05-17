@@ -11,7 +11,7 @@ class FragmentLifecycleCallbacks : FragmentManager.FragmentLifecycleCallbacks() 
     private var visibleFragment: Fragment? = null
 
     override fun onFragmentResumed(fragmentManager: FragmentManager, fragment: Fragment) {
-        if (visibleFragment == null || visibleFragment!!.id != fragment.id) {
+        if (visibleFragment == null || visibleFragment!!.javaClass.simpleName != fragment.javaClass.simpleName) {
             visibleFragment = fragment
             Log.i("Frg Screen Tracking", visibleFragment!!.javaClass.simpleName)
             //TODO:: report screen view event

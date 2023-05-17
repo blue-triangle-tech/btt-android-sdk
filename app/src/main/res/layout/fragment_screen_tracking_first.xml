@@ -7,13 +7,13 @@
         android:id="@+id/fragment_tracking_test"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".ScreenTrackingFragment">
+        tools:context=".screenTracking.SecondFragment">
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/message"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/nextScreen"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Tracking Test"
+            android:text="Next Screen"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

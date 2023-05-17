@@ -11,6 +11,7 @@ import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Tracker.Companion.instance
 import com.bluetriangle.analytics.okhttp.BlueTriangleOkHttpInterceptor
 import com.bluetriangle.android.demo.databinding.ActivityMainBinding
+import com.bluetriangle.android.demo.screenTracking.ScreenTrackingActivity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.*
