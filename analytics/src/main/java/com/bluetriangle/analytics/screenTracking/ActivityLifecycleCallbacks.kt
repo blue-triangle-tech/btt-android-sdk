@@ -42,7 +42,7 @@ class ActivityLifecycleCallbacks : Application.ActivityLifecycleCallbacks {
     }
 
     private fun registerFragmentLifecycleCallbacks(activity: Activity) {
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (activity is FragmentActivity) {
                 activity.supportFragmentManager.registerFragmentLifecycleCallbacks(
                     FragmentLifecycleCallbacks(),
