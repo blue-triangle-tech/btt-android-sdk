@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.bluetriangle.android.demo.R
+import com.google.android.material.button.MaterialButton
 
 class SecondFragment : Fragment() {
     companion object {
@@ -17,5 +18,15 @@ class SecondFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         return inflater.inflate(R.layout.fragment_screen_tracking_second, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        view.findViewById<MaterialButton>(R.id.tabViewScreen).setOnClickListener {
+            activity?.supportFragmentManager?.beginTransaction()
+                ?.replace(R.id.container, TabViewFragment.newInstance())
+                ?.addToBackStack(TabViewFragment::class.java.simpleName)
+                ?.commit()
+        }
     }
 }

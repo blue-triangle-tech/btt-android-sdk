@@ -21,4 +21,13 @@ public class SecondFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_screen_tracking_second, container, false);
     }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        view.findViewById(R.id.tabViewScreen).setOnClickListener(v -> requireActivity().getSupportFragmentManager().beginTransaction()
+                .replace(R.id.container, TabViewFragment.newInstance())
+                .addToBackStack(TabViewFragment.class.getSimpleName())
+                .commit());
+    }
 }

@@ -6,4 +6,6 @@
     <string name="start">Start</string>
     <string name="stop">Stop</string>
     <string name="bttimer">BTTimer:</string>
+    <string name="tab_text_1">Tab 1</string>
+    <string name="tab_text_2">Tab 2</string>
 </resources>

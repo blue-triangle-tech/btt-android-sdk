@@ -12,33 +12,37 @@ class ActivityLifecycleCallbacks : Application.ActivityLifecycleCallbacks {
     private val startedActivities: MutableList<Activity?> = ArrayList()
     private var visibleActivity: Activity? = null
 
-    override fun onActivityCreated(activity: Activity, bundle: Bundle?) {
+    override fun onActivityCreated(activity: Activity, p1: Bundle?) {
+        Log.i("Activity Created", activity.localClassName)
         registerFragmentLifecycleCallbacks(activity)
     }
 
-    override fun onActivityDestroyed(activity: Activity) {
-    }
-
-    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
-    }
-
-    override fun onActivityPaused(activity: Activity) {
+    override fun onActivityStarted(activity: Activity) {
+        Log.i("Activity Started", activity.localClassName)
+        startedActivities.remove(activity)
     }
 
     override fun onActivityResumed(activity: Activity) {
         if (visibleActivity == null || visibleActivity!!.localClassName != activity.localClassName) {
             visibleActivity = activity
-            Log.i("Act Screen Tracking", activity.localClassName)
-            //TODO:: report screen view event
+            Log.i("Activity Resumed", activity.localClassName)
         }
     }
 
-    override fun onActivityStarted(activity: Activity) {
-        startedActivities.add(0, activity)
+    override fun onActivityPaused(activity: Activity) {
+        Log.i("Activity Paused", activity.localClassName)
     }
 
     override fun onActivityStopped(activity: Activity) {
+        Log.i("Activity Stopped", activity.localClassName)
         startedActivities.remove(activity)
+    }
+
+    override fun onActivitySaveInstanceState(activity: Activity, p1: Bundle) {
+    }
+
+    override fun onActivityDestroyed(activity: Activity) {
+        Log.i("Activity Destroyed", activity.localClassName)
     }
 
     private fun registerFragmentLifecycleCallbacks(activity: Activity) {
@@ -46,7 +50,7 @@ class ActivityLifecycleCallbacks : Application.ActivityLifecycleCallbacks {
             if (activity is FragmentActivity) {
                 activity.supportFragmentManager.registerFragmentLifecycleCallbacks(
                     FragmentLifecycleCallbacks(),
-                    false
+                    true
                 )
             }
         }
