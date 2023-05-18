@@ -4,8 +4,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
+import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import com.bluetriangle.android.demo.R
+import com.bluetriangle.android.demo.databinding.DialogAlertBinding
 import com.google.android.material.button.MaterialButton
 
 class SecondFragment : Fragment() {
@@ -28,5 +31,29 @@ class SecondFragment : Fragment() {
                 ?.addToBackStack(TabViewFragment::class.java.simpleName)
                 ?.commit()
         }
+
+        view.findViewById<MaterialButton>(R.id.showAlert).setOnClickListener {
+            showDialog()
+        }
+    }
+
+    private fun showDialog() {
+        val dialogBinding: DialogAlertBinding? =
+            DataBindingUtil.inflate(
+                LayoutInflater.from(context),
+                R.layout.dialog_alert,
+                null,
+                false
+            )
+
+        val customDialog = AlertDialog.Builder(requireContext(), 0).create()
+        dialogBinding?.btnOk?.setOnClickListener {
+            customDialog.dismiss()
+        }
+
+        customDialog.apply {
+            setView(dialogBinding?.root)
+            setCancelable(false)
+        }.show()
     }
 }

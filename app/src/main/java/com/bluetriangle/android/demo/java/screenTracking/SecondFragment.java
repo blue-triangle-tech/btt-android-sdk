@@ -7,9 +7,12 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 
 import com.bluetriangle.android.demo.R;
+import com.bluetriangle.android.demo.databinding.DialogAlertBinding;
 
 public class SecondFragment extends Fragment {
     public static SecondFragment newInstance() {
@@ -29,5 +32,23 @@ public class SecondFragment extends Fragment {
                 .replace(R.id.container, TabViewFragment.newInstance())
                 .addToBackStack(TabViewFragment.class.getSimpleName())
                 .commit());
+
+        view.findViewById(R.id.showAlert).setOnClickListener(v -> showDialog());
+    }
+
+    private void showDialog() {
+        DialogAlertBinding dialogBinding =
+                DataBindingUtil.inflate(
+                        LayoutInflater.from(getContext()),
+                        R.layout.dialog_alert,
+                        null,
+                        false
+                );
+
+        AlertDialog customDialog = new AlertDialog.Builder(requireContext(), 0).create();
+        customDialog.setView(dialogBinding.getRoot());
+        customDialog.setCancelable(false);
+        dialogBinding.btnOk.setOnClickListener(v -> customDialog.dismiss());
+        customDialog.show();
     }
 }
