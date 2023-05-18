@@ -34,6 +34,8 @@ public class SecondFragment extends Fragment {
                 .commit());
 
         view.findViewById(R.id.showAlert).setOnClickListener(v -> showDialog());
+        view.findViewById(R.id.showDialog).setOnClickListener(v -> new TestDialog().show(getParentFragmentManager()));
+        view.findViewById(R.id.showBottomSheet).setOnClickListener(v -> new BottomSheetDialog().show(getParentFragmentManager()));
     }
 
     private void showDialog() {

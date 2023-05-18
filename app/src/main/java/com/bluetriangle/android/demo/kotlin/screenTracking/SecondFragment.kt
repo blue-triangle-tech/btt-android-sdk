@@ -35,6 +35,14 @@ class SecondFragment : Fragment() {
         view.findViewById<MaterialButton>(R.id.showAlert).setOnClickListener {
             showDialog()
         }
+
+        view.findViewById<MaterialButton>(R.id.showDialog).setOnClickListener {
+            TestDialog().show(parentFragmentManager)
+        }
+
+        view.findViewById<MaterialButton>(R.id.showBottomSheet).setOnClickListener {
+            BottomSheetDialog().show(parentFragmentManager)
+        }
     }
 
     private fun showDialog() {
