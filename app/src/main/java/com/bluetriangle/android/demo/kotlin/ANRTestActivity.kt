@@ -1,5 +1,7 @@
 package com.bluetriangle.android.demo.kotlin
 
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -11,11 +13,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.MutableLiveData
 import com.bluetriangle.analytics.Timer
+import com.bluetriangle.android.demo.DemoApplication
+import com.bluetriangle.android.demo.HomeActivity
 import com.bluetriangle.android.demo.R
 import com.bluetriangle.android.demo.databinding.ActivityAnrTestBinding
 import com.bluetriangle.android.demo.tests.ANRTest
 import com.bluetriangle.android.demo.tests.ANRTestFactory
 import com.bluetriangle.android.demo.tests.ANRTestScenario
+import kotlin.system.exitProcess
 
 class ANRTestActivity : AppCompatActivity() {
     private var anrTest = ANRTest.All
@@ -41,7 +46,7 @@ class ANRTestActivity : AppCompatActivity() {
         anrTestScenario = (intent.extras?.getSerializable(TestScenario) as ANRTestScenario?)
             ?: ANRTestScenario.Unknown
 
-        if (anrTest == ANRTest.All || anrTestScenario == ANRTestScenario.Unknown || anrTestScenario == ANRTestScenario.OnApplicationCreate) {
+        if (anrTest == ANRTest.All || anrTestScenario == ANRTestScenario.Unknown) {
             binding.adapter = ANRTestAdapter(ANRTestFactory.getANRTests(), this)
         } else if (anrTestScenario == ANRTestScenario.OnActivityCreate) {
             ANRTestFactory.getANRTest(anrTest).run()
@@ -71,7 +76,7 @@ class ANRTestActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
-        if (anrTestScenario != ANRTestScenario.Unknown && anrTestScenario != ANRTestScenario.OnApplicationCreate && anrTest != ANRTest.All) {
+        if (anrTestScenario != ANRTestScenario.Unknown && anrTest != ANRTest.All) {
             if (anrTestScenario == ANRTestScenario.OnActivityResume)
                 ANRTestFactory.getANRTest(anrTest).run()
 
@@ -80,12 +85,36 @@ class ANRTestActivity : AppCompatActivity() {
                     sendBroadcast(Intent(BroadCastName))
                 }, 2000)
             }
+
+            if (anrTestScenario == ANRTestScenario.OnApplicationCreate) {
+                DemoApplication.sharedPreferencesMgr.setInt(
+                    "ANRTestScenario",
+                    anrTestScenario.ordinal
+                )
+                DemoApplication.sharedPreferencesMgr.setInt("ANRTest", anrTest.ordinal)
+                restartApp(applicationContext)
+            }
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         receiver?.let { unregisterReceiver(it) }
+    }
+
+    private fun restartApp(context: Context) {
+        val intent = Intent(context, HomeActivity::class.java)
+        val mPendingIntentId = 123456
+        val mPendingIntent = PendingIntent.getActivity(
+            context,
+            mPendingIntentId,
+            intent,
+            PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val alarmManager = context.getSystemService(ALARM_SERVICE) as AlarmManager
+        alarmManager[AlarmManager.RTC, System.currentTimeMillis() + 100] = mPendingIntent
+        //Process.killProcess(Process.myPid())
+        exitProcess(0)
     }
 
     inner class MyReceiver : BroadcastReceiver() {

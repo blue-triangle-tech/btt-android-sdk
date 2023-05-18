@@ -1,5 +1,7 @@
 package com.bluetriangle.android.demo.java;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -13,6 +15,8 @@ import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.MutableLiveData;
 
 import com.bluetriangle.analytics.Timer;
+import com.bluetriangle.android.demo.DemoApplication;
+import com.bluetriangle.android.demo.HomeActivity;
 import com.bluetriangle.android.demo.R;
 import com.bluetriangle.android.demo.databinding.ActivityAnrTestJavaBinding;
 import com.bluetriangle.android.demo.tests.ANRTest;
@@ -38,7 +42,7 @@ public class ANRTestActivity extends AppCompatActivity {
         anrTest = (ANRTest) getIntent().getExtras().getSerializable(Test);
         anrTestScenario = (ANRTestScenario) getIntent().getExtras().getSerializable(TestScenario);
 
-        if (anrTest == ANRTest.All || anrTestScenario == ANRTestScenario.Unknown || anrTestScenario == ANRTestScenario.OnApplicationCreate) {
+        if (anrTest == ANRTest.All || anrTestScenario == ANRTestScenario.Unknown) {
             binding.setAdapter(new ANRTestAdapter(ANRTestFactory.INSTANCE.getANRTests()));
         } else if (anrTestScenario == ANRTestScenario.OnActivityCreate) {
             ANRTestFactory.INSTANCE.getANRTest(anrTest).run();
@@ -69,14 +73,29 @@ public class ANRTestActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        if (anrTestScenario != ANRTestScenario.Unknown && anrTestScenario != ANRTestScenario.OnApplicationCreate && anrTest != ANRTest.All) {
+        if (anrTestScenario != ANRTestScenario.Unknown && anrTest != ANRTest.All) {
             if (anrTestScenario == ANRTestScenario.OnActivityResume)
                 ANRTestFactory.INSTANCE.getANRTest(anrTest).run();
 
             if (anrTestScenario == ANRTestScenario.OnBroadCastReceived) {
                 new Handler(Looper.getMainLooper()).postDelayed(() -> sendBroadcast(new Intent(BroadCastName)), 2000);
             }
+
+            if (anrTestScenario == ANRTestScenario.OnApplicationCreate) {
+                DemoApplication.sharedPreferencesMgr.setInt("ANRTestScenario", anrTestScenario.ordinal());
+                DemoApplication.sharedPreferencesMgr.setInt("ANRTest", anrTest.ordinal());
+                restartApp(getApplicationContext());
+            }
         }
+    }
+
+    private void restartApp(Context context) {
+        Intent intent = new Intent(context, HomeActivity.class);
+        int mPendingIntentId = 123456;
+        PendingIntent mPendingIntent = PendingIntent.getActivity(context, mPendingIntentId, intent, PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        alarmManager.set(AlarmManager.RTC, System.currentTimeMillis() + 100, mPendingIntent);
+        System.exit(0);
     }
 
     @Override

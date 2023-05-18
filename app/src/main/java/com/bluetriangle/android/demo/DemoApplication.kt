@@ -1,13 +1,24 @@
 package com.bluetriangle.android.demo
 
 import android.app.Application
+import android.util.Log
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.Tracker.Companion.init
+import com.bluetriangle.android.demo.tests.ANRTest
+import com.bluetriangle.android.demo.tests.ANRTestFactory
+import com.bluetriangle.android.demo.tests.ANRTestScenario
 
 class DemoApplication : Application() {
     private var tracker: Tracker? = null
+
+    companion object {
+        lateinit var sharedPreferencesMgr: SharedPreferencesMgr
+    }
+
     override fun onCreate() {
         super.onCreate()
+        sharedPreferencesMgr = SharedPreferencesMgr(applicationContext)
+
         // d.btttag.com => 107.22.227.162
         //"http://107.22.227.162/btt.gif"
         //https://d.btttag.com/analytics.rcv
@@ -16,5 +27,23 @@ class DemoApplication : Application() {
         tracker = init(applicationContext)
         tracker!!.setSessionTrafficSegmentName("Demo Traffic Segment")
         //tracker.raiseTestException();
+
+        checkANRTestOnAppCreate()
+    }
+
+    private fun checkANRTestOnAppCreate() {
+        val anrTestScenarioId = sharedPreferencesMgr.getInt("ANRTestScenario")
+        val anrTestId = sharedPreferencesMgr.getInt("ANRTest")
+        sharedPreferencesMgr.remove("ANRTestScenario")
+        sharedPreferencesMgr.remove("ANRTest")
+
+        Log.e("ANRTestScenario", anrTestScenarioId.toString())
+        Log.e("ANRTest", anrTestId.toString())
+
+        val anrTestScenario = ANRTestScenario.values()[anrTestScenarioId]
+        val anrTest = ANRTest.values()[anrTestId]
+        if (anrTestScenario == ANRTestScenario.OnApplicationCreate && anrTest != ANRTest.All) {
+            ANRTestFactory.getANRTest(anrTest).run()
+        }
     }
 }
