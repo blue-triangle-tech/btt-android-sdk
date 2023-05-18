@@ -19,6 +19,8 @@ import com.bluetriangle.analytics.anrwatchdog.AnrManager;
 import com.bluetriangle.analytics.okhttp.BlueTriangleOkHttpInterceptor;
 import com.bluetriangle.android.demo.R;
 import com.bluetriangle.android.demo.databinding.ActivityTestListBinding;
+import com.bluetriangle.android.demo.tests.ANRTest;
+import com.bluetriangle.android.demo.tests.ANRTestScenario;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -63,7 +65,12 @@ public class TestListActivity extends AppCompatActivity {
         binding.buttonCrash.setOnClickListener(this::crashButtonClicked);
         binding.buttonTrackCatchException.setOnClickListener(this::trackCatchExceptionButtonClicked);
         binding.buttonNetwork.setOnClickListener(this::captureNetworkRequests);
-        binding.buttonAnr.setOnClickListener(v -> startActivity(new Intent(this, ANRTestActivity.class)));
+        binding.buttonAnr.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ANRTestActivity.class);
+            intent.putExtra(ANRTestActivity.TestScenario, ANRTestScenario.Unknown);
+            intent.putExtra(ANRTestActivity.Test, ANRTest.All);
+            startActivity(intent);
+        });
     }
 
     private void setUpAnrManager() {

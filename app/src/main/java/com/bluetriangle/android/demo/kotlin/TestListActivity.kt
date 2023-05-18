@@ -18,6 +18,8 @@ import com.bluetriangle.analytics.anrwatchdog.AnrManager
 import com.bluetriangle.analytics.okhttp.BlueTriangleOkHttpInterceptor
 import com.bluetriangle.android.demo.R
 import com.bluetriangle.android.demo.databinding.ActivityTestListBinding
+import com.bluetriangle.android.demo.tests.ANRTest
+import com.bluetriangle.android.demo.tests.ANRTestScenario
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.*
@@ -58,7 +60,10 @@ class TestListActivity : AppCompatActivity() {
         binding.buttonTrackCatchException.setOnClickListener(this::trackCatchExceptionButtonClicked)
         binding.buttonNetwork.setOnClickListener(this::captureNetworkRequests)
         binding.buttonAnr.setOnClickListener {
-            startActivity(Intent(this, ANRTestActivity::class.java))
+            val intent = Intent(this, ANRTestActivity::class.java)
+            intent.putExtra(ANRTestActivity.TestScenario, ANRTestScenario.Unknown)
+            intent.putExtra(ANRTestActivity.Test, ANRTest.All)
+            startActivity(intent)
         }
     }
 

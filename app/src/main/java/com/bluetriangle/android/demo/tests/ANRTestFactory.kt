@@ -11,6 +11,14 @@ object ANRTestFactory {
         )
     }
 
+    fun getANRTest(anrTest: ANRTest): BTTTestCase {
+        return when (anrTest) {
+            ANRTest.SleepMainThreadTest -> SleepMainThreadTest()
+            ANRTest.HeavyLoopTest -> HeavyLoopTest()
+            ANRTest.DownloadTest -> DownloadTest()
+            else -> DeadLockMainThreadTest()
+        }
+    }
 }
 
 
