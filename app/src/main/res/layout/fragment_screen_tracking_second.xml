@@ -9,46 +9,14 @@
         android:layout_height="match_parent"
         tools:context=".kotlin.screenTracking.SecondFragment">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/tabViewScreen"
+        <com.google.android.material.textview.MaterialTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Tab View Screen"
-            app:layout_constraintBottom_toTopOf="@+id/showAlert"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/showAlert"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Show Alert"
-            app:layout_constraintBottom_toTopOf="@+id/showDialog"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tabViewScreen" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/showDialog"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Show Dialog"
-            app:layout_constraintBottom_toTopOf="@+id/showBottomSheet"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/showAlert" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/showBottomSheet"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Show BottomSheet"
+            android:text="Replace Fragment Screen Tracking test"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/showDialog" />
-
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
