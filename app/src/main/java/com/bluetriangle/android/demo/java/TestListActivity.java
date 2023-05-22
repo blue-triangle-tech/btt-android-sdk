@@ -70,6 +70,7 @@ public class TestListActivity extends AppCompatActivity {
             intent.putExtra(ANRTestActivity.TestScenario, ANRTestScenario.Unknown);
             intent.putExtra(ANRTestActivity.Test, ANRTest.All);
             startActivity(intent);
+            //new NativeWrapper().testANR();
         });
     }
 
@@ -148,6 +149,7 @@ public class TestListActivity extends AppCompatActivity {
 
     private void crashButtonClicked(View view) {
         Objects.requireNonNull(Tracker.getInstance()).raiseTestException();
+        //new NativeWrapper().testCrash();
     }
 
     private void captureNetworkRequests(View view) {

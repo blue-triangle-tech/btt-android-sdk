@@ -64,6 +64,7 @@ class TestListActivity : AppCompatActivity() {
             intent.putExtra(ANRTestActivity.TestScenario, ANRTestScenario.Unknown)
             intent.putExtra(ANRTestActivity.Test, ANRTest.All)
             startActivity(intent)
+            //NativeWrapper().testANR()
         }
     }
 
@@ -155,6 +156,7 @@ class TestListActivity : AppCompatActivity() {
 
     private fun crashButtonClicked(view: View) {
         instance!!.raiseTestException()
+        //NativeWrapper().testCrash()
     }
 
     private fun captureNetworkRequests(view: View) {
