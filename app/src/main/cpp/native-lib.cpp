@@ -14,7 +14,7 @@ static jint native_addNumbers(JNIEnv *env, jobject obj, jint a, jint b) {
 static void native_testCrash(JNIEnv *env, jobject obj) {
     LOG_VERBOSE("Method native_testCrash Entry");
     jclass excCls = env->FindClass("java/lang/IllegalArgumentException");
-    env->ThrowNew(excCls, "thrown from C code");
+    env->ThrowNew(excCls, "thrown from native code");
     LOG_VERBOSE("Method native_testCrash Exit");
 }
 
