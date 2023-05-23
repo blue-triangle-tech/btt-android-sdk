@@ -84,7 +84,7 @@ public class ANRTestActivity extends AppCompatActivity {
             if (anrTestScenario == ANRTestScenario.OnApplicationCreate) {
                 DemoApplication.sharedPreferencesMgr.setInt("ANRTestScenario", anrTestScenario.ordinal());
                 DemoApplication.sharedPreferencesMgr.setInt("ANRTest", anrTest.ordinal());
-                restartApp(getApplicationContext());
+                new Handler(Looper.getMainLooper()).postDelayed(() -> restartApp(getApplicationContext()), 2000);
             }
         }
     }

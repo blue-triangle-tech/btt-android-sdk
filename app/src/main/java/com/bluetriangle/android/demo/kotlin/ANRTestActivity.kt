@@ -92,7 +92,10 @@ class ANRTestActivity : AppCompatActivity() {
                     anrTestScenario.ordinal
                 )
                 DemoApplication.sharedPreferencesMgr.setInt("ANRTest", anrTest.ordinal)
-                restartApp(applicationContext)
+
+                Handler(Looper.getMainLooper()).postDelayed({
+                    restartApp(applicationContext)
+                }, 2000)
             }
         }
     }
