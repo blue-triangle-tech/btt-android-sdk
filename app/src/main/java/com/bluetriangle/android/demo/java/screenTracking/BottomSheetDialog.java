@@ -11,7 +11,7 @@ import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.FragmentManager;
 
 import com.bluetriangle.android.demo.R;
-import com.bluetriangle.android.demo.databinding.DialogAlertBinding;
+import com.bluetriangle.android.demo.databinding.DialogBottomSheetBinding;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 public class BottomSheetDialog extends BottomSheetDialogFragment {
@@ -25,7 +25,7 @@ public class BottomSheetDialog extends BottomSheetDialogFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        DialogAlertBinding binding = DataBindingUtil.inflate(inflater, R.layout.dialog_alert, container, false);
+        DialogBottomSheetBinding binding = DataBindingUtil.inflate(inflater, R.layout.dialog_bottom_sheet, container, false);
         binding.setLifecycleOwner(getViewLifecycleOwner());
         binding.btnOk.setOnClickListener(v -> dismiss());
         return binding.getRoot();

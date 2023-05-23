@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.FragmentManager
 import com.bluetriangle.android.demo.R
-import com.bluetriangle.android.demo.databinding.DialogAlertBinding
+import com.bluetriangle.android.demo.databinding.DialogBottomSheetBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 class BottomSheetDialog : BottomSheetDialogFragment() {
@@ -19,8 +19,8 @@ class BottomSheetDialog : BottomSheetDialogFragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
-        val binding: DialogAlertBinding =
-            DataBindingUtil.inflate(inflater, R.layout.dialog_alert, container, false)
+        val binding: DialogBottomSheetBinding =
+            DataBindingUtil.inflate(inflater, R.layout.dialog_bottom_sheet, container, false)
         binding.lifecycleOwner = viewLifecycleOwner
         binding.btnOk.setOnClickListener { dismiss() }
         return binding.root

@@ -12,7 +12,7 @@ import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 
 import com.bluetriangle.android.demo.R;
-import com.bluetriangle.android.demo.databinding.DialogAlertBinding;
+import com.bluetriangle.android.demo.databinding.CustomAlertDialogBinding;
 
 public class FirstFragment extends Fragment {
     public static FirstFragment newInstance() {
@@ -30,7 +30,7 @@ public class FirstFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         view.findViewById(R.id.showAlert).setOnClickListener(v -> showAlertDialog());
-        view.findViewById(R.id.showDialog).setOnClickListener(v -> new TestDialog().show(getParentFragmentManager()));
+        view.findViewById(R.id.showDialog).setOnClickListener(v -> new SampleDialog().show(getParentFragmentManager()));
         view.findViewById(R.id.showBottomSheet).setOnClickListener(v -> new BottomSheetDialog().show(getParentFragmentManager()));
 
         view.findViewById(R.id.nextScreen).setOnClickListener(v -> requireActivity().getSupportFragmentManager().beginTransaction()
@@ -45,10 +45,10 @@ public class FirstFragment extends Fragment {
     }
 
     private void showAlertDialog() {
-        DialogAlertBinding dialogBinding =
+        CustomAlertDialogBinding dialogBinding =
                 DataBindingUtil.inflate(
                         LayoutInflater.from(getContext()),
-                        R.layout.dialog_alert,
+                        R.layout.custom_alert_dialog,
                         null,
                         false
                 );

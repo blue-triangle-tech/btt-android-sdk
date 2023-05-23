@@ -8,16 +8,15 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
 import com.bluetriangle.android.demo.R
-import com.bluetriangle.android.demo.databinding.DialogAlertBinding
+import com.bluetriangle.android.demo.databinding.DialogSampleBinding
 
-class TestDialog : DialogFragment() {
+class SampleDialog : DialogFragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
-        val binding: DialogAlertBinding =
-            DataBindingUtil.inflate(inflater, R.layout.dialog_alert, container, false)
+        val binding: DialogSampleBinding =
+            DataBindingUtil.inflate(inflater, R.layout.dialog_sample, container, false)
         binding.lifecycleOwner = viewLifecycleOwner
-        binding.txtMessage.text = "Empty Dialog"
         binding.btnOk.setOnClickListener { dismiss() }
         return binding.root
     }

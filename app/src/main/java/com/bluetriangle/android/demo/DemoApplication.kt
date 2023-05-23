@@ -1,6 +1,7 @@
 package com.bluetriangle.android.demo
 
 import android.app.Application
+import androidx.appcompat.app.AppCompatDelegate
 import com.bluetriangle.analytics.BlueTriangleConfiguration
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.Tracker.Companion.init
@@ -18,5 +19,7 @@ class DemoApplication : Application() {
         tracker = init(this, configuration)
 
         tracker!!.setSessionTrafficSegmentName("Demo Traffic Segment")
+
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
     }
 }

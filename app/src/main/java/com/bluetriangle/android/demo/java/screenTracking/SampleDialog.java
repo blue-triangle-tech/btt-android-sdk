@@ -12,15 +12,14 @@ import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentManager;
 
 import com.bluetriangle.android.demo.R;
-import com.bluetriangle.android.demo.databinding.DialogAlertBinding;
+import com.bluetriangle.android.demo.databinding.DialogSampleBinding;
 
-public class TestDialog extends DialogFragment {
+public class SampleDialog extends DialogFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        DialogAlertBinding binding = DataBindingUtil.inflate(inflater, R.layout.dialog_alert, container, false);
+        DialogSampleBinding binding = DataBindingUtil.inflate(inflater, R.layout.dialog_sample, container, false);
         binding.setLifecycleOwner(getViewLifecycleOwner());
-        binding.txtMessage.setText("Empty Dialog");
         binding.btnOk.setOnClickListener(v -> dismiss());
         return binding.getRoot();
     }
