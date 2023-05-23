@@ -1,17 +1,17 @@
 package com.bluetriangle.android.demo.tests
 
 enum class ANRTest {
-    All, // allowed only with ANRTestScenario.Unknown
     SleepMainThreadTest,
     HeavyLoopTest,
     DownloadTest,
-    DeadLockMainThreadTest
+    DeadLockMainThreadTest,
+    All // allowed only with ANRTestScenario.Unknown
 }
 
 enum class ANRTestScenario {
-    Unknown,
     OnApplicationCreate,
     OnActivityCreate,
     OnActivityResume,
-    OnBroadCastReceived
+    OnBroadCastReceived,
+    Unknown
 }

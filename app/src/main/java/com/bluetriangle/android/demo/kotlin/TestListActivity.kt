@@ -18,6 +18,7 @@ import com.bluetriangle.analytics.anrwatchdog.AnrManager
 import com.bluetriangle.analytics.okhttp.BlueTriangleOkHttpInterceptor
 import com.bluetriangle.android.demo.R
 import com.bluetriangle.android.demo.databinding.ActivityTestListBinding
+import com.bluetriangle.android.demo.getViewModel
 import com.bluetriangle.android.demo.tests.ANRTest
 import com.bluetriangle.android.demo.tests.ANRTestScenario
 import kotlinx.coroutines.delay
@@ -33,11 +34,15 @@ class TestListActivity : AppCompatActivity() {
     private var okHttpClient: OkHttpClient? = null
 
     private lateinit var binding: ActivityTestListBinding
+    private lateinit var viewModel: TestListViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_test_list)
         setTitle(R.string.main_title)
+
+        viewModel = getViewModel()
+        binding.viewModel = viewModel
 
         updateButtonState()
         addButtonClickListeners()
@@ -60,11 +65,11 @@ class TestListActivity : AppCompatActivity() {
         binding.buttonTrackCatchException.setOnClickListener(this::trackCatchExceptionButtonClicked)
         binding.buttonNetwork.setOnClickListener(this::captureNetworkRequests)
         binding.buttonAnr.setOnClickListener {
-            val intent = Intent(this, ANRTestActivity::class.java)
-            intent.putExtra(ANRTestActivity.TestScenario, ANRTestScenario.Unknown)
-            intent.putExtra(ANRTestActivity.Test, ANRTest.All)
-            startActivity(intent)
-            //NativeWrapper().testANR()
+            launchAnrActivity(ANRTestScenario.Unknown, ANRTest.All)
+        }
+
+        binding.btnAnrTestRun.setOnClickListener {
+            launchAnrActivity(viewModel.anrTestScenario.value!!, viewModel.anrTest.value!!)
         }
     }
 
@@ -199,6 +204,14 @@ class TestListActivity : AppCompatActivity() {
                 })
             }
         })
+    }
+
+    private fun launchAnrActivity(anrTestScenario: ANRTestScenario, anrTest: ANRTest) {
+        val intent = Intent(this, ANRTestActivity::class.java)
+        intent.putExtra(ANRTestActivity.TestScenario, anrTestScenario)
+        intent.putExtra(ANRTestActivity.Test, anrTest)
+        startActivity(intent)
+        //NativeWrapper().testANR()
     }
 
     companion object {

@@ -2,6 +2,7 @@ package com.bluetriangle.android.demo
 
 import android.app.Application
 import android.util.Log
+import androidx.appcompat.app.AppCompatDelegate
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.Tracker.Companion.init
 import com.bluetriangle.android.demo.tests.ANRTest
@@ -27,6 +28,8 @@ class DemoApplication : Application() {
         tracker = init(applicationContext)
         tracker!!.setSessionTrafficSegmentName("Demo Traffic Segment")
         //tracker.raiseTestException();
+
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
         checkANRTestOnAppCreate()
     }

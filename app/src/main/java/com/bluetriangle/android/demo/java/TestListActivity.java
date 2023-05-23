@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationChannelCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.databinding.DataBindingUtil;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.bluetriangle.analytics.Timer;
 import com.bluetriangle.analytics.Tracker;
@@ -19,6 +20,7 @@ import com.bluetriangle.analytics.anrwatchdog.AnrManager;
 import com.bluetriangle.analytics.okhttp.BlueTriangleOkHttpInterceptor;
 import com.bluetriangle.android.demo.R;
 import com.bluetriangle.android.demo.databinding.ActivityTestListBinding;
+import com.bluetriangle.android.demo.kotlin.TestListViewModel;
 import com.bluetriangle.android.demo.tests.ANRTest;
 import com.bluetriangle.android.demo.tests.ANRTestScenario;
 
@@ -38,12 +40,16 @@ public class TestListActivity extends AppCompatActivity {
     private ActivityTestListBinding binding;
     private Timer timer = null;
     private OkHttpClient okHttpClient = null;
+    private TestListViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = DataBindingUtil.setContentView(this, R.layout.activity_test_list);
         setTitle(R.string.main_title);
+
+        viewModel = new ViewModelProvider(this).get(TestListViewModel.class);
+        binding.setViewModel(viewModel);
 
         updateButtonState();
         addButtonClickListeners();
@@ -66,11 +72,10 @@ public class TestListActivity extends AppCompatActivity {
         binding.buttonTrackCatchException.setOnClickListener(this::trackCatchExceptionButtonClicked);
         binding.buttonNetwork.setOnClickListener(this::captureNetworkRequests);
         binding.buttonAnr.setOnClickListener(v -> {
-            Intent intent = new Intent(this, ANRTestActivity.class);
-            intent.putExtra(ANRTestActivity.TestScenario, ANRTestScenario.Unknown);
-            intent.putExtra(ANRTestActivity.Test, ANRTest.All);
-            startActivity(intent);
-            //new NativeWrapper().testANR();
+            launchAnrActivity(ANRTestScenario.Unknown, ANRTest.All);
+        });
+        binding.btnAnrTestRun.setOnClickListener(v -> {
+            launchAnrActivity(viewModel.getAnrTestScenario().getValue(), viewModel.getAnrTest().getValue());
         });
     }
 
@@ -151,6 +156,15 @@ public class TestListActivity extends AppCompatActivity {
         Objects.requireNonNull(Tracker.getInstance()).raiseTestException();
         //new NativeWrapper().testCrash();
     }
+
+    private void launchAnrActivity(ANRTestScenario anrTestScenario, ANRTest anrTest) {
+        Intent intent = new Intent(this, ANRTestActivity.class);
+        intent.putExtra(ANRTestActivity.TestScenario, anrTestScenario);
+        intent.putExtra(ANRTestActivity.Test, anrTest);
+        startActivity(intent);
+        //new NativeWrapper().testANR();
+    }
+
 
     private void captureNetworkRequests(View view) {
         Timer timer = new Timer("Test Network Capture", "Android Traffic").start();
