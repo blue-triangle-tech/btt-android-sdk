@@ -45,7 +45,7 @@ class DemoApplication : Application() {
 
         val anrTestScenario = ANRTestScenario.values()[anrTestScenarioId]
         val anrTest = ANRTest.values()[anrTestId]
-        if (anrTestScenario == ANRTestScenario.OnApplicationCreate && anrTest != ANRTest.All) {
+        if (anrTestScenario == ANRTestScenario.OnApplicationCreate && anrTest != ANRTest.Unknown) {
             ANRTestFactory.getANRTest(anrTest).run()
         }
     }

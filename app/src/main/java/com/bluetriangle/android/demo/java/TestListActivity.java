@@ -72,7 +72,7 @@ public class TestListActivity extends AppCompatActivity {
         binding.buttonTrackCatchException.setOnClickListener(this::trackCatchExceptionButtonClicked);
         binding.buttonNetwork.setOnClickListener(this::captureNetworkRequests);
         binding.buttonAnr.setOnClickListener(v -> {
-            launchAnrActivity(ANRTestScenario.Unknown, ANRTest.All);
+            launchAnrActivity(ANRTestScenario.Unknown, ANRTest.Unknown);
         });
         binding.btnAnrTestRun.setOnClickListener(v -> {
             launchAnrActivity(viewModel.getAnrTestScenario().getValue(), viewModel.getAnrTest().getValue());

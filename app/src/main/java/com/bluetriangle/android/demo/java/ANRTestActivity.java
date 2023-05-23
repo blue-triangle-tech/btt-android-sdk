@@ -27,7 +27,7 @@ public class ANRTestActivity extends AppCompatActivity {
     public static String TestScenario = "TestScenario";
     public static String Test = "Test";
     public static String BroadCastName = "com.example.Broadcast";
-    private ANRTest anrTest = ANRTest.All;
+    private ANRTest anrTest = ANRTest.Unknown;
     private ANRTestScenario anrTestScenario = ANRTestScenario.Unknown;
     private MyReceiver receiver = null;
 
@@ -42,7 +42,7 @@ public class ANRTestActivity extends AppCompatActivity {
         anrTest = (ANRTest) getIntent().getExtras().getSerializable(Test);
         anrTestScenario = (ANRTestScenario) getIntent().getExtras().getSerializable(TestScenario);
 
-        if (anrTest == ANRTest.All || anrTestScenario == ANRTestScenario.Unknown) {
+        if (anrTest == ANRTest.Unknown || anrTestScenario == ANRTestScenario.Unknown) {
             binding.setAdapter(new ANRTestAdapter(ANRTestFactory.INSTANCE.getANRTests()));
         } else if (anrTestScenario == ANRTestScenario.OnActivityCreate) {
             ANRTestFactory.INSTANCE.getANRTest(anrTest).run();
@@ -73,7 +73,7 @@ public class ANRTestActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        if (anrTestScenario != ANRTestScenario.Unknown && anrTest != ANRTest.All) {
+        if (anrTestScenario != ANRTestScenario.Unknown && anrTest != ANRTest.Unknown) {
             if (anrTestScenario == ANRTestScenario.OnActivityResume)
                 ANRTestFactory.INSTANCE.getANRTest(anrTest).run();
 

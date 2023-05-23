@@ -18,10 +18,10 @@
     <string name="lbl_broadcast_received">On BroadCast Received</string>
 
     <array name="anr_test_scenarios">
-        <item>@string/lbl_application_create</item>
         <item>@string/lbl_activity_create</item>
         <item>@string/lbl_activity_resume</item>
         <item>@string/lbl_broadcast_received</item>
+        <item>@string/lbl_application_create</item>
     </array>
 
     <array name="anr_tests">

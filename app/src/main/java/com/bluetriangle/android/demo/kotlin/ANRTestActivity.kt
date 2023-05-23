@@ -23,7 +23,7 @@ import com.bluetriangle.android.demo.tests.ANRTestScenario
 import kotlin.system.exitProcess
 
 class ANRTestActivity : AppCompatActivity() {
-    private var anrTest = ANRTest.All
+    private var anrTest = ANRTest.Unknown
     private var anrTestScenario = ANRTestScenario.Unknown
     private var receiver: MyReceiver? = null
 
@@ -42,11 +42,11 @@ class ANRTestActivity : AppCompatActivity() {
         setTitle(R.string.anr_tests)
         binding.lifecycleOwner = this
 
-        anrTest = (intent.extras?.getSerializable(Test) as ANRTest?) ?: ANRTest.All
+        anrTest = (intent.extras?.getSerializable(Test) as ANRTest?) ?: ANRTest.Unknown
         anrTestScenario = (intent.extras?.getSerializable(TestScenario) as ANRTestScenario?)
             ?: ANRTestScenario.Unknown
 
-        if (anrTest == ANRTest.All || anrTestScenario == ANRTestScenario.Unknown) {
+        if (anrTest == ANRTest.Unknown || anrTestScenario == ANRTestScenario.Unknown) {
             binding.adapter = ANRTestAdapter(ANRTestFactory.getANRTests(), this)
         } else if (anrTestScenario == ANRTestScenario.OnActivityCreate) {
             ANRTestFactory.getANRTest(anrTest).run()
@@ -76,7 +76,7 @@ class ANRTestActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
-        if (anrTestScenario != ANRTestScenario.Unknown && anrTest != ANRTest.All) {
+        if (anrTestScenario != ANRTestScenario.Unknown && anrTest != ANRTest.Unknown) {
             if (anrTestScenario == ANRTestScenario.OnActivityResume)
                 ANRTestFactory.getANRTest(anrTest).run()
 

@@ -5,13 +5,13 @@ enum class ANRTest {
     HeavyLoopTest,
     DownloadTest,
     DeadLockMainThreadTest,
-    All // allowed only with ANRTestScenario.Unknown
+    Unknown
 }
 
 enum class ANRTestScenario {
-    OnApplicationCreate,
     OnActivityCreate,
     OnActivityResume,
     OnBroadCastReceived,
+    OnApplicationCreate,
     Unknown
 }
