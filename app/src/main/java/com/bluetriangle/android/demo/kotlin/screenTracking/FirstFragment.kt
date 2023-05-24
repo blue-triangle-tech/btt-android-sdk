@@ -9,6 +9,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import com.bluetriangle.android.demo.R
 import com.bluetriangle.android.demo.databinding.CustomAlertDialogBinding
+import com.bluetriangle.android.demo.kotlin.screenTracking.bottomNavigationMenu.BottomNavigationFragment
 import com.google.android.material.button.MaterialButton
 
 class FirstFragment : Fragment() {
@@ -48,6 +49,13 @@ class FirstFragment : Fragment() {
             activity?.supportFragmentManager?.beginTransaction()
                 ?.replace(R.id.container, TabViewFragment.newInstance())
                 ?.addToBackStack(TabViewFragment::class.java.simpleName)
+                ?.commit()
+        }
+
+        view.findViewById<MaterialButton>(R.id.bottomNavigation).setOnClickListener {
+            activity?.supportFragmentManager?.beginTransaction()
+                ?.replace(R.id.container, BottomNavigationFragment.newInstance())
+                ?.addToBackStack(BottomNavigationFragment::class.java.simpleName)
                 ?.commit()
         }
     }

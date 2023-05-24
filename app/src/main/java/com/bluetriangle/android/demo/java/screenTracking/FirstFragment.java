@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment;
 
 import com.bluetriangle.android.demo.R;
 import com.bluetriangle.android.demo.databinding.CustomAlertDialogBinding;
+import com.bluetriangle.android.demo.java.screenTracking.bottomNavigationMenu.BottomNavigationFragment;
 
 public class FirstFragment extends Fragment {
     public static FirstFragment newInstance() {
@@ -41,6 +42,11 @@ public class FirstFragment extends Fragment {
         view.findViewById(R.id.tabViewScreen).setOnClickListener(v -> requireActivity().getSupportFragmentManager().beginTransaction()
                 .replace(R.id.container, TabViewFragment.newInstance())
                 .addToBackStack(TabViewFragment.class.getSimpleName())
+                .commit());
+
+        view.findViewById(R.id.tabViewScreen).setOnClickListener(v -> requireActivity().getSupportFragmentManager().beginTransaction()
+                .replace(R.id.container, BottomNavigationFragment.newInstance())
+                .addToBackStack(BottomNavigationFragment.class.getSimpleName())
                 .commit());
     }
 
