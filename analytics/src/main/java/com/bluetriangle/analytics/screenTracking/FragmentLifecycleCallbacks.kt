@@ -3,23 +3,37 @@ package com.bluetriangle.analytics.screenTracking
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.isAccessible
 
+inline fun <reified T : Any, R> T.getPrivateProperty(name: String): R? =
+    T::class
+        .memberProperties
+        .firstOrNull { it.name == name }
+        ?.apply { isAccessible = true }
+        ?.get(this) as R?
+
+fun Fragment.getUniqueId(): String? {
+    return this.getPrivateProperty<Fragment, String>("mWho")
+}
 
 @RequiresApi(Build.VERSION_CODES.O)
-class FragmentLifecycleCallbacks : FragmentManager.FragmentLifecycleCallbacks() {
-    private var visibleFragment: Fragment? = null
+internal class FragmentLifecycleCallbacks(private val callback: IScreenTrackCallback) :
+    FragmentManager.FragmentLifecycleCallbacks() {
+
+    private val fragmentLoadMap = mutableMapOf<String, Long>()
+    private val fragmentViewMap = mutableMapOf<String, Long>()
 
     override fun onFragmentPreAttached(
         fragmentManager: FragmentManager,
         fragment: Fragment,
         context: Context
     ) {
-        Log.i("Fragment Pre Attached", fragment.javaClass.simpleName)
+        logToLogcat("Fragment Pre Attached", fragment.javaClass.simpleName)
     }
 
     override fun onFragmentAttached(
@@ -27,7 +41,7 @@ class FragmentLifecycleCallbacks : FragmentManager.FragmentLifecycleCallbacks() 
         fragment: Fragment,
         context: Context
     ) {
-        Log.i("Fragment Attached", fragment.javaClass.simpleName)
+        logToLogcat("Fragment Attached", fragment.javaClass.simpleName)
     }
 
     override fun onFragmentPreCreated(
@@ -35,7 +49,7 @@ class FragmentLifecycleCallbacks : FragmentManager.FragmentLifecycleCallbacks() 
         fragment: Fragment,
         savedInstanceState: Bundle?
     ) {
-        Log.i("Fragment Pre Created", fragment.javaClass.simpleName)
+        logToLogcat("Fragment Pre Created", fragment.javaClass.simpleName)
     }
 
     override fun onFragmentCreated(
@@ -43,7 +57,11 @@ class FragmentLifecycleCallbacks : FragmentManager.FragmentLifecycleCallbacks() 
         fragment: Fragment,
         savedInstanceState: Bundle?
     ) {
-        Log.i("Fragment Created", fragment.javaClass.simpleName)
+        logToLogcat("Fragment Created", fragment.javaClass.simpleName)
+        val fragmentId = fragment.getUniqueId()
+        if (fragmentId != null) {
+            fragmentLoadMap[fragmentId] = System.currentTimeMillis()
+        }
     }
 
     override fun onFragmentViewCreated(
@@ -52,26 +70,47 @@ class FragmentLifecycleCallbacks : FragmentManager.FragmentLifecycleCallbacks() 
         view: View,
         savedInstanceState: Bundle?
     ) {
-        Log.i("Fragment View Created", fragment.javaClass.simpleName)
+        logToLogcat("Fragment View Created", fragment.javaClass.simpleName)
     }
 
     override fun onFragmentStarted(fragmentManager: FragmentManager, fragment: Fragment) {
-        Log.i("Fragment Started", fragment.javaClass.simpleName)
+        logToLogcat("Fragment Started", fragment.javaClass.simpleName)
     }
 
     override fun onFragmentResumed(fragmentManager: FragmentManager, fragment: Fragment) {
-        if (visibleFragment == null || visibleFragment!!.javaClass.simpleName != fragment.javaClass.simpleName) {
-            visibleFragment = fragment
-            Log.i("Fragment Resumed", visibleFragment!!.javaClass.simpleName)
+        logToLogcat("Fragment Resumed", fragment.javaClass.simpleName)
+        val fragmentId = fragment.getUniqueId()
+        if (fragmentId != null) {
+            val createTime = fragmentLoadMap.remove(fragmentId)
+            if (createTime != null) {
+                callback.onScreenLoad(
+                    fragment.javaClass.simpleName,
+                    fragment.javaClass.simpleName,
+                    System.currentTimeMillis() - createTime
+                )
+            }
+
+            fragmentViewMap[fragmentId] = System.currentTimeMillis()
         }
     }
 
     override fun onFragmentPaused(fragmentManager: FragmentManager, fragment: Fragment) {
-        Log.i("Fragment Paused", fragment.javaClass.simpleName)
+        logToLogcat("Fragment Paused", fragment.javaClass.simpleName)
+        val fragmentId = fragment.getUniqueId()
+        if (fragmentId != null) {
+            val resumeTime = fragmentViewMap.remove(fragmentId)
+            if (resumeTime != null) {
+                callback.onScreenView(
+                    fragment.javaClass.simpleName,
+                    fragment.javaClass.simpleName,
+                    System.currentTimeMillis() - resumeTime
+                )
+            }
+        }
     }
 
     override fun onFragmentStopped(fragmentManager: FragmentManager, fragment: Fragment) {
-        Log.i("Fragment Stopped", fragment.javaClass.simpleName)
+        logToLogcat("Fragment Stopped", fragment.javaClass.simpleName)
     }
 
     override fun onFragmentSaveInstanceState(
@@ -82,14 +121,18 @@ class FragmentLifecycleCallbacks : FragmentManager.FragmentLifecycleCallbacks() 
     }
 
     override fun onFragmentViewDestroyed(fragmentManager: FragmentManager, fragment: Fragment) {
-        Log.i("Fragment View Destroyed", fragment.javaClass.simpleName)
+        logToLogcat("Fragment View Destroyed", fragment.javaClass.simpleName)
     }
 
     override fun onFragmentDestroyed(fragmentManager: FragmentManager, fragment: Fragment) {
-        Log.i("Fragment Destroyed", fragment.javaClass.simpleName)
+        logToLogcat("Fragment Destroyed", fragment.javaClass.simpleName)
     }
 
     override fun onFragmentDetached(fragmentManager: FragmentManager, fragment: Fragment) {
-        Log.i("Fragment Detached", fragment.javaClass.simpleName)
+        logToLogcat("Fragment Detached", fragment.javaClass.simpleName)
+    }
+
+    private fun logToLogcat(tag: String, msg: String) {
+        //Log.i(tag, msg)
     }
 }

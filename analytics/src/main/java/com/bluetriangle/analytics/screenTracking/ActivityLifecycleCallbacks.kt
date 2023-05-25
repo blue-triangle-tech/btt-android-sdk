@@ -5,51 +5,70 @@ import android.app.Activity
 import android.app.Application
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.FragmentActivity
 
-class ActivityLifecycleCallbacks : Application.ActivityLifecycleCallbacks {
-    private val startedActivities: MutableList<Activity?> = ArrayList()
-    private var visibleActivity: Activity? = null
+internal class ActivityLifecycleCallbacks(private val callback: IScreenTrackCallback) :
+    Application.ActivityLifecycleCallbacks {
+    private val activityLoadMap = mutableMapOf<String, Long>()
+    private val activityViewMap = mutableMapOf<String, Long>()
 
     override fun onActivityCreated(activity: Activity, p1: Bundle?) {
-        Log.i("Activity Created", activity.localClassName)
+        logToLogcat("Activity Created", activity.localClassName)
+        activityLoadMap[activity.componentName.className] = System.currentTimeMillis()
         registerFragmentLifecycleCallbacks(activity)
     }
 
     override fun onActivityStarted(activity: Activity) {
-        Log.i("Activity Started", activity.localClassName)
-        startedActivities.remove(activity)
+        logToLogcat("Activity Started", activity.localClassName)
     }
 
     override fun onActivityResumed(activity: Activity) {
-        if (visibleActivity == null || visibleActivity!!.localClassName != activity.localClassName) {
-            visibleActivity = activity
-            Log.i("Activity Resumed", activity.localClassName)
+        logToLogcat("Activity Resumed", activity.localClassName)
+        val createTime = activityLoadMap.remove(activity.componentName.className)
+        if (createTime != null) {
+            callback.onScreenLoad(
+                activity.componentName.className,
+                activity.localClassName,
+                System.currentTimeMillis() - createTime
+            )
         }
+
+        activityViewMap[activity.componentName.className] = System.currentTimeMillis()
     }
 
     override fun onActivityPaused(activity: Activity) {
-        Log.i("Activity Paused", activity.localClassName)
+        logToLogcat("Activity Paused", activity.localClassName)
+
+        val resumeTime = activityViewMap.remove(activity.componentName.className)
+        if (resumeTime != null) {
+            callback.onScreenView(
+                activity.componentName.className,
+                activity.localClassName,
+                System.currentTimeMillis() - resumeTime
+            )
+        }
     }
 
     override fun onActivityStopped(activity: Activity) {
-        Log.i("Activity Stopped", activity.localClassName)
-        startedActivities.remove(activity)
+        logToLogcat("Activity Stopped", activity.localClassName)
     }
 
     override fun onActivitySaveInstanceState(activity: Activity, p1: Bundle) {
     }
 
     override fun onActivityDestroyed(activity: Activity) {
-        Log.i("Activity Destroyed", activity.localClassName)
+        logToLogcat("Activity Destroyed", activity.localClassName)
+    }
+
+    private fun logToLogcat(tag: String, msg: String) {
+        //Log.i(tag, msg)
     }
 
     private fun registerFragmentLifecycleCallbacks(activity: Activity) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (activity is FragmentActivity) {
                 activity.supportFragmentManager.registerFragmentLifecycleCallbacks(
-                    FragmentLifecycleCallbacks(),
+                    FragmentLifecycleCallbacks(callback),
                     true
                 )
             }

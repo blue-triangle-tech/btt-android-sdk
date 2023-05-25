@@ -6,7 +6,7 @@ import android.content.Context
 import android.text.TextUtils
 import com.bluetriangle.analytics.networkcapture.CapturedRequest
 import com.bluetriangle.analytics.networkcapture.CapturedRequestCollection
-import com.bluetriangle.analytics.screenTracking.ActivityLifecycleCallbacks
+import com.bluetriangle.analytics.screenTracking.ScreenTrackMonitor
 import java.io.File
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
@@ -15,7 +15,10 @@ import java.util.concurrent.ConcurrentHashMap
  * The tracker is a global object responsible for taking submitted timers and reporting them to the cloud server via a
  * background thread.
  */
-class Tracker private constructor(context: Context, configuration: BlueTriangleConfiguration) {
+class Tracker private constructor(
+    application: Application,
+    configuration: BlueTriangleConfiguration
+) {
     /**
      * Weak reference to Android application context
      */
@@ -51,14 +54,16 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
      */
     private val capturedRequests = ConcurrentHashMap<Long, CapturedRequestCollection>()
 
+    private val screenTrackMonitor: ScreenTrackMonitor
+
     init {
-        this.context = WeakReference(context)
+        this.context = WeakReference(application.applicationContext)
         this.configuration = configuration
         globalFields = HashMap(8)
         configuration.siteId?.let { globalFields[Timer.FIELD_SITE_ID] = it }
         globalFields[Timer.FIELD_BROWSER] = Constants.BROWSER
-        val appVersion = Utils.getAppVersion(context)
-        val isTablet = Utils.isTablet(context)
+        val appVersion = Utils.getAppVersion(application.applicationContext)
+        val isTablet = Utils.isTablet(application.applicationContext)
         globalFields[Timer.FIELD_DEVICE] =
             if (isTablet) Constants.DEVICE_TABLET else Constants.DEVICE_MOBILE
         globalFields[Timer.FIELD_BROWSER_VERSION] = "${Constants.BROWSER}-$appVersion-${Utils.os}"
@@ -72,6 +77,7 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
         configuration.sessionId = sessionId
 
         trackerExecutor = TrackerExecutor(configuration)
+        screenTrackMonitor = ScreenTrackMonitor(application, configuration)
 
         if (configuration.isTrackCrashesEnabled) {
             trackCrashes()
@@ -464,8 +470,6 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
             if (instance != null) {
                 return instance
             }
-
-            application.registerActivityLifecycleCallbacks(ActivityLifecycleCallbacks())
 
             if (configuration.isDebug) {
                 configuration.logger = AndroidLogger(configuration.debugLevel)
