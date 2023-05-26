@@ -44,9 +44,14 @@ public class FirstFragment extends Fragment {
                 .addToBackStack(TabViewFragment.class.getSimpleName())
                 .commit());
 
-        view.findViewById(R.id.tabViewScreen).setOnClickListener(v -> requireActivity().getSupportFragmentManager().beginTransaction()
+        view.findViewById(R.id.bottomNavigation).setOnClickListener(v -> requireActivity().getSupportFragmentManager().beginTransaction()
                 .replace(R.id.container, BottomNavigationFragment.newInstance())
                 .addToBackStack(BottomNavigationFragment.class.getSimpleName())
+                .commit());
+
+        view.findViewById(R.id.btnLogs).setOnClickListener(v -> requireActivity().getSupportFragmentManager().beginTransaction()
+                .replace(R.id.container, ScreenLogFragment.newInstance())
+                .addToBackStack(ScreenLogFragment.class.getSimpleName())
                 .commit());
     }
 

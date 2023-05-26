@@ -10,11 +10,24 @@ class ScreenTrackMonitor(application: Application, configuration: BlueTriangleCo
         application.registerActivityLifecycleCallbacks(ActivityLifecycleCallbacks(this))
     }
 
-    override fun onScreenLoad(id: String, className: String, timeTaken: Long) {
+    val screenLogs = arrayListOf<ScreenTrackLog>()
+
+    override fun onScreenLoad(id: String, className: String, startTime: Long) {
+        val timeTaken = System.currentTimeMillis() - startTime
+        screenLogs.add(ScreenTrackLog(className, startTime, timeTaken, true))
         Log.e("onScreenLoad", "$className loaded in $timeTaken ms")
     }
 
-    override fun onScreenView(id: String, className: String, timeTaken: Long) {
+    override fun onScreenView(id: String, className: String, startTime: Long) {
+        val timeTaken = System.currentTimeMillis() - startTime
+        screenLogs.add(ScreenTrackLog(className, startTime, timeTaken, false))
         Log.e("onScreenView", "$className viewed for $timeTaken ms")
     }
+
+    data class ScreenTrackLog(
+        val screenName: String,
+        val startTime: Long,
+        val timeTaken: Long,
+        val isLoadEvent: Boolean = true
+    )
 }

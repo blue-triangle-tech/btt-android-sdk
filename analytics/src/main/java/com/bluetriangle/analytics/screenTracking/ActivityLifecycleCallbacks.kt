@@ -29,7 +29,7 @@ internal class ActivityLifecycleCallbacks(private val callback: IScreenTrackCall
             callback.onScreenLoad(
                 activity.componentName.className,
                 activity.localClassName,
-                System.currentTimeMillis() - createTime
+                createTime
             )
         }
 
@@ -44,7 +44,7 @@ internal class ActivityLifecycleCallbacks(private val callback: IScreenTrackCall
             callback.onScreenView(
                 activity.componentName.className,
                 activity.localClassName,
-                System.currentTimeMillis() - resumeTime
+                resumeTime
             )
         }
     }

@@ -86,7 +86,7 @@ internal class FragmentLifecycleCallbacks(private val callback: IScreenTrackCall
                 callback.onScreenLoad(
                     fragment.javaClass.simpleName,
                     fragment.javaClass.simpleName,
-                    System.currentTimeMillis() - createTime
+                    createTime
                 )
             }
 
@@ -103,7 +103,7 @@ internal class FragmentLifecycleCallbacks(private val callback: IScreenTrackCall
                 callback.onScreenView(
                     fragment.javaClass.simpleName,
                     fragment.javaClass.simpleName,
-                    System.currentTimeMillis() - resumeTime
+                    resumeTime
                 )
             }
         }
