@@ -7,6 +7,7 @@ import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import com.bluetriangle.analytics.Timer
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 
@@ -24,9 +25,8 @@ fun Fragment.getUniqueId(): String? {
 @RequiresApi(Build.VERSION_CODES.O)
 internal class FragmentLifecycleCallbacks(private val callback: IScreenTrackCallback) :
     FragmentManager.FragmentLifecycleCallbacks() {
-
-    private val fragmentLoadMap = mutableMapOf<String, Long>()
-    private val fragmentViewMap = mutableMapOf<String, Long>()
+    private val fragmentLoadMap = mutableMapOf<String, Timer>()
+    private val fragmentViewMap = mutableMapOf<String, Timer>()
 
     override fun onFragmentPreAttached(
         fragmentManager: FragmentManager,
@@ -57,10 +57,13 @@ internal class FragmentLifecycleCallbacks(private val callback: IScreenTrackCall
         fragment: Fragment,
         savedInstanceState: Bundle?
     ) {
-        logToLogcat("Fragment Created", fragment.javaClass.simpleName)
+        val className = fragment.javaClass.simpleName
+        logToLogcat("Fragment Created", className)
+
         val fragmentId = fragment.getUniqueId()
         if (fragmentId != null) {
-            fragmentLoadMap[fragmentId] = System.currentTimeMillis()
+            fragmentLoadMap[fragmentId] =
+                Timer("$className - loaded", "AutomaticScreenTrack").start()
         }
     }
 
@@ -78,31 +81,36 @@ internal class FragmentLifecycleCallbacks(private val callback: IScreenTrackCall
     }
 
     override fun onFragmentResumed(fragmentManager: FragmentManager, fragment: Fragment) {
-        logToLogcat("Fragment Resumed", fragment.javaClass.simpleName)
+        val className = fragment.javaClass.simpleName
+        logToLogcat("Fragment Resumed", className)
+
         val fragmentId = fragment.getUniqueId()
         if (fragmentId != null) {
             val createTime = fragmentLoadMap.remove(fragmentId)
             if (createTime != null) {
                 callback.onScreenLoad(
-                    fragment.javaClass.simpleName,
-                    fragment.javaClass.simpleName,
+                    className,
+                    className,
                     createTime
                 )
             }
 
-            fragmentViewMap[fragmentId] = System.currentTimeMillis()
+            fragmentViewMap[fragmentId] =
+                Timer("$className - viewed", "AutomaticScreenTrack").start()
         }
     }
 
     override fun onFragmentPaused(fragmentManager: FragmentManager, fragment: Fragment) {
-        logToLogcat("Fragment Paused", fragment.javaClass.simpleName)
+        val className = fragment.javaClass.simpleName
+        logToLogcat("Fragment Paused", className)
+
         val fragmentId = fragment.getUniqueId()
         if (fragmentId != null) {
             val resumeTime = fragmentViewMap.remove(fragmentId)
             if (resumeTime != null) {
                 callback.onScreenView(
-                    fragment.javaClass.simpleName,
-                    fragment.javaClass.simpleName,
+                    className,
+                    className,
                     resumeTime
                 )
             }

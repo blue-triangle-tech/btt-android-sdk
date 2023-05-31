@@ -6,15 +6,18 @@ import android.app.Application
 import android.os.Build
 import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
+import com.bluetriangle.analytics.Timer
 
 internal class ActivityLifecycleCallbacks(private val callback: IScreenTrackCallback) :
     Application.ActivityLifecycleCallbacks {
-    private val activityLoadMap = mutableMapOf<String, Long>()
-    private val activityViewMap = mutableMapOf<String, Long>()
+    private val activityLoadMap = mutableMapOf<String, Timer>()
+    private val activityViewMap = mutableMapOf<String, Timer>()
 
     override fun onActivityCreated(activity: Activity, p1: Bundle?) {
-        logToLogcat("Activity Created", activity.localClassName)
-        activityLoadMap[activity.componentName.className] = System.currentTimeMillis()
+        val className = activity.localClassName
+        logToLogcat("Activity Created", className)
+
+        activityLoadMap[className] = Timer("$className - loaded", "AutomaticScreenTrack").start()
         registerFragmentLifecycleCallbacks(activity)
     }
 
@@ -23,28 +26,31 @@ internal class ActivityLifecycleCallbacks(private val callback: IScreenTrackCall
     }
 
     override fun onActivityResumed(activity: Activity) {
-        logToLogcat("Activity Resumed", activity.localClassName)
-        val createTime = activityLoadMap.remove(activity.componentName.className)
-        if (createTime != null) {
+        val className = activity.localClassName
+        logToLogcat("Activity Resumed", className)
+
+        val timer = activityLoadMap.remove(className)
+        if (timer != null) {
             callback.onScreenLoad(
-                activity.componentName.className,
-                activity.localClassName,
-                createTime
+                className,
+                className,
+                timer
             )
         }
 
-        activityViewMap[activity.componentName.className] = System.currentTimeMillis()
+        activityViewMap[className] = Timer("$className - viewed", "AutomaticScreenTrack").start()
     }
 
     override fun onActivityPaused(activity: Activity) {
-        logToLogcat("Activity Paused", activity.localClassName)
+        val className = activity.localClassName
+        logToLogcat("Activity Paused", className)
 
-        val resumeTime = activityViewMap.remove(activity.componentName.className)
-        if (resumeTime != null) {
+        val timer = activityViewMap.remove(className)
+        if (timer != null) {
             callback.onScreenView(
-                activity.componentName.className,
-                activity.localClassName,
-                resumeTime
+                className,
+                className,
+                timer
             )
         }
     }

@@ -1,6 +1,8 @@
 package com.bluetriangle.analytics.screenTracking
 
+import com.bluetriangle.analytics.Timer
+
 interface IScreenTrackCallback {
-    fun onScreenLoad(id: String, className: String, startTime: Long)
-    fun onScreenView(id: String, className: String, startTime: Long)
+    fun onScreenLoad(id: String, className: String, timer: Timer)
+    fun onScreenView(id: String, className: String, timer: Timer)
 }
