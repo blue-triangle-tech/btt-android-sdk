@@ -61,10 +61,10 @@ internal class FragmentLifecycleCallbacks(private val callback: IScreenTrackCall
         logToLogcat("Fragment Created", className)
 
         val fragmentId = fragment.getUniqueId()
-        if (fragmentId != null) {
-            fragmentLoadMap[fragmentId] =
-                Timer("$className - loaded", "AutomaticScreenTrack").start()
-        }
+//        if (fragmentId != null) {
+//            fragmentLoadMap[fragmentId] =
+//                Timer(className, "AutomaticScreenTrack").setContentGroupName("ScreenLoad").start()
+//        }
     }
 
     override fun onFragmentViewCreated(
@@ -86,17 +86,17 @@ internal class FragmentLifecycleCallbacks(private val callback: IScreenTrackCall
 
         val fragmentId = fragment.getUniqueId()
         if (fragmentId != null) {
-            val createTime = fragmentLoadMap.remove(fragmentId)
-            if (createTime != null) {
-                callback.onScreenLoad(
-                    className,
-                    className,
-                    createTime
-                )
-            }
+//            val createTime = fragmentLoadMap.remove(fragmentId)
+//            if (createTime != null) {
+//                callback.onScreenLoad(
+//                    className,
+//                    className,
+//                    createTime
+//                )
+//            }
 
             fragmentViewMap[fragmentId] =
-                Timer("$className - viewed", "AutomaticScreenTrack").start()
+                Timer(className, "AutomaticScreenTrack").setContentGroupName("ScreenView").start()
         }
     }
 

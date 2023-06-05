@@ -16,8 +16,9 @@ internal class ActivityLifecycleCallbacks(private val callback: IScreenTrackCall
     override fun onActivityCreated(activity: Activity, p1: Bundle?) {
         val className = activity.localClassName
         logToLogcat("Activity Created", className)
+//        activityLoadMap[className] =
+//            Timer(className, "AutomaticScreenTrack").setContentGroupName("ScreenLoad").start()
 
-        activityLoadMap[className] = Timer("$className - loaded", "AutomaticScreenTrack").start()
         registerFragmentLifecycleCallbacks(activity)
     }
 
@@ -29,16 +30,17 @@ internal class ActivityLifecycleCallbacks(private val callback: IScreenTrackCall
         val className = activity.localClassName
         logToLogcat("Activity Resumed", className)
 
-        val timer = activityLoadMap.remove(className)
-        if (timer != null) {
-            callback.onScreenLoad(
-                className,
-                className,
-                timer
-            )
-        }
+//        val timer = activityLoadMap.remove(className)
+//        if (timer != null) {
+//            callback.onScreenLoad(
+//                className,
+//                className,
+//                timer
+//            )
+//        }
 
-        activityViewMap[className] = Timer("$className - viewed", "AutomaticScreenTrack").start()
+        activityViewMap[className] =
+            Timer(className, "AutomaticScreenTrack").setContentGroupName("ScreenView").start()
     }
 
     override fun onActivityPaused(activity: Activity) {
