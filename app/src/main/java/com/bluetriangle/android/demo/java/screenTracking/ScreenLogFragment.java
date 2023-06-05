@@ -48,7 +48,7 @@ public class ScreenLogFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         _binding.listView.setAdapter(adapter);
 
-        adapter.setEntities(((DemoApplication) getActivity().getApplication()).scrTrack.getScreenLogs());
+        adapter.setEntities(((DemoApplication) getActivity().getApplication()).screenTrackMonitor.getScreenLogs());
     }
 
     static class Adapter extends RecyclerView.Adapter<ViewHolder> {

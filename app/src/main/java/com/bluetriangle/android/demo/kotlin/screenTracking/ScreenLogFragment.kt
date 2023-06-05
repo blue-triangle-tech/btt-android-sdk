@@ -44,7 +44,7 @@ class ScreenLogFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         _binding?.listView?.adapter = adapter
 
-        adapter.setEntities((activity?.application as DemoApplication).scrTrack.screenLogs)
+        adapter.setEntities((activity?.application as DemoApplication).screenTrackMonitor.screenLogs)
     }
 
     internal class Adapter : RecyclerView.Adapter<ViewHolder>() {
