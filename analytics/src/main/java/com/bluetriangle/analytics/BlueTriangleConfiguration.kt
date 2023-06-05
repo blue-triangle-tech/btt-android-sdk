@@ -79,12 +79,12 @@ class BlueTriangleConfiguration {
      * the instance to cache payloads
      */
     var payloadCache: PayloadCache? = null
-            get() {
-                if (field == null) {
-                    field = PayloadCache(this)
-                }
-                return field
+        get() {
+            if (field == null) {
+                field = PayloadCache(this)
             }
+            return field
+        }
 
     var isTrackCrashesEnabled = false
 

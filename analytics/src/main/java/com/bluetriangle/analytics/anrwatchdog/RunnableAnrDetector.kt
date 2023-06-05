@@ -50,7 +50,7 @@ class RunnableAnrDetector(private val trackAnrIntervalSec: Int = ANR_DEFAULT_INT
      * The last time when a dummy runnable was posted on the handler. we use this to check the delay between posting
      * a runnable and it being executed.
      */
-    private var postTime:Long = 0L
+    private var postTime: Long = 0L
 
     /**
      * Maintains if ANR has been notified to the listeners. It will be reset everytime the thread comes back up from ANR.
@@ -60,13 +60,16 @@ class RunnableAnrDetector(private val trackAnrIntervalSec: Int = ANR_DEFAULT_INT
 
     override fun run() {
         try {
-            while(!Thread.interrupted()) {
+            while (!Thread.interrupted()) {
                 postToMainThreadIfQueueEmpty()
                 Thread.sleep(CHECK_INTERVAL)
                 checkAndNotifyAnr()
             }
         } catch (e: InterruptedException) {
-            Log.d("RunnableAnrDetector", "Exception while calling sleep on detector thread: ${e.message}")
+            Log.d(
+                "RunnableAnrDetector",
+                "Exception while calling sleep on detector thread: ${e.message}"
+            )
         }
     }
 
@@ -78,7 +81,7 @@ class RunnableAnrDetector(private val trackAnrIntervalSec: Int = ANR_DEFAULT_INT
     private fun checkAndNotifyAnr() {
         val delay = System.currentTimeMillis() - postTime
 
-        if(isAnrOccurred(delay)) {
+        if (isAnrOccurred(delay)) {
             notifyIfNotAlreadyNotified(delay)
             return
         }
@@ -88,15 +91,15 @@ class RunnableAnrDetector(private val trackAnrIntervalSec: Int = ANR_DEFAULT_INT
     /**
      * If not already notified for the current ANR then it notifies the listeners of the ANR
      */
-    private fun notifyIfNotAlreadyNotified(delay:Long) {
-        if(!isNotified) {
+    private fun notifyIfNotAlreadyNotified(delay: Long) {
+        if (!isNotified) {
             isNotified = true
             Log.d("RunnableAnrDetector", "Notifying ANR")
             notifyListeners(AnrException(delay))
         }
     }
 
-    private fun isAnrOccurred(delay:Long): Boolean {
+    private fun isAnrOccurred(delay: Long): Boolean {
         return handler.hasMessages(0) && delay >= (trackAnrIntervalSec * 1000L)
     }
 
@@ -105,7 +108,7 @@ class RunnableAnrDetector(private val trackAnrIntervalSec: Int = ANR_DEFAULT_INT
      * and if there aren't any then it posts a new empty runnable to the queue
      */
     private fun postToMainThreadIfQueueEmpty() {
-        if(!handler.hasMessages(0)) {
+        if (!handler.hasMessages(0)) {
             postTime = System.currentTimeMillis()
             handler.postAtFrontOfQueue(dummyTask)
         }
