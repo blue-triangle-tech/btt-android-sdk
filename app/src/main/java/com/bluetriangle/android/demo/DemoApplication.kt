@@ -20,9 +20,9 @@ class DemoApplication : Application() {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         tinyDB = TinyDB(applicationContext)
 
-        val siteId = tinyDB.getString("BttSiteId")
-        if (!siteId.isNullOrBlank())
-            intTracker(siteId) //mobelux3271241z or bluetriangledemo500z
+//        val siteId = tinyDB.getString("BttSiteId")
+//        if (!siteId.isNullOrBlank())
+//            intTracker(siteId) //mobelux3271241z or bluetriangledemo500z
     }
 
     fun intTracker(siteId: String?) {
