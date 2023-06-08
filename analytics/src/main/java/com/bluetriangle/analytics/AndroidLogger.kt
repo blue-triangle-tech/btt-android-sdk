@@ -1,7 +1,6 @@
 package com.bluetriangle.analytics
 
 import android.util.Log
-import com.bluetriangle.analytics.AndroidLogger
 
 internal class AndroidLogger(private val logLevel: Int) : Logger() {
     override fun log(logLevel: Int, message: String) {
