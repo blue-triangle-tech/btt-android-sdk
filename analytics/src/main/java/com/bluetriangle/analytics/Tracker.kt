@@ -433,11 +433,11 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
          * Initialize the tracker with default tracker URL and Site ID from string resources.
          *
          * @param context application context
-         * @return the initialized tracker
+         * @return the initialized tracker or null if no site ID
          */
         @JvmStatic
         fun init(context: Context): Tracker? {
-            return init(context, null, null)
+            return init(context, BlueTriangleConfiguration())
         }
 
         /**
@@ -445,44 +445,69 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
          *
          * @param context application context
          * @param siteId  Site ID to send with all timers
-         * @return the initialized tracker
+         * @return the initialized tracker or null if no site ID
          */
         @JvmStatic
         fun init(context: Context, siteId: String?): Tracker? {
-            return init(context, siteId, null)
+            val configuration = BlueTriangleConfiguration()
+            configuration.siteId = siteId
+            return init(context, configuration)
         }
 
         /**
-         * Initialize the tracker with given tracker URL and site ID
+         * Initialize the tracker with default tracker URL and given Site ID
          *
-         * @param context    application context
-         * @param siteId     Site ID to send with all timers
+         * @param context application context
+         * @param siteId  Site ID to send with all timers
          * @param trackerUrl the URL to submit timer data
-         * @return the initialized tracker
+         * @return the initialized tracker or null if no site ID
+         */
+        @JvmStatic
+        fun init(context: Context, siteId: String?, trackerUrl: String?): Tracker? {
+            val configuration = BlueTriangleConfiguration()
+            configuration.siteId = siteId
+            if (!trackerUrl.isNullOrBlank()) {
+                configuration.trackerUrl = trackerUrl
+            }
+            return init(context, configuration)
+        }
+
+        /**
+         * Initialize the tracker with the given configuration
+         *
+         * @param context application context
+         * @param configuration Blue Triangle Configuration
+         * @return the initialized tracker or null if no site ID
          */
         @JvmStatic
         @Synchronized
-        fun init(context: Context, siteId: String?, trackerUrl: String?): Tracker? {
+        fun init(context: Context, configuration: BlueTriangleConfiguration): Tracker? {
             if (instance != null) {
                 return instance
             }
-            val configuration = BlueTriangleConfiguration()
-            MetadataReader.applyMetadata(context, configuration)
-            configuration.applicationName = Utils.getAppNameAndOs(context)
-            configuration.userAgent = Utils.buildUserAgent(context)
-            val cacheDir = File(context.cacheDir, "bta")
-            if (!cacheDir.exists()) {
-                if (!cacheDir.mkdir()) {
-                    configuration.logger?.error("Error creating cache directory: ${cacheDir.absolutePath}")
-                }
-            }
-            configuration.cacheDirectory = cacheDir.absolutePath
-            if (!siteId.isNullOrBlank()) {
-                configuration.siteId = siteId
+
+            if (configuration.isDebug) {
+                configuration.logger = AndroidLogger(configuration.debugLevel)
             }
 
-            if (!trackerUrl.isNullOrBlank()) {
-                configuration.trackerUrl = trackerUrl
+            MetadataReader.applyMetadata(context, configuration)
+
+            if (configuration.applicationName.isNullOrBlank()) {
+                configuration.applicationName = Utils.getAppNameAndOs(context)
+            }
+
+            if (configuration.userAgent.isNullOrBlank()) {
+                configuration.userAgent = Utils.buildUserAgent(context)
+            }
+
+            if (configuration.cacheDirectory.isNullOrBlank()) {
+                val cacheDir = File(context.cacheDir, "bta")
+                if (!cacheDir.exists()) {
+                    if (!cacheDir.mkdir()) {
+                        configuration.logger?.error("Error creating cache directory: ${cacheDir.absolutePath}")
+                    }
+                }
+                configuration.cacheDirectory = cacheDir.absolutePath
             }
 
             // if site id is still not configured, try legacy resource string method
@@ -492,9 +517,13 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
                     configuration.siteId = resourceSiteID
                 }
             }
-            if (configuration.isDebug) {
-                configuration.logger = AndroidLogger(configuration.debugLevel)
+
+            // if still no site ID, log error
+            if (configuration.siteId.isNullOrBlank()) {
+                configuration.logger?.error("Site ID is required.")
+                return null
             }
+
             instance = Tracker(context, configuration)
             return instance
         }

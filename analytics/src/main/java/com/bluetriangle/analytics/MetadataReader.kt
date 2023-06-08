@@ -23,11 +23,12 @@ internal object MetadataReader {
         try {
             val metadata = getMetadata(context)
             if (metadata != null) {
-                val siteId = readString(metadata, SITE_ID, null)
+                val siteId = readString(metadata, SITE_ID, configuration.siteId)
                 if (TextUtils.isEmpty(siteId)) {
                     configuration.logger?.error("No site ID")
+                } else {
+                    configuration.siteId = siteId
                 }
-                configuration.siteId = siteId
                 configuration.isDebug = readBool(metadata, DEBUG, configuration.isDebug)
                 configuration.debugLevel = readInt(metadata, DEBUG_LEVEL, configuration.debugLevel)
                 configuration.maxCacheItems =

@@ -81,6 +81,7 @@ The tracker's configuration can also be set using metadata tags in the applicati
         <meta-data android:name="com.blue-triangle.track-crashes.enable" android:value="true" />
         <meta-data android:name="com.blue-triangle.track-anr.enable" android:value="true" />
         <meta-data android:name="com.blue-triangle.track-anr.interval-sec" android:value="5" />
+	<meta-data android:name="com.blue-triangle.sample-rate.network" android:value="0.025" />
     </application>
 </manifest>
 ```
@@ -94,12 +95,10 @@ The current available meta data configuration names:
 * `com.blue-triangle.cache.max-items` sets the max number of timers and crashes to cache and retry
   in the event the timers cannot be sent to the server. Set this to 0 to disable this feature.
 * `com.blue-triangle.cache.max-retry-attempts` sets the max number of times a timer can be re-tried.
-* `com.blue-triangle.performance-monitor.enable` enables or disables tracking of memory and CPU
-  usage.
-* `com.blue-triangle.performance-monitor.interval-ms` adjusts the interval in milliseconds of how
-  often memory and CPU measurements are taken.
-* `com.blue-triangle.track-crashes.enable` enable or disable collecting and sending crash reports to
-  the server.
+* `com.blue-triangle.performance-monitor.enable` enables or disables tracking of memory and CPU usage.
+* `com.blue-triangle.performance-monitor.interval-ms` adjusts the interval in milliseconds of how often memory and CPU measurements are taken.
+* `com.blue-triangle.track-crashes.enable` enable or disable collecting and sending crash reports to the server.
+* `com.blue-triangle.sample-rate.network` percentage of user sessions for which network calls will be captured. A value of 0.025 means that 2.5% of user session's network requests will be tracked. A value of 0.0 means that no network requests will be captured for any user sessions, and a value of 1.0 will track all network requests for all user sessions. Whether network requests will be tracked is determined on application start, and will either be set to on or off for the entirety of the user session.
 * `com.blue-triangle.track-anr.enable` enable or disable ANR detection and sending reports to the
   server.
 * `com.blue-triangle.track-anr.interval-sec` time interval for ANR warning based on track ANR is
@@ -154,6 +153,7 @@ When a timer is submitted to the tracker, the tracker sets any global fields suc
 ## Network Capture
 
 The tracker now also supports capturing network requests. This can be done automatically using [OkHttp Interceptors](https://square.github.io/okhttp/features/interceptors/) or manually.
+Check the application's `AndroidManifest.xml` file for the metadata configuration `com.blue-triangle.sample-rate.network` The recommended setting is 1.0 to capture all network requests.
 
 ### OkHttp Support
 
@@ -192,9 +192,9 @@ capturedRequest.start()
 // end timing the request
 capturedRequest.stop()
 
-// set encoded body size based on response content length header
+// (Optional) set encoded body size based on response content length header
 capturedRequest.encodedBodySize = 12341
-// set based on response content type
+// (Optional) set based on response content type
 capturedRequest.requestType = RequestType.html
 
 // submit the captured request to the tracker instance
