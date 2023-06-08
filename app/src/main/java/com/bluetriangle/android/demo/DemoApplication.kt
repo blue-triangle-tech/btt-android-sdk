@@ -3,6 +3,7 @@ package com.bluetriangle.android.demo
 import android.app.Application
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
+import com.bluetriangle.analytics.BlueTriangleConfiguration
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.Tracker.Companion.init
 import com.bluetriangle.android.demo.tests.ANRTest
@@ -25,7 +26,13 @@ class DemoApplication : Application() {
         //https://d.btttag.com/analytics.rcv
         //sdkdemo26621z
         //bluetriangledemo500z
-        tracker = init(applicationContext)
+        val configuration = BlueTriangleConfiguration()
+        configuration.isTrackCrashesEnabled = true
+        configuration.siteId = "mobelux3271241z"
+        configuration.isDebug = true
+        configuration.networkSampleRate = 1.0
+        configuration.isPerformanceMonitorEnabled = true
+        tracker = init(applicationContext, configuration)
         tracker!!.setSessionTrafficSegmentName("Demo Traffic Segment")
         //tracker.raiseTestException();
 
