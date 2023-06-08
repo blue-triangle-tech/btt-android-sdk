@@ -1,20 +1,28 @@
 package com.bluetriangle.android.demo.java;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationChannelCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.databinding.DataBindingUtil;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.bluetriangle.analytics.Timer;
 import com.bluetriangle.analytics.Tracker;
+import com.bluetriangle.analytics.anrwatchdog.AnrException;
+import com.bluetriangle.analytics.anrwatchdog.AnrManager;
 import com.bluetriangle.analytics.okhttp.BlueTriangleOkHttpInterceptor;
 import com.bluetriangle.android.demo.R;
 import com.bluetriangle.android.demo.databinding.ActivityTestListBinding;
-import com.bluetriangle.android.demo.java.screenTracking.ScreenTrackingActivity;
+import com.bluetriangle.android.demo.kotlin.TestListViewModel;
+import com.bluetriangle.android.demo.tests.ANRTest;
+import com.bluetriangle.android.demo.tests.ANRTestScenario;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -32,6 +40,7 @@ public class TestListActivity extends AppCompatActivity {
     private ActivityTestListBinding binding;
     private Timer timer = null;
     private OkHttpClient okHttpClient = null;
+    private TestListViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,8 +48,13 @@ public class TestListActivity extends AppCompatActivity {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_test_list);
         setTitle(R.string.main_title);
 
+        viewModel = new ViewModelProvider(this).get(TestListViewModel.class);
+        binding.setViewModel(viewModel);
+
         updateButtonState();
         addButtonClickListeners();
+
+        setUpAnrManager();
 
         okHttpClient =
                 new OkHttpClient.Builder()
@@ -58,6 +72,31 @@ public class TestListActivity extends AppCompatActivity {
         binding.buttonTrackCatchException.setOnClickListener(this::trackCatchExceptionButtonClicked);
         binding.buttonNetwork.setOnClickListener(this::captureNetworkRequests);
         binding.buttonScreenTrack.setOnClickListener(this::screenTrackButtonClicked);
+        binding.buttonAnr.setOnClickListener(v -> {
+            launchAnrActivity(ANRTestScenario.Unknown, ANRTest.Unknown);
+        });
+        binding.btnAnrTestRun.setOnClickListener(v -> {
+            launchAnrActivity(viewModel.getAnrTestScenario().getValue(), viewModel.getAnrTest().getValue());
+        });
+    }
+
+    private void setUpAnrManager() {
+        AnrManager anrManager = new AnrManager(Objects.requireNonNull(Tracker.getInstance()).getConfiguration());
+        anrManager.start();
+        anrManager.getDetector().addAnrListener(
+                "UIThread",
+                this::showAnrNotification);
+    }
+
+    private void showAnrNotification(AnrException error) {
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannelCompat channel =
+                    new NotificationChannelCompat.Builder("ANR", NotificationManagerCompat.IMPORTANCE_HIGH)
+                            .setName("ANR Channel")
+                            .build();
+            notificationManager.createNotificationChannel(channel);
+        }
     }
 
     private void updateButtonState() {
@@ -121,7 +160,17 @@ public class TestListActivity extends AppCompatActivity {
 
     private void crashButtonClicked(View view) {
         Objects.requireNonNull(Tracker.getInstance()).raiseTestException();
+        //new NativeWrapper().testCrash();
     }
+
+    private void launchAnrActivity(ANRTestScenario anrTestScenario, ANRTest anrTest) {
+        Intent intent = new Intent(this, ANRTestActivity.class);
+        intent.putExtra(ANRTestActivity.TestScenario, anrTestScenario);
+        intent.putExtra(ANRTestActivity.Test, anrTest);
+        startActivity(intent);
+        //new NativeWrapper().testANR();
+    }
+
 
     private void captureNetworkRequests(View view) {
         Timer timer = new Timer("Test Network Capture", "Android Traffic").start();

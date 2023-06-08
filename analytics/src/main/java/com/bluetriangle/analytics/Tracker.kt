@@ -4,6 +4,7 @@ import android.app.ActivityManager
 import android.app.Application
 import android.content.Context
 import android.text.TextUtils
+import com.bluetriangle.analytics.anrwatchdog.AnrManager
 import com.bluetriangle.analytics.networkcapture.CapturedRequest
 import com.bluetriangle.analytics.networkcapture.CapturedRequestCollection
 import com.bluetriangle.analytics.screenTracking.ScreenTrackMonitor
@@ -19,6 +20,7 @@ class Tracker private constructor(
     application: Application,
     configuration: BlueTriangleConfiguration
 ) {
+    private var anrManager: AnrManager
     /**
      * Weak reference to Android application context
      */
@@ -78,6 +80,9 @@ class Tracker private constructor(
 
         trackerExecutor = TrackerExecutor(configuration)
         screenTrackMonitor = ScreenTrackMonitor(application, configuration)
+
+        anrManager = AnrManager(configuration)
+        anrManager.start()
 
         if (configuration.isTrackCrashesEnabled) {
             trackCrashes()
@@ -381,11 +386,28 @@ class Tracker private constructor(
      * @param message   optional message included with the stack trace
      * @param exception the exception to track
      */
-    fun trackException(message: String?, exception: Throwable) {
+    fun trackException(
+        message: String?,
+        exception: Throwable,
+        errorType: BTErrorType = BTErrorType.NativeAppCrash
+    ) {
         val timeStamp = System.currentTimeMillis().toString()
         val crashHitsTimer = Timer().start()
         val stacktrace = Utils.exceptionToStacktrace(message, exception)
-        trackerExecutor.submit(CrashRunnable(configuration, stacktrace, timeStamp, crashHitsTimer))
+        trackerExecutor.submit(
+            CrashRunnable(
+                configuration,
+                stacktrace,
+                timeStamp,
+                crashHitsTimer,
+                errorType
+            )
+        )
+    }
+
+    enum class BTErrorType(val value: String) {
+        NativeAppCrash("NativeAppCrash"),
+        ANRWarning("ANRWarning"),
     }
 
     fun raiseTestException() {

@@ -1,17 +1,22 @@
 package com.bluetriangle.android.demo
 
 import android.app.Application
+import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import com.bluetriangle.analytics.BlueTriangleConfiguration
-import com.bluetriangle.analytics.Tracker
-import com.bluetriangle.analytics.Tracker.Companion.init
+import com.bluetriangle.analytics.Tracker.Tracker
+import com.bluetriangle.analytics.Tracker.Tracker.Companion.init
 import com.bluetriangle.analytics.screenTracking.ScreenTrackMonitor
+import com.bluetriangle.android.demo.tests.ANRTest
+import com.bluetriangle.android.demo.tests.ANRTestFactory
+import com.bluetriangle.android.demo.tests.ANRTestScenario
 
 class DemoApplication : Application() {
     private var tracker: Tracker? = null
     lateinit var screenTrackMonitor: ScreenTrackMonitor // for showing screen logs from app inside LogFragment
 
     companion object {
+        lateinit var sharedPreferencesMgr: SharedPreferencesMgr
         lateinit var tinyDB: TinyDB
     }
 
@@ -20,9 +25,15 @@ class DemoApplication : Application() {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         tinyDB = TinyDB(applicationContext)
 
-//        val siteId = tinyDB.getString("BttSiteId")
-//        if (!siteId.isNullOrBlank())
-//            intTracker(siteId) //mobelux3271241z or bluetriangledemo500z
+        sharedPreferencesMgr = SharedPreferencesMgr(applicationContext)
+
+        // d.btttag.com => 107.22.227.162
+        //"http://107.22.227.162/btt.gif"
+        //https://d.btttag.com/analytics.rcv
+        //sdkdemo26621z
+        //bluetriangledemo500z
+
+        checkANRTestOnAppCreate()
     }
 
     fun intTracker(siteId: String?) {
@@ -40,5 +51,21 @@ class DemoApplication : Application() {
 
         // for showing screen logs from app inside LogFragment
         screenTrackMonitor = ScreenTrackMonitor(this, configuration)
+    }
+
+    private fun checkANRTestOnAppCreate() {
+        val anrTestScenarioId = sharedPreferencesMgr.getInt("ANRTestScenario")
+        val anrTestId = sharedPreferencesMgr.getInt("ANRTest")
+        sharedPreferencesMgr.remove("ANRTestScenario")
+        sharedPreferencesMgr.remove("ANRTest")
+
+        Log.e("ANRTestScenario", anrTestScenarioId.toString())
+        Log.e("ANRTest", anrTestId.toString())
+
+        val anrTestScenario = ANRTestScenario.values()[anrTestScenarioId]
+        val anrTest = ANRTest.values()[anrTestId]
+        if (anrTestScenario == ANRTestScenario.OnApplicationCreate && anrTest != ANRTest.Unknown) {
+            ANRTestFactory.getANRTest(anrTest).run()
+        }
     }
 }

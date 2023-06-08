@@ -33,7 +33,9 @@ internal class CrashRunnable(
     /**
      * Timer to track crash reporting
      */
-    private val crashHitsTimer: Timer
+    private val crashHitsTimer: Timer,
+
+    private val errorType:Tracker.BTErrorType = Tracker.BTErrorType.NativeAppCrash
 ) : Runnable {
     override fun run() {
         submitTimer()
@@ -129,6 +131,7 @@ internal class CrashRunnable(
      * @param payloadData payload data to send
      */
     private fun cachePayload(url: String, payloadData: String) {
+        if (errorType == Tracker.BTErrorType.ANRWarning) return
         configuration.logger?.info("Caching crash report")
         configuration.payloadCache?.cachePayload(Payload(url = url, data = payloadData))
     }
@@ -141,7 +144,7 @@ internal class CrashRunnable(
     private fun buildCrashReportData(): String {
         val crashReport = mapOf(
             "msg" to stackTrace,
-            "eTp" to "NativeAppCrash",
+            "eTp" to errorType.value,
             "eCnt" to "1",
             "url" to configuration.applicationName,
             "line" to "1",

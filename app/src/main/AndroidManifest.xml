@@ -50,6 +50,10 @@
         <!--        <meta-data android:name="com.blue-triangle.track-crashes.enable" android:value="true" />-->
         <!--        <meta-data android:name="com.blue-triangle.sample-rate.network" android:value="1.0" />-->
 
+        <activity
+            android:name=".java.ANRTestActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

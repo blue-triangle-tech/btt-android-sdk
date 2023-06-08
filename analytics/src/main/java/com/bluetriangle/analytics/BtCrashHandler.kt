@@ -12,6 +12,7 @@ internal class BtCrashHandler(private val configuration: BlueTriangleConfigurati
     override fun uncaughtException(t: Thread, e: Throwable) {
         val timeStamp = System.currentTimeMillis().toString()
         crashHitsTimer = Timer().startWithoutPerformanceMonitor()
+
         val stacktrace = exceptionToStacktrace(null, e)
         try {
             sendToServer(stacktrace, timeStamp)
