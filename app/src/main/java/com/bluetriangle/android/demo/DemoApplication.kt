@@ -4,8 +4,8 @@ import android.app.Application
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import com.bluetriangle.analytics.BlueTriangleConfiguration
-import com.bluetriangle.analytics.Tracker.Tracker
-import com.bluetriangle.analytics.Tracker.Tracker.Companion.init
+import com.bluetriangle.analytics.Tracker
+import com.bluetriangle.analytics.Tracker.Companion.init
 import com.bluetriangle.analytics.screenTracking.ScreenTrackMonitor
 import com.bluetriangle.android.demo.tests.ANRTest
 import com.bluetriangle.android.demo.tests.ANRTestFactory

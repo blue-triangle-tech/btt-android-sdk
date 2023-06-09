@@ -19,12 +19,9 @@ import com.bluetriangle.analytics.okhttp.BlueTriangleOkHttpInterceptor
 import com.bluetriangle.android.demo.R
 import com.bluetriangle.android.demo.databinding.ActivityTestListBinding
 import com.bluetriangle.android.demo.getViewModel
+import com.bluetriangle.android.demo.kotlin.screenTracking.ScreenTrackingActivity
 import com.bluetriangle.android.demo.tests.ANRTest
 import com.bluetriangle.android.demo.tests.ANRTestScenario
-import com.bluetriangle.analytics.okhttp.BlueTriangleOkHttpInterceptor
-import com.bluetriangle.android.demo.R
-import com.bluetriangle.android.demo.databinding.ActivityTestListBinding
-import com.bluetriangle.android.demo.kotlin.screenTracking.ScreenTrackingActivity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.*
@@ -32,7 +29,7 @@ import java.io.IOException
 import java.util.*
 
 @Suppress("UNUSED_PARAMETER")
-class TestListActivity : AppCompatActivity() {
+class KotlinTestListActivity : AppCompatActivity() {
     private var timer: Timer? = null
 
     private var okHttpClient: OkHttpClient? = null
@@ -119,7 +116,7 @@ class TestListActivity : AppCompatActivity() {
     }
 
     private fun startButtonClicked(view: View) {
-        timer = Timer(TestListActivity::class.java.simpleName, "Ä Traffic Šegment").start()
+        timer = Timer(KotlinTestListActivity::class.java.simpleName, "Ä Traffic Šegment").start()
         updateButtonState()
     }
 

@@ -20,6 +20,7 @@ import com.bluetriangle.analytics.anrwatchdog.AnrManager;
 import com.bluetriangle.analytics.okhttp.BlueTriangleOkHttpInterceptor;
 import com.bluetriangle.android.demo.R;
 import com.bluetriangle.android.demo.databinding.ActivityTestListBinding;
+import com.bluetriangle.android.demo.java.screenTracking.ScreenTrackingActivity;
 import com.bluetriangle.android.demo.kotlin.TestListViewModel;
 import com.bluetriangle.android.demo.tests.ANRTest;
 import com.bluetriangle.android.demo.tests.ANRTestScenario;
@@ -35,8 +36,8 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class TestListActivity extends AppCompatActivity {
-    private static final String TAG = TestListActivity.class.getSimpleName();
+public class JavaTestListActivity extends AppCompatActivity {
+    private static final String TAG = JavaTestListActivity.class.getSimpleName();
     private ActivityTestListBinding binding;
     private Timer timer = null;
     private OkHttpClient okHttpClient = null;
@@ -106,7 +107,7 @@ public class TestListActivity extends AppCompatActivity {
     }
 
     private void startButtonClicked(View view) {
-        timer = new Timer(TestListActivity.class.getSimpleName(), "Ä Traffic Šegment").start();
+        timer = new Timer(JavaTestListActivity.class.getSimpleName(), "Ä Traffic Šegment").start();
         updateButtonState();
     }
 
@@ -154,7 +155,7 @@ public class TestListActivity extends AppCompatActivity {
         try {
             Objects.requireNonNull(Tracker.getInstance()).raiseTestException();
         } catch (Throwable e) {
-            Objects.requireNonNull(Tracker.getInstance()).trackException("A test exception caught!", e);
+            Objects.requireNonNull(Tracker.getInstance()).trackException("A test exception caught!", e, Tracker.BTErrorType.NativeAppCrash);
         }
     }
 

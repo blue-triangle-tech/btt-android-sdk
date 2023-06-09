@@ -5,6 +5,8 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.bluetriangle.android.demo.databinding.ActivityHomeBinding
+import com.bluetriangle.android.demo.java.JavaTestListActivity
+import com.bluetriangle.android.demo.kotlin.KotlinTestListActivity
 
 class HomeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -16,7 +18,7 @@ class HomeActivity : AppCompatActivity() {
             startActivity(
                 Intent(
                     this,
-                    com.bluetriangle.android.demo.java.TestListActivity::class.java
+                    JavaTestListActivity::class.java
                 )
             )
         }
@@ -25,7 +27,7 @@ class HomeActivity : AppCompatActivity() {
             startActivity(
                 Intent(
                     this,
-                    com.bluetriangle.android.demo.kotlin.TestListActivity::class.java
+                    KotlinTestListActivity::class.java
                 )
             )
         }
