@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:name=".DemoApplication"
         android:allowBackup="true"
@@ -9,9 +9,10 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:networkSecurityConfig="@xml/network_config"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".HomeActivity"
+            android:name=".ConfigActivity"
             android:exported="true"
             android:label="@string/app_name">
             <intent-filter>
@@ -21,19 +22,35 @@
             </intent-filter>
         </activity>
 
-<!--        <meta-data android:name="com.blue-triangle.site-id" android:value="mobelux3271241z" />-->
-<!--        <meta-data android:name="com.blue-triangle.debug" android:value="true" />-->
-<!--        <meta-data android:name="com.blue-triangle.performance-monitor.enable" android:value="true" />-->
-<!--        <meta-data android:name="com.blue-triangle.track-crashes.enable" android:value="true" />-->
-<!--        <meta-data android:name="com.blue-triangle.sample-rate.network" android:value="1.0" />-->
         <activity
-            android:name=".java.TestListActivity"
+            android:name=".HomeActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".java.JavaTestListActivity"
             android:exported="false" />
         <activity
             android:name=".java.NextActivity"
             android:exported="false" />
         <activity
+            android:name=".java.screenTracking.ScreenTrackingActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".kotlin.KotlinTestListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".kotlin.NextActivity"
+            android:exported="false" />
+        <activity
+            android:name=".kotlin.screenTracking.ScreenTrackingActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".java.ANRTestActivity"
+            android:exported="false" />
+        <activity
+            android:name=".kotlin.ANRTestActivity"
             android:exported="false" />
 
     </application>

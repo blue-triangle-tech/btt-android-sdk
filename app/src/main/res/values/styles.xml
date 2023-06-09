@@ -8,6 +8,14 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="BottomSheet.Modal" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+
+    <style name="BottomSheetDialogTheme" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/BottomSheet.Modal</item>
+    </style>
+
     <style name="SpinnerStyleDropDown" parent="@style/Widget.AppCompat.Spinner.DropDown">
         <item name="android:minHeight">40dp</item>
         <item name="android:paddingLeft">2dp</item>

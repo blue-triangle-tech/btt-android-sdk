@@ -6,19 +6,25 @@ import androidx.appcompat.app.AppCompatDelegate
 import com.bluetriangle.analytics.BlueTriangleConfiguration
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.Tracker.Companion.init
+import com.bluetriangle.analytics.screenTracking.ScreenTrackMonitor
 import com.bluetriangle.android.demo.tests.ANRTest
 import com.bluetriangle.android.demo.tests.ANRTestFactory
 import com.bluetriangle.android.demo.tests.ANRTestScenario
 
 class DemoApplication : Application() {
     private var tracker: Tracker? = null
+    lateinit var screenTrackMonitor: ScreenTrackMonitor // for showing screen logs from app inside LogFragment
 
     companion object {
         lateinit var sharedPreferencesMgr: SharedPreferencesMgr
+        lateinit var tinyDB: TinyDB
     }
 
     override fun onCreate() {
         super.onCreate()
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        tinyDB = TinyDB(applicationContext)
+
         sharedPreferencesMgr = SharedPreferencesMgr(applicationContext)
 
         // d.btttag.com => 107.22.227.162
@@ -26,19 +32,25 @@ class DemoApplication : Application() {
         //https://d.btttag.com/analytics.rcv
         //sdkdemo26621z
         //bluetriangledemo500z
+
+        checkANRTestOnAppCreate()
+    }
+
+    fun intTracker(siteId: String?) {
+        if (siteId.isNullOrBlank()) return
+
         val configuration = BlueTriangleConfiguration()
         configuration.isTrackCrashesEnabled = true
-        configuration.siteId = "mobelux3271241z"
+        configuration.siteId = siteId
         configuration.isDebug = true
         configuration.networkSampleRate = 1.0
         configuration.isPerformanceMonitorEnabled = true
-        tracker = init(applicationContext, configuration)
+        tracker = init(this, configuration)
+
         tracker!!.setSessionTrafficSegmentName("Demo Traffic Segment")
-        //tracker.raiseTestException();
 
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-
-        checkANRTestOnAppCreate()
+        // for showing screen logs from app inside LogFragment
+        screenTrackMonitor = ScreenTrackMonitor(this, configuration)
     }
 
     private fun checkANRTestOnAppCreate() {

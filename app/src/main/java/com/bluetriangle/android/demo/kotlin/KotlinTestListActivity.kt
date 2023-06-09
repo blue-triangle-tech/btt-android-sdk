@@ -19,6 +19,7 @@ import com.bluetriangle.analytics.okhttp.BlueTriangleOkHttpInterceptor
 import com.bluetriangle.android.demo.R
 import com.bluetriangle.android.demo.databinding.ActivityTestListBinding
 import com.bluetriangle.android.demo.getViewModel
+import com.bluetriangle.android.demo.kotlin.screenTracking.ScreenTrackingActivity
 import com.bluetriangle.android.demo.tests.ANRTest
 import com.bluetriangle.android.demo.tests.ANRTestScenario
 import kotlinx.coroutines.delay
@@ -28,7 +29,7 @@ import java.io.IOException
 import java.util.*
 
 @Suppress("UNUSED_PARAMETER")
-class TestListActivity : AppCompatActivity() {
+class KotlinTestListActivity : AppCompatActivity() {
     private var timer: Timer? = null
 
     private var okHttpClient: OkHttpClient? = null
@@ -49,6 +50,9 @@ class TestListActivity : AppCompatActivity() {
 
         setUpAnrManager()
 
+        updateButtonState()
+        addButtonClickListeners()
+
         okHttpClient =
             OkHttpClient.Builder()
                 .addInterceptor(BlueTriangleOkHttpInterceptor(instance!!.configuration))
@@ -64,6 +68,7 @@ class TestListActivity : AppCompatActivity() {
         binding.buttonCrash.setOnClickListener(this::crashButtonClicked)
         binding.buttonTrackCatchException.setOnClickListener(this::trackCatchExceptionButtonClicked)
         binding.buttonNetwork.setOnClickListener(this::captureNetworkRequests)
+        binding.buttonScreenTrack.setOnClickListener(this::screenTrackButtonClicked)
         binding.buttonAnr.setOnClickListener {
             launchAnrActivity(ANRTestScenario.Unknown, ANRTest.Unknown)
         }
@@ -111,7 +116,7 @@ class TestListActivity : AppCompatActivity() {
     }
 
     private fun startButtonClicked(view: View) {
-        timer = Timer(TestListActivity::class.java.simpleName, "Ä Traffic Šegment").start()
+        timer = Timer(KotlinTestListActivity::class.java.simpleName, "Ä Traffic Šegment").start()
         updateButtonState()
     }
 
@@ -133,6 +138,11 @@ class TestListActivity : AppCompatActivity() {
         val timer = Timer("Next Page", "Android Traffic").start()
         val intent = Intent(this, NextActivity::class.java)
         intent.putExtra(Timer.EXTRA_TIMER, timer)
+        startActivity(intent)
+    }
+
+    private fun screenTrackButtonClicked(view: View) {
+        val intent = Intent(this, ScreenTrackingActivity::class.java)
         startActivity(intent)
     }
 

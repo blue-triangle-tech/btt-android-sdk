@@ -11,10 +11,8 @@ class NextActivity : AppCompatActivity() {
     private var timer: Timer? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val binding = DataBindingUtil.setContentView<ActivityNextBinding>(
-            this,
-            R.layout.activity_next
-        )
+        val binding =
+            DataBindingUtil.setContentView<ActivityNextBinding>(this, R.layout.activity_next)
         timer = intent.getParcelableExtra(Timer.EXTRA_TIMER)
 
         binding.buttonStop.setOnClickListener {
