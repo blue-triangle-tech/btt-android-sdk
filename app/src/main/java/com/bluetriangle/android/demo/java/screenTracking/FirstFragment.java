@@ -49,10 +49,6 @@ public class FirstFragment extends Fragment {
                 .addToBackStack(BottomNavigationFragment.class.getSimpleName())
                 .commit());
 
-        view.findViewById(R.id.btnLogs).setOnClickListener(v -> requireActivity().getSupportFragmentManager().beginTransaction()
-                .replace(R.id.container, ScreenLogFragment.newInstance())
-                .addToBackStack(ScreenLogFragment.class.getSimpleName())
-                .commit());
     }
 
     private void showAlertDialog() {

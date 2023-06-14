@@ -1,6 +1,6 @@
 package com.bluetriangle.analytics.anrwatchdog
 
-interface AnrListener {
+internal interface AnrListener {
 
     fun onAppNotResponding(error: AnrException)
 

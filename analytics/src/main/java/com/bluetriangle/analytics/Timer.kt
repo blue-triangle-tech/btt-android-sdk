@@ -119,6 +119,8 @@ class Timer : Parcelable {
     var start: Long = 0
         private set
 
+    var visible: Long = 0
+        private set
     /**
      * The current time when the interactive call was made in milliseconds
      */
@@ -231,6 +233,20 @@ class Timer : Parcelable {
                 logger?.error("Timer never started")
             } else if (interactive != 0L) {
                 logger?.error("Timer already marked as interactive")
+            }
+        }
+        return this
+    }
+
+    fun visible():Timer {
+        if (start > 0 && visible == 0L) {
+            visible = System.currentTimeMillis()
+//            setField(FIELD_, visible)
+        } else {
+            if (start == 0L) {
+                logger?.error("Timer never started")
+            } else if (visible != 0L) {
+                logger?.error("Timer already marked as visible")
             }
         }
         return this

@@ -2,7 +2,7 @@ package com.bluetriangle.analytics.screenTracking
 
 import com.bluetriangle.analytics.Timer
 
-interface IScreenTrackCallback {
+internal interface IScreenTrackCallback {
     fun onScreenLoad(id: String, className: String, timer: Timer)
     fun onScreenView(id: String, className: String, timer: Timer)
 }

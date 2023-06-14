@@ -1,18 +1,20 @@
 package com.bluetriangle.analytics.anrwatchdog
 
 import android.util.Log
+import androidx.annotation.RestrictTo
 import com.bluetriangle.analytics.BlueTriangleConfiguration
 import com.bluetriangle.analytics.CrashRunnable
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.Utils
 
-class AnrManager(private val configuration: BlueTriangleConfiguration) : AnrListener {
+internal class AnrManager constructor(private val configuration: BlueTriangleConfiguration) :
+    AnrListener {
 
-    val detector: AnrDetector = RunnableAnrDetector(configuration.trackAnrIntervalSec)
+    private val detector: AnrDetector = RunnableAnrDetector(configuration.trackAnrIntervalSec)
 
     init {
-        detector.addAnrListener("ANR", this)
+        detector.addAnrListener("AnrManager", this)
     }
 
     fun start() {
@@ -26,7 +28,7 @@ class AnrManager(private val configuration: BlueTriangleConfiguration) : AnrList
     }
 
     override fun onAppNotResponding(error: AnrException) {
-        Log.d("AnrManager", "Anr Received: ${error.message}")
+        configuration.logger?.debug("Anr Received: ${error.message}")
 
         val timeStamp = System.currentTimeMillis().toString()
         val crashHitsTimer: Timer = Timer().startWithoutPerformanceMonitor()

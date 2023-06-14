@@ -58,13 +58,6 @@ class FirstFragment : Fragment() {
                 ?.addToBackStack(BottomNavigationFragment::class.java.simpleName)
                 ?.commit()
         }
-
-        view.findViewById<MaterialButton>(R.id.btnLogs).setOnClickListener {
-            activity?.supportFragmentManager?.beginTransaction()
-                ?.replace(R.id.container, ScreenLogFragment.newInstance())
-                ?.addToBackStack(ScreenLogFragment::class.java.simpleName)
-                ?.commit()
-        }
     }
 
     private fun showAlertDialog() {

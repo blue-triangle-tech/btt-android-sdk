@@ -11,7 +11,7 @@ import java.io.File
 import java.io.FileReader
 import java.io.IOException
 
-class CpuMonitor(configuration: BlueTriangleConfiguration): MetricMonitor {
+internal class CpuMonitor(configuration: BlueTriangleConfiguration): MetricMonitor {
 
     companion object {
         private val CPU_STATS_FILE = File("/proc/self/stat")

@@ -4,10 +4,13 @@ import android.app.ActivityManager
 import android.app.Application
 import android.content.Context
 import android.text.TextUtils
+import android.util.Log
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
 import com.bluetriangle.analytics.networkcapture.CapturedRequest
 import com.bluetriangle.analytics.networkcapture.CapturedRequestCollection
-import com.bluetriangle.analytics.screenTracking.ScreenTrackMonitor
+import com.bluetriangle.analytics.screenTracking.ActivityLifecycleTracker
+import com.bluetriangle.analytics.screenTracking.FragmentLifecycleTracker
+import com.bluetriangle.analytics.screenTracking.BTTScreenLifecyleTracker
 import java.io.File
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
@@ -56,7 +59,8 @@ class Tracker private constructor(
      */
     private val capturedRequests = ConcurrentHashMap<Long, CapturedRequestCollection>()
 
-    private val screenTrackMonitor: ScreenTrackMonitor
+    private val screenTrackMonitor: BTTScreenLifecyleTracker
+    private val activityLifecycleTracker: ActivityLifecycleTracker
 
     init {
         this.context = WeakReference(application.applicationContext)
@@ -79,11 +83,17 @@ class Tracker private constructor(
         configuration.sessionId = sessionId
 
         trackerExecutor = TrackerExecutor(configuration)
-        screenTrackMonitor = ScreenTrackMonitor(application, configuration)
+        screenTrackMonitor = BTTScreenLifecyleTracker()
+
+        val fragmentLifecycleTracker = FragmentLifecycleTracker(screenTrackMonitor)
+        activityLifecycleTracker = ActivityLifecycleTracker(screenTrackMonitor, fragmentLifecycleTracker)
+        application.registerActivityLifecycleCallbacks(activityLifecycleTracker)
 
         anrManager = AnrManager(configuration)
-        anrManager.start()
 
+        if(configuration.isTrackAnrEnabled) {
+            anrManager.start()
+        }
         if (configuration.isTrackCrashesEnabled) {
             trackCrashes()
         }
@@ -392,7 +402,10 @@ class Tracker private constructor(
         errorType: BTErrorType = BTErrorType.NativeAppCrash
     ) {
         val timeStamp = System.currentTimeMillis().toString()
+        val mostRecentTimer = getMostRecentTimer()
+
         val crashHitsTimer = Timer().start()
+
         val stacktrace = Utils.exceptionToStacktrace(message, exception)
         trackerExecutor.submit(
             CrashRunnable(
@@ -400,7 +413,8 @@ class Tracker private constructor(
                 stacktrace,
                 timeStamp,
                 crashHitsTimer,
-                errorType
+                errorType,
+                mostRecentTimer
             )
         )
     }

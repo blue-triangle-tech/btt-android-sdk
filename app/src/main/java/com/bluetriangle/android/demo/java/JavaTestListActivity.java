@@ -1,22 +1,17 @@
 package com.bluetriangle.android.demo.java;
 
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.NotificationChannelCompat;
-import androidx.core.app.NotificationManagerCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.bluetriangle.analytics.Timer;
 import com.bluetriangle.analytics.Tracker;
-import com.bluetriangle.analytics.anrwatchdog.AnrException;
-import com.bluetriangle.analytics.anrwatchdog.AnrManager;
 import com.bluetriangle.analytics.okhttp.BlueTriangleOkHttpInterceptor;
 import com.bluetriangle.android.demo.R;
 import com.bluetriangle.android.demo.databinding.ActivityTestListBinding;
@@ -55,8 +50,6 @@ public class JavaTestListActivity extends AppCompatActivity {
         updateButtonState();
         addButtonClickListeners();
 
-        setUpAnrManager();
-
         okHttpClient =
                 new OkHttpClient.Builder()
                         .addInterceptor(new BlueTriangleOkHttpInterceptor(Objects.requireNonNull(Tracker.getInstance()).getConfiguration()))
@@ -79,25 +72,6 @@ public class JavaTestListActivity extends AppCompatActivity {
         binding.btnAnrTestRun.setOnClickListener(v -> {
             launchAnrActivity(viewModel.getAnrTestScenario().getValue(), viewModel.getAnrTest().getValue());
         });
-    }
-
-    private void setUpAnrManager() {
-        AnrManager anrManager = new AnrManager(Objects.requireNonNull(Tracker.getInstance()).getConfiguration());
-        anrManager.start();
-        anrManager.getDetector().addAnrListener(
-                "UIThread",
-                this::showAnrNotification);
-    }
-
-    private void showAnrNotification(AnrException error) {
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannelCompat channel =
-                    new NotificationChannelCompat.Builder("ANR", NotificationManagerCompat.IMPORTANCE_HIGH)
-                            .setName("ANR Channel")
-                            .build();
-            notificationManager.createNotificationChannel(channel);
-        }
     }
 
     private void updateButtonState() {

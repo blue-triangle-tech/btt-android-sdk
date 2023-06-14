@@ -5,7 +5,7 @@ import com.bluetriangle.analytics.BlueTriangleConfiguration
 import com.bluetriangle.analytics.PerformanceReport
 import com.bluetriangle.analytics.Tracker
 
-class MemoryMonitor(configuration: BlueTriangleConfiguration): MetricMonitor {
+internal class MemoryMonitor(configuration: BlueTriangleConfiguration): MetricMonitor {
     override val metricFields: Map<String, String>
         get() = mapOf(
             PerformanceReport.FIELD_MIN_MEMORY to minMemory.toString(),

@@ -2,11 +2,11 @@ package com.bluetriangle.analytics.anrwatchdog
 
 import java.lang.ref.WeakReference
 
-abstract class AnrDetector {
+internal abstract class AnrDetector {
 
-    protected val listeners = hashMapOf<String, WeakReference<AnrListener>>()
+    protected var listeners = hashMapOf<String, WeakReference<AnrListener>>()
 
-    fun addAnrListener(tag: String, listener: AnrListener) {
+    fun addAnrListener(tag:String, listener: AnrListener) {
         listeners[tag] = WeakReference(listener)
     }
 
@@ -15,7 +15,7 @@ abstract class AnrDetector {
     }
 
     protected fun notifyListeners(error: AnrException) {
-        for (listener in listeners) {
+        listeners.forEach { listener ->
             listener.value.get()?.onAppNotResponding(error)
         }
     }

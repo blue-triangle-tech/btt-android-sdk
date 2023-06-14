@@ -11,7 +11,7 @@ import java.util.concurrent.Executors
  * ANR Detector based on the Runnable approach. Once started it will continuously monitor the main thread
  * and notify the listeners of an ANR state.
  */
-class RunnableAnrDetector(private val trackAnrIntervalSec: Int = ANR_DEFAULT_INTERVAL) :
+internal class RunnableAnrDetector(private val trackAnrIntervalSec: Int = ANR_DEFAULT_INTERVAL) :
     AnrDetector(), Runnable {
 
     /**

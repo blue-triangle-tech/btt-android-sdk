@@ -24,7 +24,7 @@ class ConfigActivity : AppCompatActivity() {
                 Snackbar.make(it, "Please enter SiteId", Snackbar.LENGTH_LONG).show()
             } else {
                 DemoApplication.tinyDB.setString("BttSiteId", siteId)
-                (application as DemoApplication).intTracker(siteId)
+                (application as DemoApplication).initTracker(siteId)
 
                 startActivity(Intent(this, HomeActivity::class.java))
             }

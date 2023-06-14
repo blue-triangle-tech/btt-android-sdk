@@ -1,20 +1,14 @@
 package com.bluetriangle.android.demo.kotlin
 
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.NotificationChannelCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Tracker.Companion.instance
-import com.bluetriangle.analytics.anrwatchdog.AnrException
-import com.bluetriangle.analytics.anrwatchdog.AnrListener
-import com.bluetriangle.analytics.anrwatchdog.AnrManager
 import com.bluetriangle.analytics.okhttp.BlueTriangleOkHttpInterceptor
 import com.bluetriangle.android.demo.R
 import com.bluetriangle.android.demo.databinding.ActivityTestListBinding
@@ -48,8 +42,6 @@ class KotlinTestListActivity : AppCompatActivity() {
         updateButtonState()
         addButtonClickListeners()
 
-        setUpAnrManager()
-
         updateButtonState()
         addButtonClickListeners()
 
@@ -76,36 +68,6 @@ class KotlinTestListActivity : AppCompatActivity() {
         binding.btnAnrTestRun.setOnClickListener {
             launchAnrActivity(viewModel.anrTestScenario.value!!, viewModel.anrTest.value!!)
         }
-    }
-
-    private fun setUpAnrManager() {
-        val anrManager = AnrManager(instance!!.configuration)
-        anrManager.start()
-        anrManager.detector.addAnrListener(
-            "UIThread",
-            object : AnrListener {
-                override fun onAppNotResponding(error: AnrException) {
-                    showAnrNotification(error)
-                }
-            })
-    }
-
-    private fun showAnrNotification(error: AnrException) {
-        val notificationManager = NotificationManagerCompat.from(this)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel =
-                NotificationChannelCompat.Builder("ANR", NotificationManagerCompat.IMPORTANCE_HIGH)
-                    .setName("ANR Channel")
-                    .build()
-            notificationManager.createNotificationChannel(channel)
-        }
-//        val notification = NotificationCompat.Builder(this, "ANR")
-//            .setContentTitle("ANR Detected")
-//            .setContentText("Main thread is being blocked for the last " + error.delay + "ms")
-//            .setSmallIcon(R.drawable.ic_launcher_background)
-//            .setPriority(NotificationCompat.PRIORITY_HIGH)
-//            .build()
-//        notificationManager.notify(2, notification)
     }
 
     private fun updateButtonState() {

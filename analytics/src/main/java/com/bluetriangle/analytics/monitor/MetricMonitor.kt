@@ -1,6 +1,6 @@
 package com.bluetriangle.analytics.monitor
 
-interface MetricMonitor {
+internal interface MetricMonitor {
 
     val metricFields: Map<String, String>
 

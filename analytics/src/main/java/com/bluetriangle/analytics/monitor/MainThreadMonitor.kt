@@ -7,7 +7,7 @@ import com.bluetriangle.analytics.PerformanceReport.Companion.FIELD_MAX_MAIN_THR
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.anrwatchdog.AnrException
 
-class MainThreadMonitor(configuration: BlueTriangleConfiguration) : MetricMonitor {
+internal class MainThreadMonitor(configuration: BlueTriangleConfiguration) : MetricMonitor {
     private val logger = configuration.logger
 
     override val metricFields: Map<String, String>
