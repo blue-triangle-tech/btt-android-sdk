@@ -1,50 +1,49 @@
 package com.bluetriangle.analytics.screenTracking
 
-import android.util.Log
 import com.bluetriangle.analytics.Timer
-import com.bluetriangle.analytics.Tracker
+import com.bluetriangle.analytics.model.NativeAppProperties
+import com.bluetriangle.analytics.model.Screen
 import com.bluetriangle.analytics.utility.logD
 
 internal class BTTScreenLifecyleTracker : ScreenLifecycleTracker {
 
-    val screenLogs = arrayListOf<ScreenTrackLog>()
+    private var loadTime = hashMapOf<String, Long>()
+    private var viewTime = hashMapOf<String, Long>()
     private val timers = hashMapOf<String, Timer>()
-
-    data class ScreenTrackLog(
-        val screenName: String,
-        val startTime: Long,
-        val timeTaken: Long,
-        val isLoadEvent: Boolean = true
-    )
+    private val TAG = this::class.java.simpleName
 
     override fun onLoadStarted(screen: Screen) {
-        timers[screen.name] = Timer(screen.name, "FragmentTrafficSegment").start()
-        logD("BTTScreenLifecyleTracker", "onLoadStarted: ${screen.name}")
+        logD(TAG, "onLoadStarted: ${screen.name}")
+        timers[screen.toString()] = Timer(screen.name, "FragmentTrafficSegment").start()
+        loadTime[screen.toString()] = System.currentTimeMillis()
     }
 
     override fun onLoadEnded(screen: Screen) {
-        logD("BTTScreenLifecyleTracker", "onLoadEnded: ${screen.name}")
-        val screenName = screen.name
-        val timer = timers[screenName] ?: return
-        val timeTaken = System.currentTimeMillis() - timer.start
-        screenLogs.add(ScreenTrackLog(screenName, timer.start, timeTaken, true))
-        logD("BTTScreenLifecyleTracker", "$screenName loaded in $timeTaken ms")
+        logD(TAG, "onLoadEnded: ${screen.name}")
     }
 
     override fun onViewStarted(screen: Screen) {
-        logD("BTTScreenLifecyleTracker", "onViewStarted: ${screen.name}")
-        timers[screen.name]?.visible()
+        logD(TAG, "onViewStarted: ${screen.name}")
+        viewTime[screen.toString()] = System.currentTimeMillis()
     }
 
     override fun onViewEnded(screen: Screen) {
-        logD("BTTScreenLifecyleTracker", "onViewEnded: ${screen.name}")
-        val screenName = screen.name
-        val timer = timers[screenName] ?: return
-        val timeTaken = System.currentTimeMillis() - timer.visible
-        screenLogs.add(ScreenTrackLog(screenName, timer.start, timeTaken, false))
-        logD("BTTScreenLifecyleTracker", "$screenName viewed for $timeTaken ms")
+        logD(TAG, "onViewEnded: ${screen.name}")
+        val scr = screen.toString()
+        val timer = timers[scr] ?: return
+        val loadTm = loadTime[scr]?:0L
+        val viewTm = viewTime[scr]?:0L
+        val disappearTm = System.currentTimeMillis()
+
+        timer.pageTimeCalculator = {
+            viewTm - loadTm
+        }
+        timer.generateNativeAppProperties()
+        timer.nativeAppProperties.loadTime = viewTm - loadTm
+        timer.nativeAppProperties.fullTime = disappearTm - loadTm
+        timer.nativeAppProperties.screenType = screen.type
         timer.end().submit()
-        timers.remove(screenName)
+        timers.remove(scr)
     }
 
 }

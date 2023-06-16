@@ -2,6 +2,7 @@ package com.bluetriangle.analytics
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.bluetriangle.analytics.model.NativeAppProperties
 
 /**
  * A timer instance that can be started, marked interactive, and ended.
@@ -56,6 +57,9 @@ class Timer : Parcelable {
         const val FIELD_SDK_VERSION = "VER"
         const val FIELD_WCDTT = "WCDtt"
         const val FIELD_EXCLUDED = "excluded"
+        const val FIELD_NATIVE_APP = "NATIVEAPP"
+        const val FIELD_ERR = "ERR"
+        const val FIELD_NA_FLG = "NAflg"
 
         /**
          * A map of fields and their associated default values
@@ -119,8 +123,6 @@ class Timer : Parcelable {
     var start: Long = 0
         private set
 
-    var visible: Long = 0
-        private set
     /**
      * The current time when the interactive call was made in milliseconds
      */
@@ -137,6 +139,22 @@ class Timer : Parcelable {
      * Performance monitor thread
      */
     private var performanceMonitor: PerformanceMonitor? = null
+
+    internal var nativeAppProperties = NativeAppProperties(
+        null,
+        null,
+        performanceMonitor?.maxMainThreadUsage,
+        null
+    )
+
+    fun generateNativeAppProperties() {
+        nativeAppProperties = NativeAppProperties(
+            null,
+            null,
+            performanceMonitor?.maxMainThreadUsage,
+            null
+        )
+    }
 
     /**
      * Create a timer instance with no page name or traffic segment name. These will need to be set later before
@@ -238,18 +256,8 @@ class Timer : Parcelable {
         return this
     }
 
-    fun visible():Timer {
-        if (start > 0 && visible == 0L) {
-            visible = System.currentTimeMillis()
-//            setField(FIELD_, visible)
-        } else {
-            if (start == 0L) {
-                logger?.error("Timer never started")
-            } else if (visible != 0L) {
-                logger?.error("Timer already marked as visible")
-            }
-        }
-        return this
+    var pageTimeCalculator: () -> Long = {
+        end - start
     }
 
     /**
@@ -261,7 +269,7 @@ class Timer : Parcelable {
     fun end(): Timer {
         if (start > 0 && end == 0L) {
             end = System.currentTimeMillis()
-            setField(FIELD_PAGE_TIME, end - start)
+            setField(FIELD_PAGE_TIME, pageTimeCalculator())
         } else {
             if (start == 0L) {
                 logger?.error("Timer never started")
@@ -307,6 +315,9 @@ class Timer : Parcelable {
     fun submit() {
         val tracker = Tracker.instance
         if (tracker != null) {
+            if(nativeAppProperties.loadTime == null) {
+                generateNativeAppProperties()
+            }
             tracker.submitTimer(this)
         } else {
             logger?.error("Tracker not initialized")
@@ -506,7 +517,7 @@ class Timer : Parcelable {
      * @return this timer
      */
     fun setField(fieldName: String, value: String): Timer {
-        synchronized(fields) { fields.put(fieldName, value) }
+        synchronized(fields) { fields[fieldName] = value }
         return this
     }
 
@@ -577,7 +588,7 @@ class Timer : Parcelable {
      * @return the current value for the given field or null if not set
      */
     fun getField(fieldName: String): String? {
-        return fields[fieldName]
+        return fields[fieldName].toString()
     }
 
     /**
@@ -589,7 +600,7 @@ class Timer : Parcelable {
      */
     fun getField(fieldName: String, defaultValue: String): String {
         val fieldValue = fields[fieldName]
-        return if (fieldValue == null || fieldValue.isEmpty()) {
+        return if (fieldValue.isNullOrEmpty()) {
             defaultValue
         } else fieldValue
     }
@@ -648,6 +659,10 @@ class Timer : Parcelable {
 
     override fun toString(): String {
         return String.format("BTT Timer: %s", getField(FIELD_PAGE_NAME))
+    }
+
+    fun setError(err: Boolean) {
+        fields[FIELD_ERR] = if (err) "1" else "0"
     }
 
 //    companion object CREATOR : Parcelable.Creator<Timer> {

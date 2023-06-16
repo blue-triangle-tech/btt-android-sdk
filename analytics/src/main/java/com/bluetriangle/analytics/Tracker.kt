@@ -68,6 +68,7 @@ class Tracker private constructor(
         globalFields = HashMap(8)
         configuration.siteId?.let { globalFields[Timer.FIELD_SITE_ID] = it }
         globalFields[Timer.FIELD_BROWSER] = Constants.BROWSER
+        globalFields[Timer.FIELD_NA_FLG] = "1"
         val appVersion = Utils.getAppVersion(application.applicationContext)
         val isTablet = Utils.isTablet(application.applicationContext)
         globalFields[Timer.FIELD_DEVICE] =
@@ -403,8 +404,12 @@ class Tracker private constructor(
     ) {
         val timeStamp = System.currentTimeMillis().toString()
         val mostRecentTimer = getMostRecentTimer()
-
         val crashHitsTimer = Timer().start()
+        if(mostRecentTimer != null) {
+            mostRecentTimer.generateNativeAppProperties()
+            crashHitsTimer.nativeAppProperties = mostRecentTimer.nativeAppProperties
+        }
+        crashHitsTimer.setError(true)
 
         val stacktrace = Utils.exceptionToStacktrace(message, exception)
         trackerExecutor.submit(
