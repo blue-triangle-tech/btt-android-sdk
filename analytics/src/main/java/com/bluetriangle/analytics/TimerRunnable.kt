@@ -73,7 +73,7 @@ internal class TimerRunnable(
      * @return JSON string
      */
     private fun buildTimerData(): String {
-        val data = JSONObject(timer.getFields())
+        val data = JSONObject(timer.getFieldsInternal())
         val jsonData = data.toString(if (configuration.isDebug) 2 else 0)
         configuration.logger?.debug("Timer Data: $jsonData")
         return jsonData

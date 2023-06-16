@@ -1,7 +1,6 @@
 package com.bluetriangle.analytics
 
 import android.net.Uri
-import com.bluetriangle.analytics.screenTracking.Screen
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader

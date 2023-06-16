@@ -1,13 +1,12 @@
 package com.bluetriangle.analytics.utility
 
 import android.app.Activity
-import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentManager.FragmentLifecycleCallbacks
 import com.bluetriangle.analytics.Tracker
-import com.bluetriangle.analytics.screenTracking.Screen
+import com.bluetriangle.analytics.model.Screen
+import com.bluetriangle.analytics.model.ViewType
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 
@@ -31,16 +30,18 @@ fun Fragment.getUniqueId(): String? {
     return this.getPrivateProperty<Fragment, String>("mWho")
 }
 
-internal val Fragment.screen:Screen
+internal val Fragment.screen: Screen
     get() = Screen(
         getUniqueId()?:"",
-        this::class.java.simpleName
+        this::class.java.simpleName,
+        ViewType.Fragment
     )
 
-internal val Activity.screen:Screen
+internal val Activity.screen: Screen
     get() = Screen(
         hashCode().toString(),
-        this::class.java.simpleName
+        this::class.java.simpleName,
+        ViewType.Activity
     )
 
 fun FragmentActivity.registerFragmentLifecycleCallback(callback:FragmentLifecycleCallbacks) {

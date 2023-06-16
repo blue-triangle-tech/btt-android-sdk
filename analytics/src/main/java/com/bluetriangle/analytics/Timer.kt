@@ -2,6 +2,7 @@ package com.bluetriangle.analytics
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.bluetriangle.analytics.model.NativeAppProperties
 
 /**
  * A timer instance that can be started, marked interactive, and ended.
@@ -56,11 +57,14 @@ class Timer : Parcelable {
         const val FIELD_SDK_VERSION = "VER"
         const val FIELD_WCDTT = "WCDtt"
         const val FIELD_EXCLUDED = "excluded"
+        const val FIELD_NATIVE_APP = "NATIVEAPP"
+        const val FIELD_ERR = "ERR"
+        const val FIELD_NA_FLG = "NAflg"
 
         /**
          * A map of fields and their associated default values
          */
-        private val DEFAULT_VALUES: Map<String, String> = mapOf(
+        private val DEFAULT_VALUES: Map<String, Any> = mapOf(
             FIELD_BVZN to "",
             FIELD_OS to Constants.OS,
             FIELD_NATIVE_OS to Constants.OS,
@@ -98,6 +102,13 @@ class Timer : Parcelable {
         }
     }
 
+    internal var nativeAppProperties: NativeAppProperties ?= null
+        set(value) {
+            field = value
+            if(value != null) {
+                setField(FIELD_NATIVE_APP, value)
+            }
+        }
     /**
      * Tracker
      */
@@ -111,7 +122,7 @@ class Timer : Parcelable {
     /**
      * A map of all fields for this timer to be sent to the cloud server
      */
-    private val fields: MutableMap<String, String>
+    private val fields: MutableMap<String, Any>
 
     /**
      * Start time in milliseconds
@@ -119,8 +130,6 @@ class Timer : Parcelable {
     var start: Long = 0
         private set
 
-    var visible: Long = 0
-        private set
     /**
      * The current time when the interactive call was made in milliseconds
      */
@@ -238,18 +247,8 @@ class Timer : Parcelable {
         return this
     }
 
-    fun visible():Timer {
-        if (start > 0 && visible == 0L) {
-            visible = System.currentTimeMillis()
-//            setField(FIELD_, visible)
-        } else {
-            if (start == 0L) {
-                logger?.error("Timer never started")
-            } else if (visible != 0L) {
-                logger?.error("Timer already marked as visible")
-            }
-        }
-        return this
+    var pageTimeCalculator:() -> Long = {
+        end - start
     }
 
     /**
@@ -261,7 +260,7 @@ class Timer : Parcelable {
     fun end(): Timer {
         if (start > 0 && end == 0L) {
             end = System.currentTimeMillis()
-            setField(FIELD_PAGE_TIME, end - start)
+            setField(FIELD_PAGE_TIME, pageTimeCalculator())
         } else {
             if (start == 0L) {
                 logger?.error("Timer never started")
@@ -319,6 +318,16 @@ class Timer : Parcelable {
      * @return returns a new hash map with all the fields currently.
      */
     fun getFields(): Map<String, String> {
+        synchronized(this) {
+            val map = hashMapOf<String, String>()
+            fields.forEach {
+                map[it.key] = it.value.toString()
+            }
+            return map
+        }
+    }
+
+    internal fun getFieldsInternal(): Map<String, Any> {
         return fields.toMap()
     }
 
@@ -510,6 +519,18 @@ class Timer : Parcelable {
         return this
     }
 
+    /**
+     * Sets a field name with the given value
+     *
+     * @param fieldName the name of the field to set
+     * @param value     the value to set for the given field
+     * @return this timer
+     */
+    internal fun setField(fieldName: String, value:Any): Timer {
+        synchronized(fields) { fields.put(fieldName, value) }
+        return this
+    }
+
     fun setPerformanceReportFields(performanceReport: Map<String, String>): Timer {
         synchronized(fields) { fields.putAll(performanceReport) }
         return this
@@ -577,7 +598,7 @@ class Timer : Parcelable {
      * @return the current value for the given field or null if not set
      */
     fun getField(fieldName: String): String? {
-        return fields[fieldName]
+        return fields[fieldName].toString()
     }
 
     /**
@@ -589,9 +610,9 @@ class Timer : Parcelable {
      */
     fun getField(fieldName: String, defaultValue: String): String {
         val fieldValue = fields[fieldName]
-        return if (fieldValue == null || fieldValue.isEmpty()) {
+        return if (fieldValue == null || (fieldValue is String && fieldValue.isEmpty())) {
             defaultValue
-        } else fieldValue
+        } else fieldValue.toString()
     }
 
     /**
@@ -642,7 +663,11 @@ class Timer : Parcelable {
         dest.writeInt(fields.size)
         for ((key, value) in fields) {
             dest.writeString(key)
-            dest.writeString(value)
+            if(value is String) {
+                dest.writeString(value)
+            } else {
+                dest.writeParcelable(value)
+            }
         }
     }
 
