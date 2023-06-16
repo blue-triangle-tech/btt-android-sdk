@@ -1,6 +1,6 @@
 package com.bluetriangle.analytics.model
 
-enum class ViewType {
+enum class ScreenType {
     Activity,
     Fragment
 }

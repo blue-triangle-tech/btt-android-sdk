@@ -2,11 +2,21 @@ package com.bluetriangle.analytics.model
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
+import org.json.JSONObject
 
 @Parcelize
 internal data class NativeAppProperties(
-    val loadTime:Long,
-    val fullTime:Long,
-    val maxCPUUses:Long,
-    val viewType:ViewType
-):Parcelable
+    var loadTime:Long?=null,
+    var fullTime:Long?=null,
+    var maxMainThreadUsage:Long?=null,
+    var screenType:ScreenType?=null
+):Parcelable {
+    fun toJSONObject(): JSONObject {
+        val obj = JSONObject()
+        obj.put("loadTime", loadTime)
+        obj.put("fullTime", fullTime)
+        obj.put("maxMainThreadUsage", maxMainThreadUsage)
+        obj.put("screenType", screenType?.name)
+        return obj
+    }
+}

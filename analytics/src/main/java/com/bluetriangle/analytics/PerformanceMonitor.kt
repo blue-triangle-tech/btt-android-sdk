@@ -51,6 +51,12 @@ class PerformanceMonitor(configuration: BlueTriangleConfiguration) : Thread(THRE
         isRunning = false
     }
 
+    val maxMainThreadUsage: Long
+        get() {
+            val mainThreadMonitor = metricMonitors.firstOrNull { it is MainThreadMonitor }
+            return (mainThreadMonitor as? MainThreadMonitor)?.maxMainThreadBlock?:0L
+        }
+
     val performanceReport: Map<String, String>
         get() {
             val metrics = hashMapOf<String, String>()

@@ -11,9 +11,7 @@ internal class MainThreadMonitor(configuration: BlueTriangleConfiguration) : Met
     private val logger = configuration.logger
 
     override val metricFields: Map<String, String>
-        get() = mapOf(
-            FIELD_MAX_MAIN_THREAD_BLOCK to maxMainThreadBlock.toString()
-        )
+        get() = mapOf()
 
     private val isTrackAnrEnabled = configuration.isTrackAnrEnabled
     private val trackAnrIntervalSec = configuration.trackAnrIntervalSec
@@ -22,7 +20,7 @@ internal class MainThreadMonitor(configuration: BlueTriangleConfiguration) : Met
     private var dummyTask = Runnable { }
     private var postTime: Long = 0L
 
-    private var maxMainThreadBlock: Long = 0L
+    internal var maxMainThreadBlock: Long = 0L
 
     private var isANRNotified = false
 

@@ -1,5 +1,6 @@
 package com.bluetriangle.analytics
 
+import com.bluetriangle.analytics.Timer.Companion.FIELD_NATIVE_APP
 import com.bluetriangle.analytics.networkcapture.CapturedRequestRunnable
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -73,7 +74,9 @@ internal class TimerRunnable(
      * @return JSON string
      */
     private fun buildTimerData(): String {
-        val data = JSONObject(timer.getFieldsInternal())
+        val data = JSONObject(timer.getFields())
+        val nativeProps = timer.nativeAppProperties
+        data.put(FIELD_NATIVE_APP, nativeProps.toJSONObject())
         val jsonData = data.toString(if (configuration.isDebug) 2 else 0)
         configuration.logger?.debug("Timer Data: $jsonData")
         return jsonData

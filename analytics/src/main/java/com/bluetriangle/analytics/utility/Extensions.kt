@@ -6,7 +6,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager.FragmentLifecycleCallbacks
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.model.Screen
-import com.bluetriangle.analytics.model.ViewType
+import com.bluetriangle.analytics.model.ScreenType
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 
@@ -34,14 +34,14 @@ internal val Fragment.screen: Screen
     get() = Screen(
         getUniqueId()?:"",
         this::class.java.simpleName,
-        ViewType.Fragment
+        ScreenType.Fragment
     )
 
 internal val Activity.screen: Screen
     get() = Screen(
         hashCode().toString(),
         this::class.java.simpleName,
-        ViewType.Activity
+        ScreenType.Activity
     )
 
 fun FragmentActivity.registerFragmentLifecycleCallback(callback:FragmentLifecycleCallbacks) {

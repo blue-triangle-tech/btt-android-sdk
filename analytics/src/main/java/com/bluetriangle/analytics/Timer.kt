@@ -64,7 +64,7 @@ class Timer : Parcelable {
         /**
          * A map of fields and their associated default values
          */
-        private val DEFAULT_VALUES: Map<String, Any> = mapOf(
+        private val DEFAULT_VALUES: Map<String, String> = mapOf(
             FIELD_BVZN to "",
             FIELD_OS to Constants.OS,
             FIELD_NATIVE_OS to Constants.OS,
@@ -102,13 +102,6 @@ class Timer : Parcelable {
         }
     }
 
-    internal var nativeAppProperties: NativeAppProperties ?= null
-        set(value) {
-            field = value
-            if(value != null) {
-                setField(FIELD_NATIVE_APP, value)
-            }
-        }
     /**
      * Tracker
      */
@@ -122,7 +115,7 @@ class Timer : Parcelable {
     /**
      * A map of all fields for this timer to be sent to the cloud server
      */
-    private val fields: MutableMap<String, Any>
+    private val fields: MutableMap<String, String>
 
     /**
      * Start time in milliseconds
@@ -146,6 +139,22 @@ class Timer : Parcelable {
      * Performance monitor thread
      */
     private var performanceMonitor: PerformanceMonitor? = null
+
+    internal var nativeAppProperties = NativeAppProperties(
+        null,
+        null,
+        performanceMonitor?.maxMainThreadUsage,
+        null
+    )
+
+    fun generateNativeAppProperties() {
+        nativeAppProperties = NativeAppProperties(
+            null,
+            null,
+            performanceMonitor?.maxMainThreadUsage,
+            null
+        )
+    }
 
     /**
      * Create a timer instance with no page name or traffic segment name. These will need to be set later before
@@ -247,7 +256,7 @@ class Timer : Parcelable {
         return this
     }
 
-    var pageTimeCalculator:() -> Long = {
+    var pageTimeCalculator: () -> Long = {
         end - start
     }
 
@@ -306,6 +315,9 @@ class Timer : Parcelable {
     fun submit() {
         val tracker = Tracker.instance
         if (tracker != null) {
+            if(nativeAppProperties.loadTime == null) {
+                generateNativeAppProperties()
+            }
             tracker.submitTimer(this)
         } else {
             logger?.error("Tracker not initialized")
@@ -318,16 +330,6 @@ class Timer : Parcelable {
      * @return returns a new hash map with all the fields currently.
      */
     fun getFields(): Map<String, String> {
-        synchronized(this) {
-            val map = hashMapOf<String, String>()
-            fields.forEach {
-                map[it.key] = it.value.toString()
-            }
-            return map
-        }
-    }
-
-    internal fun getFieldsInternal(): Map<String, Any> {
         return fields.toMap()
     }
 
@@ -515,19 +517,7 @@ class Timer : Parcelable {
      * @return this timer
      */
     fun setField(fieldName: String, value: String): Timer {
-        synchronized(fields) { fields.put(fieldName, value) }
-        return this
-    }
-
-    /**
-     * Sets a field name with the given value
-     *
-     * @param fieldName the name of the field to set
-     * @param value     the value to set for the given field
-     * @return this timer
-     */
-    internal fun setField(fieldName: String, value:Any): Timer {
-        synchronized(fields) { fields.put(fieldName, value) }
+        synchronized(fields) { fields[fieldName] = value }
         return this
     }
 
@@ -610,9 +600,9 @@ class Timer : Parcelable {
      */
     fun getField(fieldName: String, defaultValue: String): String {
         val fieldValue = fields[fieldName]
-        return if (fieldValue == null || (fieldValue is String && fieldValue.isEmpty())) {
+        return if (fieldValue.isNullOrEmpty()) {
             defaultValue
-        } else fieldValue.toString()
+        } else fieldValue
     }
 
     /**
@@ -663,16 +653,16 @@ class Timer : Parcelable {
         dest.writeInt(fields.size)
         for ((key, value) in fields) {
             dest.writeString(key)
-            if(value is String) {
-                dest.writeString(value)
-            } else {
-                dest.writeParcelable(value)
-            }
+            dest.writeString(value)
         }
     }
 
     override fun toString(): String {
         return String.format("BTT Timer: %s", getField(FIELD_PAGE_NAME))
+    }
+
+    fun setError(err: Boolean) {
+        fields[FIELD_ERR] = if (err) "1" else "0"
     }
 
 //    companion object CREATOR : Parcelable.Creator<Timer> {
