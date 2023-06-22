@@ -90,6 +90,9 @@ s `AndroidManifest.xml` file.
         <meta-data android:name="com.blue-triangle.track-anr.enable" android:value="true" />
         <meta-data android:name="com.blue-triangle.track-anr.interval-sec" android:value="5" />
         <meta-data android:name="com.blue-triangle.sample-rate.network" android:value="0.025" />
+        <meta-data android:name="com.blue-triangle.track-anr.enable" android:value="true" />
+        <meta-data android:name="com.blue-triangle.track-anr.interval-sec" android:value="5" />
+        <meta-data android:name="com.blue-triangle.screen-tracking.enable" android:value="true" />
     </application>
 </manifest>
 ```
@@ -121,7 +124,7 @@ The current available meta data configuration names:
   enabled or disabled, default to 5 seconds, minimum is 3 second, if set less then minimum allowed
   set value is ignored
 * `com.blue-triangle.screen-tracking.enable` enable screen tracking which will automatically start tracking 
-  activities and fragments in your app. For Jetpack Compose tracking, [see below](#composable-screen-tracking).
+  activities and fragments in your app. For Jetpack Compose tracking, [see below](#screen-view-tacking).
 
 ### Using Timers
 
@@ -184,8 +187,6 @@ configuration.isScreenTrackingEnabled = true
 ```
 
 All activities and fragments will be captured automatically. You will see fragment and activity class names on our dashboard with view count.
-
-##### Composable Screen Tracking
 
 For composables use our side-effect `BttTimerEffect(<screen name>)` like below. Unlike Activities and Fragments, Composable screens are not automatically tracked. You need to call `BttTimerEffect()` side-effect for each screen you want to track. The only parameter to this side-effect is screen name.
 
