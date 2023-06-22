@@ -120,6 +120,8 @@ The current available meta data configuration names:
 * `com.blue-triangle.track-anr.interval-sec` time interval for ANR warning based on track ANR is
   enabled or disabled, default to 5 seconds, minimum is 3 second, if set less then minimum allowed
   set value is ignored
+* `com.blue-triangle.screen-tracking.enable` enable screen tracking which will automatically start tracking 
+  activities and fragments in your app. For Jetpack Compose tracking, [see below](#composable-screen-tracking).
 
 ### Using Timers
 
@@ -171,6 +173,37 @@ final Timer timer=getIntent().getParcelableExtra(Timer.EXTRA_TIMER);
 When a timer is submitted to the tracker, the tracker sets any global fields such as site ID,
 session ID, and user ID. Additional global fields may be set as needed and applied to all timers.
 The timer's fields are then converted to JSON and sent via HTTP POST to the configured tracker URL.
+
+## Screen View Tacking
+
+Screen tracking captures screen views which can be seen on our dashboard. Screen tracking can be enabled using `isScreenTrackingEnabled` configuration flag as shown below.
+
+```kotlin
+val configuration = BlueTriangleConfiguration()
+configuration.isScreenTrackingEnabled = true
+```
+
+All activities and fragments will be captured automatically. You will see fragment and activity class names on our dashboard with view count.
+
+##### Composable Screen Tracking
+
+For composables use our side-effect `BttTimerEffect(<screen name>)` like below. Unlike Activities and Fragments, Composable screens are not automatically tracked. You need to call `BttTimerEffect()` side-effect for each screen you want to track. The only parameter to this side-effect is screen name.
+
+```kotlin
+@Composable
+fun UserProfileScreen() {
+    BttTimerEffect("User Profile")
+    // ...
+}
+```
+
+For more such usage examples you can refer to our [Demo app](https://github.com/blue-triangle-tech/btt-android-demo).
+
+If your app is using both Composables and Fragments. Then for those composables which are added to fragment no need to use `BttTimerEffect()`, because its fragment is automatically tracked.
+
+How screen view count looks like on dashboard
+
+<Dashboard screenshot gos here>
 
 ## Network Capture
 
