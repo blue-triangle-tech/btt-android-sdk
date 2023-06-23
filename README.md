@@ -124,7 +124,7 @@ The current available meta data configuration names:
   enabled or disabled, default to 5 seconds, minimum is 3 second, if set less then minimum allowed
   set value is ignored
 * `com.blue-triangle.screen-tracking.enable` enable screen tracking which will automatically start tracking 
-  activities and fragments in your app. For Jetpack Compose tracking, [see below](#screen-view-tacking).
+  activities and fragments in your app. For Jetpack Compose tracking, [see below](#screen-view-tracking).
 
 ### Using Timers
 
