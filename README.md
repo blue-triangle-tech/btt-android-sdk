@@ -177,7 +177,7 @@ When a timer is submitted to the tracker, the tracker sets any global fields suc
 session ID, and user ID. Additional global fields may be set as needed and applied to all timers.
 The timer's fields are then converted to JSON and sent via HTTP POST to the configured tracker URL.
 
-## Screen View Tacking
+## Screen View Tracking
 
 Screen tracking captures screen views which can be seen on our dashboard. Screen tracking can be enabled using `isScreenTrackingEnabled` configuration flag as shown below.
 
@@ -188,7 +188,7 @@ configuration.isScreenTrackingEnabled = true
 
 All activities and fragments will be captured automatically. You will see fragment and activity class names on our dashboard with view count.
 
-For composables use our side-effect `BttTimerEffect(<screen name>)` like below. Unlike Activities and Fragments, Composable screens are not automatically tracked. You need to call `BttTimerEffect()` side-effect for each screen you want to track. The only parameter to this side-effect is screen name.
+For composables use our side-effect `BttTimerEffect(<screen name>)` like below. Unlike Activities and Fragments, Composable screens are not automatically tracked. You need to call `BttTimerEffect` side-effect for each screen you want to track. The only parameter to this side-effect is screen name.
 
 ```kotlin
 @Composable
@@ -200,7 +200,7 @@ fun UserProfileScreen() {
 
 For more such usage examples you can refer to our [Demo app](https://github.com/blue-triangle-tech/btt-android-demo).
 
-If your app is using both Composables and Fragments. Then for those composables which are added to fragment no need to use `BttTimerEffect()`, because its fragment is automatically tracked.
+If your app is using both Composables and Fragments. Then for those composables which are added to fragment no need to use `BttTimerEffect`, because its fragment is automatically tracked.
 
 How screen view count looks like on dashboard
 

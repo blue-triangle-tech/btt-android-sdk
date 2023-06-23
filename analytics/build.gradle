@@ -28,12 +28,12 @@ android {
         }
     }
 
-//    publishing {
-//        singleVariant("release") {
-//            withSourcesJar()
-//            withJavadocJar()
-//        }
-//    }
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
