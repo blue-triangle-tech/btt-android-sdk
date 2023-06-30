@@ -64,9 +64,9 @@ URL is not provided, the default tracker URL will be used.
 // init with all defaults, use site ID from meta data
 Tracker.init(getApplicationContext());
 // init with given site ID
-        Tracker.init(getApplicationContext(),"BTT_SITE_ID");
+Tracker.init(getApplicationContext(),"BTT_SITE_ID");
 // init with given site ID and tracker URL
-        Tracker.init(getApplicationContext(),"BTT_SITE_ID","https://webhook.site/5afd62e7-acde-4cf3-825c-c40c491b0714");
+Tracker.init(getApplicationContext(),"BTT_SITE_ID","https://webhook.site/5afd62e7-acde-4cf3-825c-c40c491b0714");
 ```
 
 ### Configuration
@@ -87,8 +87,6 @@ s `AndroidManifest.xml` file.
         <meta-data android:name="com.blue-triangle.performance-monitor.enable"
             android:value="true" />
         <meta-data android:name="com.blue-triangle.track-crashes.enable" android:value="true" />
-        <meta-data android:name="com.blue-triangle.track-anr.enable" android:value="true" />
-        <meta-data android:name="com.blue-triangle.track-anr.interval-sec" android:value="5" />
         <meta-data android:name="com.blue-triangle.sample-rate.network" android:value="0.025" />
         <meta-data android:name="com.blue-triangle.track-anr.enable" android:value="true" />
         <meta-data android:name="com.blue-triangle.track-anr.interval-sec" android:value="5" />
@@ -136,26 +134,26 @@ until submitted to the Tracker.
 
 ```java
 // create and start a timer
-final Timer timer=new Timer("Page Name","Traffic Segment Name").start();
+final Timer timer = new Timer("Page Name","Traffic Segment Name").start();
 
-// do work
+// do work...
 
 // optionally, mark the timer as interactive
-        timer.interactive();
+timer.interactive();
 
 // maybe set a field
-        timer.setCartValue(99.99);
+timer.setCartValue(99.99);
 
 // do some more work
 
 // end the timer and submit
-        timer.end().submit();
+timer.end().submit();
 
 // or end the timer, set fields such as brand value, and finally submit the timer.
 
-        timer.end();
-        timer.setBrandValue(99.99);
-        timer.submit();
+timer.end();
+timer.setBrandValue(99.99);
+timer.submit();
 ```
 
 Timers implement `Parcelable` to allow timers to be passed via `Bundle` such as between activities
@@ -163,14 +161,14 @@ in an `Intent`.
 
 ```java
 // MainActivity.java
-final Timer timer=new Timer("Next Page","Android Traffic").start();
-final Intent intent=new Intent(this,NextActivity.class);
-        intent.putExtra(Timer.EXTRA_TIMER,timer);
-        startActivity(intent);
+final Timer timer = new Timer("Next Page", "Android Traffic").start();
+final Intent intent = new Intent(this, NextActivity.class);
+intent.putExtra(Timer.EXTRA_TIMER, timer);
+startActivity(intent);
 
 // NextActivity.java
-final Timer timer=getIntent().getParcelableExtra(Timer.EXTRA_TIMER);
-        timer.end().submit();
+final Timer timer = getIntent().getParcelableExtra(Timer.EXTRA_TIMER);
+timer.end().submit();
 ```
 
 When a timer is submitted to the tracker, the tracker sets any global fields such as site ID,
@@ -202,9 +200,19 @@ For more such usage examples you can refer to our [Demo app](https://github.com/
 
 If your app is using both Composables and Fragments. Then for those composables which are added to fragment no need to use `BttTimerEffect`, because its fragment is automatically tracked.
 
-How screen view count looks like on dashboard
+## ANR Detection
 
-<Dashboard screenshot gos here>
+The ANR Detector identifies blocks in the main thread over a specified period of time and reports them as Application Not Responding (ANR) incidents. ANR detection can be enabled by adding the `com.blue-triangle.track-anr.enable` metadata to the manifest file. Additionally, you can configure the interval duration that qualifies as an ANR state by using the `com.blue-triangle.track-anr.interval-sec` metadata.
+
+Alternatively, you can set these configurations in the `BlueTriangleConfiguration` object when initializing your Tracker instance as shown below.
+
+```kotlin
+val configuration = BlueTriangleConfiguration()
+configuration.isTrackAnrEnabled = true
+configuration.trackAnrIntervalSec = 3
+```
+
+By default, the ANR interval is set to 5 seconds.
 
 ## Network Capture
 
