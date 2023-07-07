@@ -14,13 +14,17 @@ internal class BTTScreenLifecyleTracker(private val screenTrackingEnabled: Boole
     override fun onLoadStarted(screen: Screen) {
         if(!screenTrackingEnabled) return
         logD(TAG, "onLoadStarted: ${screen.name}")
-        timers[screen.toString()] = Timer(screen.name, "FragmentTrafficSegment").start()
+        timers[screen.toString()] = Timer(screen.name, "ScreenTracker").start()
         loadTime[screen.toString()] = System.currentTimeMillis()
     }
 
     override fun onLoadEnded(screen: Screen) {
         if(!screenTrackingEnabled) return
         logD(TAG, "onLoadEnded: ${screen.name}")
+        if(timers[screen.toString()] == null) {
+            timers[screen.toString()] = Timer(screen.name, "ScreenTracker").start()
+            loadTime[screen.toString()] = System.currentTimeMillis()
+        }
     }
 
     override fun onViewStarted(screen: Screen) {

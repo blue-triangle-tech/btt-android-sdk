@@ -98,6 +98,12 @@
             android:text="Screen Tracking" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonLaunchGallery"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Launch Gallery" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/button_anr"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

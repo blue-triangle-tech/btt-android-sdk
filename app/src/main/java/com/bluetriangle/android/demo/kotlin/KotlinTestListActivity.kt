@@ -42,9 +42,6 @@ class KotlinTestListActivity : AppCompatActivity() {
         updateButtonState()
         addButtonClickListeners()
 
-        updateButtonState()
-        addButtonClickListeners()
-
         okHttpClient =
             OkHttpClient.Builder()
                 .addInterceptor(BlueTriangleOkHttpInterceptor(instance!!.configuration))
@@ -63,6 +60,11 @@ class KotlinTestListActivity : AppCompatActivity() {
         binding.buttonScreenTrack.setOnClickListener(this::screenTrackButtonClicked)
         binding.buttonAnr.setOnClickListener {
             launchAnrActivity(ANRTestScenario.Unknown, ANRTest.Unknown)
+        }
+        binding.buttonLaunchGallery.setOnClickListener {
+            startActivity(Intent.createChooser(Intent(Intent.ACTION_PICK).apply {
+                type = "image/*"
+            }, "Pick Image"))
         }
 
         binding.btnAnrTestRun.setOnClickListener {

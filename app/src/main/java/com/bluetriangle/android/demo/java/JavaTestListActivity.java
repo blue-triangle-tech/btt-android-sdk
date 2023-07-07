@@ -69,6 +69,12 @@ public class JavaTestListActivity extends AppCompatActivity {
         binding.buttonAnr.setOnClickListener(v -> {
             launchAnrActivity(ANRTestScenario.Unknown, ANRTest.Unknown);
         });
+        binding.buttonLaunchGallery.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_PICK);
+            intent.setType("image/*");
+            startActivity(Intent.createChooser(intent, "Pick Image"));
+        });
+
         binding.btnAnrTestRun.setOnClickListener(v -> {
             launchAnrActivity(viewModel.getAnrTestScenario().getValue(), viewModel.getAnrTest().getValue());
         });
