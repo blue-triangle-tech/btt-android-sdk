@@ -5,7 +5,7 @@ plugins {
     id 'kotlin-parcelize'
 }
 
-version = "2.7.3"
+version = "2.8.0"
 
 android {
     namespace 'com.bluetriangle.analytics'
@@ -70,9 +70,9 @@ afterEvaluate {
             // Creates a Maven publication called "release".
             release(MavenPublication) {
                 from components.release
-                groupId = 'com.github.ismailaloha'
+                groupId = 'com.github.blue-triangle-tech'
                 artifactId = 'btt-android-sdk'
-                version = "2.7.3"
+                version = "2.8.0"
             }
         }
     }

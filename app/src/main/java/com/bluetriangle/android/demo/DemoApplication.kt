@@ -40,6 +40,7 @@ class DemoApplication : Application() {
         val configuration = BlueTriangleConfiguration()
         configuration.isScreenTrackingEnabled = true
         configuration.isTrackCrashesEnabled = true
+        configuration.isTrackAnrEnabled = true
         configuration.siteId = siteId
         configuration.isDebug = true
         configuration.networkSampleRate = 1.0

@@ -11,6 +11,9 @@ import java.io.File
 import java.io.FileReader
 import java.io.IOException
 
+/**
+ * CPU monitoring adapted from https://eng.lyft.com/monitoring-cpu-performance-of-lyfts-android-applications-4e36fafffe12
+ */
 internal class CpuMonitor(configuration: BlueTriangleConfiguration): MetricMonitor {
 
     companion object {

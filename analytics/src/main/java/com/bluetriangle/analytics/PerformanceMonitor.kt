@@ -6,9 +6,6 @@ import com.bluetriangle.analytics.monitor.MainThreadMonitor
 import com.bluetriangle.analytics.monitor.MemoryMonitor
 import com.bluetriangle.analytics.monitor.MetricMonitor
 
-/**
- * CPU monitoring adapted from https://eng.lyft.com/monitoring-cpu-performance-of-lyfts-android-applications-4e36fafffe12
- */
 class PerformanceMonitor(configuration: BlueTriangleConfiguration) : Thread(THREAD_NAME) {
     private val logger = configuration.logger
     private var isRunning = true
