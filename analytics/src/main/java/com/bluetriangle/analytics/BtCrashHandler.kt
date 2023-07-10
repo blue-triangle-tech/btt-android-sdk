@@ -3,18 +3,26 @@ package com.bluetriangle.analytics
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.bluetriangle.analytics.Utils.exceptionToStacktrace
+import com.bluetriangle.analytics.utility.logD
 
 internal class BtCrashHandler(private val configuration: BlueTriangleConfiguration) : Thread.UncaughtExceptionHandler {
     private val defaultUEH: Thread.UncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler()
-    private var crashHitsTimer: Timer? = null
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     override fun uncaughtException(t: Thread, e: Throwable) {
         val timeStamp = System.currentTimeMillis().toString()
-        crashHitsTimer = Timer().startWithoutPerformanceMonitor()
+        val mostRecentTimer = Tracker.instance?.getMostRecentTimer()
+        configuration.logger?.debug("Most Recent Timer: $mostRecentTimer")
+        val crashHitsTimer = Timer().startWithoutPerformanceMonitor()
+        if(mostRecentTimer != null) {
+            mostRecentTimer.generateNativeAppProperties()
+            crashHitsTimer.nativeAppProperties = mostRecentTimer.nativeAppProperties
+        }
+        crashHitsTimer.setError(true)
+
         val stacktrace = exceptionToStacktrace(null, e)
         try {
-            sendToServer(stacktrace, timeStamp)
+            sendToServer(crashHitsTimer, mostRecentTimer, stacktrace, timeStamp)
         } catch (interruptedException: InterruptedException) {
             interruptedException.printStackTrace()
         }
@@ -22,8 +30,9 @@ internal class BtCrashHandler(private val configuration: BlueTriangleConfigurati
     }
 
     @Throws(InterruptedException::class)
-    private fun sendToServer(stacktrace: String, timeStamp: String) {
-        val thread = Thread(CrashRunnable(configuration, stacktrace, timeStamp, crashHitsTimer!!))
+    private fun sendToServer(crashHitsTimer:Timer, mostRecentTimer:Timer?, stacktrace: String, timeStamp: String) {
+        val thread = Thread(CrashRunnable(configuration, stacktrace, timeStamp,
+            crashHitsTimer, mostRecentTimer = mostRecentTimer))
         thread.start()
         thread.join()
     }

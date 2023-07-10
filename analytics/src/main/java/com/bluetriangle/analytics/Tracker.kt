@@ -1,10 +1,15 @@
 package com.bluetriangle.analytics
 
 import android.app.ActivityManager
+import android.app.Application
 import android.content.Context
 import android.text.TextUtils
+import com.bluetriangle.analytics.anrwatchdog.AnrManager
 import com.bluetriangle.analytics.networkcapture.CapturedRequest
 import com.bluetriangle.analytics.networkcapture.CapturedRequestCollection
+import com.bluetriangle.analytics.screenTracking.ActivityLifecycleTracker
+import com.bluetriangle.analytics.screenTracking.FragmentLifecycleTracker
+import com.bluetriangle.analytics.screenTracking.BTTScreenLifecyleTracker
 import java.io.File
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
@@ -13,7 +18,11 @@ import java.util.concurrent.ConcurrentHashMap
  * The tracker is a global object responsible for taking submitted timers and reporting them to the cloud server via a
  * background thread.
  */
-class Tracker private constructor(context: Context, configuration: BlueTriangleConfiguration) {
+class Tracker private constructor(
+    application: Application,
+    configuration: BlueTriangleConfiguration
+) {
+    private var anrManager: AnrManager
     /**
      * Weak reference to Android application context
      */
@@ -49,15 +58,20 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
      */
     private val capturedRequests = ConcurrentHashMap<Long, CapturedRequestCollection>()
 
+    internal val screenTrackMonitor: BTTScreenLifecyleTracker
+    private val activityLifecycleTracker: ActivityLifecycleTracker
+
     init {
-        this.context = WeakReference(context)
+        this.context = WeakReference(application.applicationContext)
         this.configuration = configuration
         globalFields = HashMap(8)
         configuration.siteId?.let { globalFields[Timer.FIELD_SITE_ID] = it }
         globalFields[Timer.FIELD_BROWSER] = Constants.BROWSER
-        val appVersion = Utils.getAppVersion(context)
-        val isTablet = Utils.isTablet(context)
-        globalFields[Timer.FIELD_DEVICE] = if (isTablet) Constants.DEVICE_TABLET else Constants.DEVICE_MOBILE
+        globalFields[Timer.FIELD_NA_FLG] = "1"
+        val appVersion = Utils.getAppVersion(application.applicationContext)
+        val isTablet = Utils.isTablet(application.applicationContext)
+        globalFields[Timer.FIELD_DEVICE] =
+            if (isTablet) Constants.DEVICE_TABLET else Constants.DEVICE_MOBILE
         globalFields[Timer.FIELD_BROWSER_VERSION] = "${Constants.BROWSER}-$appVersion-${Utils.os}"
         globalFields[Timer.FIELD_SDK_VERSION] = BuildConfig.SDK_VERSION
 
@@ -69,7 +83,17 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
         configuration.sessionId = sessionId
 
         trackerExecutor = TrackerExecutor(configuration)
+        screenTrackMonitor = BTTScreenLifecyleTracker(configuration.isScreenTrackingEnabled)
 
+        val fragmentLifecycleTracker = FragmentLifecycleTracker(screenTrackMonitor)
+        activityLifecycleTracker = ActivityLifecycleTracker(screenTrackMonitor, fragmentLifecycleTracker)
+        application.registerActivityLifecycleCallbacks(activityLifecycleTracker)
+
+        anrManager = AnrManager(configuration)
+
+        if(configuration.isTrackAnrEnabled) {
+            anrManager.start()
+        }
         if (configuration.isTrackCrashesEnabled) {
             trackCrashes()
         }
@@ -103,7 +127,8 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
         get() {
             var globalUserId: String? = null
             val context = context.get() ?: return Utils.generateRandomId()
-            val sharedPreferences = context.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
+            val sharedPreferences =
+                context.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
             if (sharedPreferences.contains(Timer.FIELD_GLOBAL_USER_ID)) {
                 globalUserId = sharedPreferences.getString(Timer.FIELD_GLOBAL_USER_ID, null)
             }
@@ -180,7 +205,8 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
         val keysToSend = capturedRequests.keys().toList().filter { it <= timer.start }
         val capturedRequestCollections = mutableListOf<CapturedRequestCollection>()
         keysToSend.forEach {
-            capturedRequests.remove(it)?.let { collection -> capturedRequestCollections.add(collection) }
+            capturedRequests.remove(it)
+                ?.let { collection -> capturedRequestCollections.add(collection) }
         }
         return capturedRequestCollections.toList()
     }
@@ -370,11 +396,36 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
      * @param message   optional message included with the stack trace
      * @param exception the exception to track
      */
-    fun trackException(message: String?, exception: Throwable) {
+    fun trackException(
+        message: String?,
+        exception: Throwable,
+        errorType: BTErrorType = BTErrorType.NativeAppCrash
+    ) {
         val timeStamp = System.currentTimeMillis().toString()
+        val mostRecentTimer = getMostRecentTimer()
         val crashHitsTimer = Timer().start()
+        if(mostRecentTimer != null) {
+            mostRecentTimer.generateNativeAppProperties()
+            crashHitsTimer.nativeAppProperties = mostRecentTimer.nativeAppProperties
+        }
+        crashHitsTimer.setError(true)
+
         val stacktrace = Utils.exceptionToStacktrace(message, exception)
-        trackerExecutor.submit(CrashRunnable(configuration, stacktrace, timeStamp, crashHitsTimer))
+        trackerExecutor.submit(
+            CrashRunnable(
+                configuration,
+                stacktrace,
+                timeStamp,
+                crashHitsTimer,
+                errorType,
+                mostRecentTimer
+            )
+        )
+    }
+
+    enum class BTErrorType(val value: String) {
+        NativeAppCrash("NativeAppCrash"),
+        ANRWarning("ANRWarning"),
     }
 
     fun raiseTestException() {
@@ -406,56 +457,56 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
         /**
          * Initialize the tracker with default tracker URL and Site ID from string resources.
          *
-         * @param context application context
+         * @param application host application instance
          * @return the initialized tracker or null if no site ID
          */
         @JvmStatic
-        fun init(context: Context): Tracker? {
-            return init(context, BlueTriangleConfiguration())
+        fun init(application: Application): Tracker? {
+            return init(application, BlueTriangleConfiguration())
         }
 
         /**
          * Initialize the tracker with default tracker URL and given Site ID
          *
-         * @param context application context
+         * @param application host application instance
          * @param siteId  Site ID to send with all timers
          * @return the initialized tracker or null if no site ID
          */
         @JvmStatic
-        fun init(context: Context, siteId: String?): Tracker? {
+        fun init(application: Application, siteId: String?): Tracker? {
             val configuration = BlueTriangleConfiguration()
             configuration.siteId = siteId
-            return init(context, configuration)
+            return init(application, configuration)
         }
 
         /**
          * Initialize the tracker with default tracker URL and given Site ID
          *
-         * @param context application context
+         * @param application host application instance
          * @param siteId  Site ID to send with all timers
          * @param trackerUrl the URL to submit timer data
          * @return the initialized tracker or null if no site ID
          */
         @JvmStatic
-        fun init(context: Context, siteId: String?, trackerUrl: String?): Tracker? {
+        fun init(application: Application, siteId: String?, trackerUrl: String?): Tracker? {
             val configuration = BlueTriangleConfiguration()
             configuration.siteId = siteId
             if (!trackerUrl.isNullOrBlank()) {
                 configuration.trackerUrl = trackerUrl
             }
-            return init(context, configuration)
+            return init(application, configuration)
         }
 
         /**
          * Initialize the tracker with the given configuration
          *
-         * @param context application context
+         * @param application host application instance
          * @param configuration Blue Triangle Configuration
          * @return the initialized tracker or null if no site ID
          */
         @JvmStatic
         @Synchronized
-        fun init(context: Context, configuration: BlueTriangleConfiguration): Tracker? {
+        fun init(application: Application, configuration: BlueTriangleConfiguration): Tracker? {
             if (instance != null) {
                 return instance
             }
@@ -464,18 +515,18 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
                 configuration.logger = AndroidLogger(configuration.debugLevel)
             }
 
-            MetadataReader.applyMetadata(context, configuration)
+            MetadataReader.applyMetadata(application, configuration)
 
             if (configuration.applicationName.isNullOrBlank()) {
-                configuration.applicationName = Utils.getAppNameAndOs(context)
+                configuration.applicationName = Utils.getAppNameAndOs(application)
             }
 
             if (configuration.userAgent.isNullOrBlank()) {
-                configuration.userAgent = Utils.buildUserAgent(context)
+                configuration.userAgent = Utils.buildUserAgent(application)
             }
 
             if (configuration.cacheDirectory.isNullOrBlank()) {
-                val cacheDir = File(context.cacheDir, "bta")
+                val cacheDir = File(application.cacheDir, "bta")
                 if (!cacheDir.exists()) {
                     if (!cacheDir.mkdir()) {
                         configuration.logger?.error("Error creating cache directory: ${cacheDir.absolutePath}")
@@ -486,7 +537,7 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
 
             // if site id is still not configured, try legacy resource string method
             if (configuration.siteId.isNullOrBlank()) {
-                val resourceSiteID = Utils.getResourceString(context, SITE_ID_RESOURCE_KEY)
+                val resourceSiteID = Utils.getResourceString(application, SITE_ID_RESOURCE_KEY)
                 if (!resourceSiteID.isNullOrBlank()) {
                     configuration.siteId = resourceSiteID
                 }
@@ -498,7 +549,7 @@ class Tracker private constructor(context: Context, configuration: BlueTriangleC
                 return null
             }
 
-            instance = Tracker(context, configuration)
+            instance = Tracker(application, configuration)
             return instance
         }
     }
