@@ -26,6 +26,11 @@ internal class ActivityLifecycleTracker(private val screenTracker: ScreenLifecyc
 
     override fun onActivityResumed(activity: Activity) {
         logD(TAG, "onActivityResumed: $screenTracker")
+    }
+
+    override fun onActivityPostResumed(activity: Activity) {
+        super.onActivityPostResumed(activity)
+        logD(TAG, "onActivityPostResumed: $screenTracker")
         screenTracker.onViewStarted(activity.screen)
     }
 

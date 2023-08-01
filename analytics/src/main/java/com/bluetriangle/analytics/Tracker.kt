@@ -4,12 +4,15 @@ import android.app.ActivityManager
 import android.app.Application
 import android.content.Context
 import android.text.TextUtils
+import android.util.Log
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
+import com.bluetriangle.analytics.launchtime.LaunchTimeMonitor
 import com.bluetriangle.analytics.networkcapture.CapturedRequest
 import com.bluetriangle.analytics.networkcapture.CapturedRequestCollection
 import com.bluetriangle.analytics.screenTracking.ActivityLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.FragmentLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.BTTScreenLifecyleTracker
+import com.bluetriangle.analytics.utility.logD
 import java.io.File
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
@@ -23,6 +26,7 @@ class Tracker private constructor(
     configuration: BlueTriangleConfiguration
 ) {
     private var anrManager: AnrManager
+
     /**
      * Weak reference to Android application context
      */
@@ -79,6 +83,7 @@ class Tracker private constructor(
         configuration.globalUserId = globalUserId
 
         val sessionId = Utils.generateRandomId()
+        Log.d("SessionID", sessionId)
         setSessionId(sessionId)
         configuration.sessionId = sessionId
 
@@ -86,12 +91,18 @@ class Tracker private constructor(
         screenTrackMonitor = BTTScreenLifecyleTracker(configuration.isScreenTrackingEnabled)
 
         val fragmentLifecycleTracker = FragmentLifecycleTracker(screenTrackMonitor)
-        activityLifecycleTracker = ActivityLifecycleTracker(screenTrackMonitor, fragmentLifecycleTracker)
+        activityLifecycleTracker = ActivityLifecycleTracker(
+            screenTrackMonitor,
+            fragmentLifecycleTracker
+        )
+        if(configuration.isLaunchTimeEnabled) {
+            LaunchTimeMonitor.initialize(application)
+        }
         application.registerActivityLifecycleCallbacks(activityLifecycleTracker)
 
         anrManager = AnrManager(configuration)
 
-        if(configuration.isTrackAnrEnabled) {
+        if (configuration.isTrackAnrEnabled) {
             anrManager.start()
         }
         if (configuration.isTrackCrashesEnabled) {
@@ -404,7 +415,7 @@ class Tracker private constructor(
         val timeStamp = System.currentTimeMillis().toString()
         val mostRecentTimer = getMostRecentTimer()
         val crashHitsTimer = Timer().start()
-        if(mostRecentTimer != null) {
+        if (mostRecentTimer != null) {
             mostRecentTimer.generateNativeAppProperties()
             crashHitsTimer.nativeAppProperties = mostRecentTimer.nativeAppProperties
         }

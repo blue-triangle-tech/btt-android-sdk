@@ -19,6 +19,7 @@ internal object MetadataReader {
     private const val TRACK_ANR_ENABLE = "com.blue-triangle.track-anr.enable"
     private const val TRACK_ANR_INTERVAL_SECONDS = "com.blue-triangle.track-anr.interval-sec"
     private const val SCREEN_TRACKING_ENABLE = "com.blue-triangle.screen-tracking.enable"
+    private const val LAUNCH_TIME_ENABLE = "com.blue-triangle.launch-time.enable"
 
     fun applyMetadata(context: Context, configuration: BlueTriangleConfiguration) {
         try {
@@ -58,6 +59,8 @@ internal object MetadataReader {
                     3 // minimum interval is 3 seconds
                 configuration.isScreenTrackingEnabled =
                     readBool(metadata, SCREEN_TRACKING_ENABLE, configuration.isScreenTrackingEnabled)
+                configuration.isLaunchTimeEnabled =
+                    readBool(metadata, LAUNCH_TIME_ENABLE, configuration.isLaunchTimeEnabled)
             }
         } catch (e: Throwable) {
             configuration.logger?.error(e, "Error reading metadata configuration")

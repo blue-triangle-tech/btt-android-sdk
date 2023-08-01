@@ -14,6 +14,7 @@
     <string name="lbl_dead_lock_main_thread_test">DeadLock Main Thread Test</string>
     <string name="lbl_application_create">On Application Create</string>
     <string name="lbl_activity_create">On Activity Create</string>
+    <string name="lbl_activity_start">On Activity Start</string>
     <string name="lbl_activity_resume">On Activity Resume</string>
     <string name="lbl_broadcast_received">On BroadCast Received</string>
 
@@ -22,6 +23,13 @@
         <item>@string/lbl_activity_resume</item>
         <item>@string/lbl_broadcast_received</item>
         <item>@string/lbl_application_create</item>
+    </array>
+
+    <array name="launch_scenarios">
+        <item>@string/lbl_application_create</item>
+        <item>@string/lbl_activity_create</item>
+        <item>@string/lbl_activity_start</item>
+        <item>@string/lbl_activity_resume</item>
     </array>
 
     <array name="anr_tests">
