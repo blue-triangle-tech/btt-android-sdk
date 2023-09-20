@@ -13,12 +13,14 @@ import androidx.lifecycle.ViewModelProvider;
 import com.bluetriangle.analytics.Timer;
 import com.bluetriangle.analytics.Tracker;
 import com.bluetriangle.analytics.okhttp.BlueTriangleOkHttpInterceptor;
+import com.bluetriangle.android.demo.DemoApplication;
 import com.bluetriangle.android.demo.R;
 import com.bluetriangle.android.demo.databinding.ActivityTestListBinding;
 import com.bluetriangle.android.demo.java.screenTracking.ScreenTrackingActivity;
 import com.bluetriangle.android.demo.kotlin.TestListViewModel;
 import com.bluetriangle.android.demo.tests.ANRTest;
 import com.bluetriangle.android.demo.tests.ANRTestScenario;
+import com.bluetriangle.android.demo.tests.LaunchTestScenario;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -198,5 +200,18 @@ public class JavaTestListActivity extends AppCompatActivity {
                 });
             }
         });
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        DemoApplication.Companion.checkLaunchTest(LaunchTestScenario.OnActivityStart);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        DemoApplication.Companion.checkLaunchTest(LaunchTestScenario.OnActivityResume);
     }
 }

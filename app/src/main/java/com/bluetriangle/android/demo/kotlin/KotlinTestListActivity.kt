@@ -10,12 +10,14 @@ import androidx.lifecycle.lifecycleScope
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Tracker.Companion.instance
 import com.bluetriangle.analytics.okhttp.BlueTriangleOkHttpInterceptor
+import com.bluetriangle.android.demo.DemoApplication.Companion.checkLaunchTest
 import com.bluetriangle.android.demo.R
 import com.bluetriangle.android.demo.databinding.ActivityTestListBinding
 import com.bluetriangle.android.demo.getViewModel
 import com.bluetriangle.android.demo.kotlin.screenTracking.ScreenTrackingActivity
 import com.bluetriangle.android.demo.tests.ANRTest
 import com.bluetriangle.android.demo.tests.ANRTestScenario
+import com.bluetriangle.android.demo.tests.LaunchTestScenario
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.*
@@ -186,6 +188,16 @@ class KotlinTestListActivity : AppCompatActivity() {
         intent.putExtra(ANRTestActivity.Test, anrTest)
         startActivity(intent)
         //NativeWrapper().testANR()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        checkLaunchTest(LaunchTestScenario.OnActivityStart)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        checkLaunchTest(LaunchTestScenario.OnActivityResume)
     }
 
     companion object {
