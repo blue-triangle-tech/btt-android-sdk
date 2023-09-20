@@ -33,7 +33,7 @@ Add the package dependency to your application's `build.gradle` file:
 ```
 dependencies {
     ...
-    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.7.3'
+    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.8.1'
 }
 ```
 
@@ -84,13 +84,20 @@ s `AndroidManifest.xml` file.
         <meta-data android:name="com.blue-triangle.site-id" android:value="SITE_ID_HERE" />
         <meta-data android:name="com.blue-triangle.debug" android:value="true" />
         <meta-data android:name="com.blue-triangle.debug.level" android:value="2" />
+        <meta-data android:name="com.blue-triangle.cache.max-items"
+            android:value="100" />
+        <meta-data android:name="com.blue-triangle.cache.max-retry-attempts"
+            android:value="3" />
         <meta-data android:name="com.blue-triangle.performance-monitor.enable"
             android:value="true" />
+        <meta-data android:name="com.blue-triangle.performance-monitor.interval-ms"
+            android:value="1000" />
         <meta-data android:name="com.blue-triangle.track-crashes.enable" android:value="true" />
         <meta-data android:name="com.blue-triangle.sample-rate.network" android:value="0.025" />
         <meta-data android:name="com.blue-triangle.track-anr.enable" android:value="true" />
         <meta-data android:name="com.blue-triangle.track-anr.interval-sec" android:value="5" />
-        <meta-data android:name="com.blue-triangle.screen-tracking.enable" android:value="true" />
+        <meta-data android:name="com.blue-triangle.screen-tracking.enable" android:value="false" />
+        <meta-data android:name="com.blue-triangle.launch-time.enable" android:value="false" />
     </application>
 </manifest>
 ```
@@ -123,6 +130,7 @@ The current available meta data configuration names:
   set value is ignored
 * `com.blue-triangle.screen-tracking.enable` enable screen tracking which will automatically start tracking 
   activities and fragments in your app. For Jetpack Compose tracking, [see below](#screen-view-tracking).
+* `com.blue-triangle.launch-time.enable` enable launch time feature which will measure the time between the user opening the app and the app being responsive.
 
 ### Using Timers
 
@@ -230,8 +238,8 @@ dependency:
 ```
 dependencies {
     ...
-    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.7.3'
-    implementation 'com.github.blue-triangle-tech:btt-android-sdk-okhttp:2.7.3' 
+    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.8.1'
+    implementation 'com.github.blue-triangle-tech:btt-android-sdk-okhttp:2.8.1' 
 }
 ```
 
@@ -286,6 +294,22 @@ item.
 
 Also the max number of retry attempts can be configured per timer/crash report as well. If the max
 number of retries is exceeded, the timer/crash is dropped. The default is 3 tries.
+
+## Launch Time
+
+The Launch Time feature tracks the time it took from the start of your app launch (i.e. onCreate of your Application class) to the time your app became fully interactive (i.e. The onResume of your launcher Activity). Launch time feature can be enabled using `isLaunchTimeEnabled` configuration flag as shown below.
+
+```kotlin
+val configuration = BlueTriangleConfiguration()
+configuration.isLaunchTimeEnabled = true
+```
+or by adding the following meta-data in your `AndroidManifest.xml` file.
+
+```xml
+<meta-data android:name="com.blue-triangle.launch-time.enable" android:value="true" />
+```
+> Note:
+This feature is only available on API Level 29 and above
 
 ## Publishing the Analytics SDK Package
 
