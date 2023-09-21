@@ -9,6 +9,11 @@ import com.bluetriangle.analytics.Tracker.Companion.init
 import com.bluetriangle.android.demo.tests.ANRTest
 import com.bluetriangle.android.demo.tests.ANRTestFactory
 import com.bluetriangle.android.demo.tests.ANRTestScenario
+import com.bluetriangle.android.demo.tests.HeavyLoopTest
+import com.bluetriangle.android.demo.tests.LaunchTestScenario
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 class DemoApplication : Application() {
     private var tracker: Tracker? = null
@@ -16,6 +21,18 @@ class DemoApplication : Application() {
     companion object {
         lateinit var sharedPreferencesMgr: SharedPreferencesMgr
         lateinit var tinyDB: TinyDB
+
+        fun checkLaunchTest(scenario: LaunchTestScenario) {
+            val launchScenarioId = sharedPreferencesMgr.getInt("LaunchScenario", -1)
+            Log.d("CheckAndLaunchTest", "LaunchScenarioId: $launchScenarioId")
+            if(launchScenarioId == -1) return
+            val launchScenario = LaunchTestScenario.values()[launchScenarioId]
+
+            if(launchScenario == scenario) {
+                sharedPreferencesMgr.remove("LaunchScenario")
+                HeavyLoopTest(3L).run()
+            }
+        }
     }
 
     override fun onCreate() {
@@ -25,6 +42,7 @@ class DemoApplication : Application() {
 
         sharedPreferencesMgr = SharedPreferencesMgr(applicationContext)
 
+        initTracker("sdkdemo26621z")
         // d.btttag.com => 107.22.227.162
         //"http://107.22.227.162/btt.gif"
         //https://d.btttag.com/analytics.rcv
@@ -32,9 +50,10 @@ class DemoApplication : Application() {
         //bluetriangledemo500z
 
         checkANRTestOnAppCreate()
+        checkLaunchTest(LaunchTestScenario.OnApplicationCreate)
     }
 
-    fun initTracker(siteId: String?) {
+    private fun initTracker(siteId: String?) {
         if (siteId.isNullOrBlank()) return
 
         val configuration = BlueTriangleConfiguration()
@@ -45,6 +64,9 @@ class DemoApplication : Application() {
         configuration.isDebug = true
         configuration.networkSampleRate = 1.0
         configuration.isPerformanceMonitorEnabled = true
+        configuration.isLaunchTimeEnabled = true
+        configuration.sessionId = SimpleDateFormat("ddMMyyyykkmm", Locale.getDefault())
+            .format(Calendar.getInstance().time)
         tracker = init(this, configuration)
 
         tracker!!.setSessionTrafficSegmentName("Demo Traffic Segment")

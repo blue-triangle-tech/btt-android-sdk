@@ -12,159 +12,211 @@
 
     </data>
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="8dp">
-
+        android:layout_height="match_parent">
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:clipToPadding="false"
+            android:clipChildren="false"
+            android:padding="8dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_start"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:maxLines="1"
+                    android:text="Start Timer"
+                    app:autoSizeMaxTextSize="14sp"
+                    app:autoSizeMinTextSize="12sp"
+                    app:autoSizeTextType="uniform" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_interactive"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:maxLines="1"
+                    android:text="Interactive"
+                    app:autoSizeMaxTextSize="14sp"
+                    app:autoSizeMinTextSize="12sp"
+                    app:autoSizeTextType="uniform" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_stop"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:maxLines="1"
+                    android:text="Stop Timer"
+                    app:autoSizeMaxTextSize="14sp"
+                    app:autoSizeMinTextSize="12sp"
+                    app:autoSizeTextType="uniform" />
+
+            </LinearLayout>
+
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_start"
+                android:id="@+id/button_next"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                android:maxLines="1"
-                android:text="Start Timer"
-                app:autoSizeMaxTextSize="14sp"
-                app:autoSizeMinTextSize="12sp"
-                app:autoSizeTextType="uniform" />
+                android:text="Goto Next Activity Timer" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_interactive"
+                android:id="@+id/button_background"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                android:maxLines="1"
-                android:text="Interactive"
-                app:autoSizeMaxTextSize="14sp"
-                app:autoSizeMinTextSize="12sp"
-                app:autoSizeTextType="uniform" />
+                android:text="Start Background Thread Timer" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/button_stop"
+                android:id="@+id/button_track_catch_exception"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:maxLines="1"
-                android:text="Stop Timer"
-                app:autoSizeMaxTextSize="14sp"
-                app:autoSizeMinTextSize="12sp"
-                app:autoSizeTextType="uniform" />
+                android:text="Track Caught Exception" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_crash"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CRASH" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_network"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Capture Network Requests" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonScreenTrack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Screen Tracking" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonLaunchGallery"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Launch Gallery" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_anr"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ANR Test" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                app:cardCornerRadius="5dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#DDD"
+                app:cardElevation="0dp">
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="10dp">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="ANR Test" />
+
+                    <androidx.appcompat.widget.AppCompatSpinner
+                        android:id="@+id/anrTests"
+                        style="@style/SpinnerStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:layout_marginTop="5dp"
+                        android:entries="@array/anr_tests"
+                        android:onItemSelected="@{(parent, view, pos, id)->viewModel.onTestChange(pos)}"
+                        android:selectedItemPosition="@{viewModel.anrTest.ordinal()}" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="ANR Test Scenario" />
+
+                    <androidx.appcompat.widget.AppCompatSpinner
+                        android:id="@+id/anrTestScenarios"
+                        style="@style/SpinnerStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:layout_marginTop="5dp"
+                        android:entries="@array/anr_test_scenarios"
+                        android:onItemSelected="@{(parent, view, pos, id)->viewModel.onTestScenarioChange(pos)}"
+                        android:selectedItemPosition="@{viewModel.anrTestScenario.ordinal()}" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAnrTestRun"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="10dp"
+                        android:text="Run ANR Test Scenario" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                app:cardCornerRadius="5dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#DDD"
+                app:cardElevation="0dp">
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="10dp">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="Launch Scenario" />
+
+                    <androidx.appcompat.widget.AppCompatSpinner
+                        android:id="@+id/launchScenarios"
+                        style="@style/SpinnerStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:layout_marginTop="5dp"
+                        android:entries="@array/launch_scenarios"
+                        android:onItemSelected="@{(parent, view, pos, id)->viewModel.onLaunchTestScenarioChange(pos)}"
+                        android:selectedItemPosition="@{viewModel.launchTestScenario.ordinal()}" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnLaunchScenario"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="10dp"
+                        android:onClick="@{viewModel::onRunLaunchScenarioClicked}"
+                        android:text="Run Launch Scenario" />
+
+                </androidx.appcompat.widget.LinearLayoutCompat>
+
+            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
 
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_next"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Goto Next Activity Timer" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_background"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Start Background Thread Timer" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_track_catch_exception"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Track Caught Exception" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_crash"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="CRASH" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_network"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Capture Network Requests" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonScreenTrack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Screen Tracking" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonLaunchGallery"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Launch Gallery" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_anr"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="ANR Test" />
-
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:elevation="10dp"
-            app:cardCornerRadius="5dp"
-            app:cardElevation="10dp">
-
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="10dp">
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="ANR Test" />
-
-                <androidx.appcompat.widget.AppCompatSpinner
-                    android:id="@+id/anrTests"
-                    style="@style/SpinnerStyle"
-                    android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:layout_marginTop="5dp"
-                    android:entries="@array/anr_tests"
-                    android:onItemSelected="@{(parent, view, pos, id)->viewModel.onTestChange(pos, id)}"
-                    android:selectedItemPosition="@{viewModel.anrTest.ordinal()}" />
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:text="ANR Test Scenario" />
-
-                <androidx.appcompat.widget.AppCompatSpinner
-                    android:id="@+id/anrTestScenarios"
-                    style="@style/SpinnerStyle"
-                    android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:layout_marginTop="5dp"
-                    android:entries="@array/anr_test_scenarios"
-                    android:onItemSelected="@{(parent, view, pos, id)->viewModel.onTestScenarioChange(pos, id)}"
-                    android:selectedItemPosition="@{viewModel.anrTestScenario.ordinal()}" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnAnrTestRun"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="10dp"
-                    android:text="Run ANR Test Scenario" />
-
-            </androidx.appcompat.widget.LinearLayoutCompat>
-
-        </com.google.android.material.card.MaterialCardView>
-
-    </LinearLayout>
+    </ScrollView>
 </layout>

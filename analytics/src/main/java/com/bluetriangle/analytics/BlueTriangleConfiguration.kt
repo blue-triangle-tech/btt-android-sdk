@@ -102,6 +102,7 @@ class BlueTriangleConfiguration {
     var trackAnrIntervalSec = Constants.ANR_DEFAULT_INTERVAL
 
     var isScreenTrackingEnabled: Boolean = false
+    var isLaunchTimeEnabled: Boolean = false
 
     companion object {
         const val DEFAULT_TRACKER_URL = "https://d.btttag.com/analytics.rcv"

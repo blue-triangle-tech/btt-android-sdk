@@ -31,10 +31,14 @@ class SharedPreferencesMgr(context: Context) {
         return sharedPref.getInt(key, 0)
     }
 
+    fun getInt(key: String, default:Int): Int {
+        return sharedPref.getInt(key, default)
+    }
+
     fun setInt(key: String, value: Int) {
         val editor = sharedPref.edit()
         editor.putInt(key, value)
-        editor.apply()
+        editor.commit()
     }
 
     fun removeAll() {

@@ -1,6 +1,7 @@
 package com.bluetriangle.analytics.model
 
 import android.os.Parcelable
+import com.bluetriangle.analytics.launchtime.LaunchTimeMonitor
 import kotlinx.parcelize.Parcelize
 import org.json.JSONObject
 

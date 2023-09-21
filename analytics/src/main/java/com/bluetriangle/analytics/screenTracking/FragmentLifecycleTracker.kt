@@ -17,7 +17,7 @@ internal class FragmentLifecycleTracker(val screenTrackMonitor: ScreenLifecycleT
         fragment: Fragment,
         context: Context
     ) {
-        logD(TAG, "onFragmentPreAttached")
+        logD(TAG, "onFragmentPreAttached: ${fragment.screen}")
     }
 
     override fun onFragmentAttached(
@@ -25,7 +25,7 @@ internal class FragmentLifecycleTracker(val screenTrackMonitor: ScreenLifecycleT
         fragment: Fragment,
         context: Context
     ) {
-        logD(TAG, "onFragmentAttached")
+        logD(TAG, "onFragmentAttached: ${fragment.screen}")
     }
 
     override fun onFragmentPreCreated(
@@ -33,7 +33,7 @@ internal class FragmentLifecycleTracker(val screenTrackMonitor: ScreenLifecycleT
         fragment: Fragment,
         savedInstanceState: Bundle?
     ) {
-        logD(TAG, "onFragmentPreCreated")
+        logD(TAG, "onFragmentPreCreated: ${fragment.screen}")
     }
 
     override fun onFragmentCreated(
@@ -41,7 +41,7 @@ internal class FragmentLifecycleTracker(val screenTrackMonitor: ScreenLifecycleT
         fragment: Fragment,
         savedInstanceState: Bundle?
     ) {
-        logD(TAG, "onFragmentCreated")
+        logD(TAG, "onFragmentCreated: ${fragment.screen}")
         screenTrackMonitor.onLoadStarted(fragment.screen)
     }
 
@@ -51,26 +51,26 @@ internal class FragmentLifecycleTracker(val screenTrackMonitor: ScreenLifecycleT
         view: View,
         savedInstanceState: Bundle?
     ) {
-        logD(TAG, "onFragmentViewCreated")
+        logD(TAG, "onFragmentViewCreated: ${fragment.screen}")
     }
 
     override fun onFragmentStarted(fragmentManager: FragmentManager, fragment: Fragment) {
-        logD(TAG, "onFragmentStarted")
+        logD(TAG, "onFragmentStarted: ${fragment.screen}")
         screenTrackMonitor.onLoadEnded(fragment.screen)
     }
 
     override fun onFragmentResumed(fragmentManager: FragmentManager, fragment: Fragment) {
-        logD(TAG, "onFragmentResumed")
+        logD(TAG, "onFragmentResumed: ${fragment.screen}")
         screenTrackMonitor.onViewStarted(fragment.screen)
     }
 
     override fun onFragmentPaused(fragmentManager: FragmentManager, fragment: Fragment) {
-        logD(TAG, "onFragmentPaused")
+        logD(TAG, "onFragmentPaused: ${fragment.screen}")
         screenTrackMonitor.onViewEnded(fragment.screen)
     }
 
     override fun onFragmentStopped(fragmentManager: FragmentManager, fragment: Fragment) {
-        logD(TAG, "onFragmentStopped")
+        logD(TAG, "onFragmentStopped: ${fragment.screen}")
     }
 
     override fun onFragmentSaveInstanceState(
@@ -78,18 +78,18 @@ internal class FragmentLifecycleTracker(val screenTrackMonitor: ScreenLifecycleT
         fragment: Fragment,
         outState: Bundle
     ) {
-        logD(TAG, "onFragmentSaveInstanceState")
+        logD(TAG, "onFragmentSaveInstanceState: ${fragment.screen}")
     }
 
     override fun onFragmentViewDestroyed(fragmentManager: FragmentManager, fragment: Fragment) {
-        logD(TAG, "onFragmentViewDestroyed")
+        logD(TAG, "onFragmentViewDestroyed: ${fragment.screen}")
     }
 
     override fun onFragmentDestroyed(fragmentManager: FragmentManager, fragment: Fragment) {
-        logD(TAG, "onFragmentDestroyed")
+        logD(TAG, "onFragmentDestroyed: ${fragment.screen}")
     }
 
     override fun onFragmentDetached(fragmentManager: FragmentManager, fragment: Fragment) {
-        logD(TAG, "onFragmentDetached")
+        logD(TAG, "onFragmentDetached: ${fragment.screen}")
     }
 }

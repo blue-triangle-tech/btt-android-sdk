@@ -7,6 +7,7 @@ import androidx.databinding.DataBindingUtil
 import com.bluetriangle.android.demo.databinding.ActivityHomeBinding
 import com.bluetriangle.android.demo.java.JavaTestListActivity
 import com.bluetriangle.android.demo.kotlin.KotlinTestListActivity
+import com.bluetriangle.android.demo.tests.LaunchTestScenario
 
 class HomeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,5 +32,6 @@ class HomeActivity : AppCompatActivity() {
                 )
             )
         }
+        DemoApplication.checkLaunchTest(LaunchTestScenario.OnActivityCreate)
     }
 }
