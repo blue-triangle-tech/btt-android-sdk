@@ -9,11 +9,11 @@ version = "2.8.1"
 
 android {
     namespace 'com.bluetriangle.analytics'
-    compileSdk 33
+    compileSdk 31
 
     defaultConfig {
         minSdk 16
-        targetSdk 33
+        targetSdk 31
 
         buildConfigField "String", "SDK_VERSION", "\"$version\""
 
