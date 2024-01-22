@@ -39,6 +39,32 @@
         <item>@string/lbl_dead_lock_main_thread_test</item>
     </array>
 
+    <string name="task_infinite_loop">Infinite Loop</string>
+    <string name="task_infinite_loop_with_delay">Infinite Loop With Delay</string>
+    <string name="task_word_generator">Word Generator</string>
+    <string name="task_io_operations">IO Operations</string>
+    <string name="task_ui_operation">UI Operations</string>
+
+    <array name="task">
+        <item>@string/task_infinite_loop</item>
+        <item>@string/task_infinite_loop_with_delay</item>
+        <item>@string/task_word_generator</item>
+        <item>@string/task_io_operations</item>
+        <item>@string/task_ui_operation</item>
+    </array>
+
+    <string name="main_thread">Main Thread</string>
+    <string name="background_thread">Background Thread</string>
+
+    <array name="thread">
+        <item>@string/main_thread</item>
+        <item>@string/background_thread</item>
+    </array>
+
     <string name="tab_text_1">Tab 1</string>
     <string name="tab_text_2">Tab 2</string>
+    <string name="cpu_test">CPU Test</string>
+    <string name="memory_test">Memory Test</string>
+    <string name="start_timer">Start Timer</string>
+    <string name="stop_timer">Stop Timer</string>
 </resources>

@@ -11,9 +11,6 @@ import com.bluetriangle.android.demo.tests.ANRTestFactory
 import com.bluetriangle.android.demo.tests.ANRTestScenario
 import com.bluetriangle.android.demo.tests.HeavyLoopTest
 import com.bluetriangle.android.demo.tests.LaunchTestScenario
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
 
 class DemoApplication : Application() {
     private var tracker: Tracker? = null
@@ -64,9 +61,10 @@ class DemoApplication : Application() {
         configuration.isDebug = true
         configuration.networkSampleRate = 1.0
         configuration.isPerformanceMonitorEnabled = true
+        configuration.performanceMonitorIntervalMs = 500
         configuration.isLaunchTimeEnabled = true
-        configuration.sessionId = SimpleDateFormat("ddMMyyyykkmm", Locale.getDefault())
-            .format(Calendar.getInstance().time)
+        configuration.isTrackNetworkStateEnabled = true
+        configuration.isMemoryWarningEnabled = true
         tracker = init(this, configuration)
 
         tracker!!.setSessionTrafficSegmentName("Demo Traffic Segment")

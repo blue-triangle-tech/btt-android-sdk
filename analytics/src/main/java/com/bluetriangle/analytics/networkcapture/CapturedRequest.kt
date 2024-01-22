@@ -1,6 +1,10 @@
 package com.bluetriangle.analytics.networkcapture
 
+import android.os.Build
+import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Tracker
+import com.bluetriangle.analytics.networkstate.BTTNetworkState
+import com.bluetriangle.analytics.utility.value
 import java.net.URI
 
 class CapturedRequest {
@@ -32,7 +36,7 @@ class CapturedRequest {
             value?.let {
                 val parsedUri = URI(it)
                 host = parsedUri.host
-                file = parsedUri.path.split("/").filter { segment -> segment.isNotEmpty() }.last()
+                file = parsedUri.path.split("/").lastOrNull { segment -> segment.isNotEmpty() }
             }
         }
 
@@ -76,9 +80,14 @@ class CapturedRequest {
      */
     var responseStatusCode: Int? = null
 
-    val payload: Map<String, String?>
+    /**
+     * The Network State while the network call was happening
+     */
+    private var networkState: BTTNetworkState?=null
+
+    val payload: Map<String, Any?>
         get() {
-            val payload = mutableMapOf(
+            val payload = mutableMapOf<String, Any?>(
                 FIELD_ENTRY_TYPE to entryType,
                 FIELD_DOMAIN to domain,
                 FIELD_HOST to host,
@@ -91,6 +100,12 @@ class CapturedRequest {
                 FIELD_DECODED_BODY_SIZE to decodedBodySize.toString(),
                 FIELD_ENCODED_BODY_SIZE to encodedBodySize.toString(),
             )
+
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                payload[Timer.FIELD_NATIVE_APP] = mutableMapOf(
+                    FIELD_NETWORK_STATE to networkState?.value
+                )
+            }
 
             responseStatusCode?.let { code ->
                 payload[FIELD_RESPONSE_CODE] = code.toString()
@@ -105,6 +120,9 @@ class CapturedRequest {
     fun start() {
         if (startTime == 0L) {
             startTime = System.currentTimeMillis()
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                networkState = Tracker.instance?.networkStateMonitor?.state?.value
+            }
         }
     }
 
@@ -152,5 +170,6 @@ class CapturedRequest {
         const val FIELD_DECODED_BODY_SIZE = "dz"
         const val FIELD_ENCODED_BODY_SIZE = "ez"
         const val FIELD_RESPONSE_CODE = "rCd"
+        const val FIELD_NETWORK_STATE = "netState"
     }
 }

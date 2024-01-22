@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <application
         android:name=".DemoApplication"
         android:allowBackup="true"
@@ -10,8 +11,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:networkSecurityConfig="@xml/network_config"
+        android:largeHeap="true"
         android:theme="@style/AppTheme">
 
+        <activity
+            android:name=".kotlin.MemoryTestActivity"
+            android:exported="false" />
+        <activity
+            android:name=".kotlin.CPUTestActivity"
+            android:exported="false" />
         <activity
             android:name=".HomeActivity"
             android:exported="true"
@@ -32,7 +40,6 @@
         <activity
             android:name=".java.screenTracking.ScreenTrackingActivity"
             android:exported="false" />
-
         <activity
             android:name=".kotlin.KotlinTestListActivity"
             android:exported="false" />
@@ -42,14 +49,12 @@
         <activity
             android:name=".kotlin.screenTracking.ScreenTrackingActivity"
             android:exported="false" />
-
         <activity
             android:name=".java.ANRTestActivity"
             android:exported="false" />
         <activity
             android:name=".kotlin.ANRTestActivity"
             android:exported="false" />
-
     </application>
 
 </manifest>

@@ -22,7 +22,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import okhttp3.*
 import java.io.IOException
+import java.time.Duration
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 @Suppress("UNUSED_PARAMETER")
 class KotlinTestListActivity : AppCompatActivity() {
@@ -46,6 +48,8 @@ class KotlinTestListActivity : AppCompatActivity() {
 
         okHttpClient =
             OkHttpClient.Builder()
+                .connectTimeout(0L, TimeUnit.SECONDS)
+                .callTimeout(0L, TimeUnit.SECONDS)
                 .addInterceptor(BlueTriangleOkHttpInterceptor(instance!!.configuration))
                 .build()
     }
@@ -63,12 +67,36 @@ class KotlinTestListActivity : AppCompatActivity() {
         binding.buttonAnr.setOnClickListener {
             launchAnrActivity(ANRTestScenario.Unknown, ANRTest.Unknown)
         }
+        binding.cpuTest.setOnClickListener {
+            startActivity(Intent(this, CPUTestActivity::class.java))
+        }
+
+        binding.memoryTest.setOnClickListener {
+            startActivity(Intent(this, MemoryTestActivity::class.java))
+        }
         binding.buttonLaunchGallery.setOnClickListener {
             startActivity(Intent.createChooser(Intent(Intent.ACTION_PICK).apply {
                 type = "image/*"
             }, "Pick Image"))
         }
 
+        binding.buttonLongNetwork.setOnClickListener {
+            val timer = Timer("Long Network Request", "Android Traffic").start()
+            val longRequest: Request =
+                Request.Builder().url("https://hub.dummyapis.com/delay?seconds=15").build()
+            okHttpClient!!.newCall(longRequest).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    Log.d(TAG, "onFailure: ${e::class.java.simpleName}(\"${e.message}\")  " + call.request())
+                }
+
+                @Throws(IOException::class)
+                override fun onResponse(call: Call, response: Response) {
+                    Log.d(TAG, "onResponse: " + call.request())
+                    timer.end().submit()
+                }
+            })
+
+        }
         binding.btnAnrTestRun.setOnClickListener {
             launchAnrActivity(viewModel.anrTestScenario.value!!, viewModel.anrTest.value!!)
         }

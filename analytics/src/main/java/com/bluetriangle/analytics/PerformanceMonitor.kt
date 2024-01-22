@@ -19,6 +19,12 @@ class PerformanceMonitor(configuration: BlueTriangleConfiguration) : Thread(THRE
         metricMonitors.add(MainThreadMonitor(configuration))
     }
 
+    fun onTimerSubmit(timer: Timer) {
+        metricMonitors.forEach {
+            it.onTimerSubmit(timer)
+        }
+    }
+
     override fun run() {
         Process.setThreadPriority(Process.THREAD_PRIORITY_LOWEST)
         while (isRunning) {

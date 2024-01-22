@@ -1,7 +1,10 @@
 package com.bluetriangle.analytics
 
 import android.net.Uri
+import android.os.Build
 import com.bluetriangle.analytics.Constants.TIMER_MIN_PGTM
+import com.bluetriangle.analytics.networkcapture.CapturedRequest
+import com.bluetriangle.analytics.utility.value
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -39,6 +42,7 @@ internal class CrashRunnable(
     private val errorType: Tracker.BTErrorType = Tracker.BTErrorType.NativeAppCrash,
 
     private val mostRecentTimer: Timer? = null,
+    private val errorCount:Int = 1
 ) : Runnable {
     override fun run() {
         submitTimer()
@@ -176,17 +180,24 @@ internal class CrashRunnable(
      * @return base 64 encoded JSON payload
      */
     private fun buildCrashReportData(): String {
-        val crashReport = mapOf(
+        val crashReport = mutableMapOf<String, Any?>(
             "msg" to stackTrace,
             "eTp" to errorType.value,
-            "eCnt" to "1",
+            "eCnt" to errorCount.toString(),
             "url" to configuration.applicationName,
             "line" to "1",
             "col" to "1",
             "time" to timeStamp,
         )
 
-        val crashDataArray = JSONArray(listOf(JSONObject(crashReport)))
+        val netStateMonitor = Tracker.instance?.networkStateMonitor
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && netStateMonitor != null) {
+            crashReport[Timer.FIELD_NATIVE_APP] = mapOf(
+                CapturedRequest.FIELD_NETWORK_STATE to netStateMonitor.state.value.value
+            )
+        }
+
+        val crashDataArray = JSONArray(listOf(JSONObject(crashReport.toMap())))
         val jsonData = crashDataArray.toString(if (configuration.isDebug) 2 else 0)
         configuration.logger?.debug("Crash Report Data: $jsonData")
         return jsonData

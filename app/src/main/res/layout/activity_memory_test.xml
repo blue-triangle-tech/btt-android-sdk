@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="viewModel"
+            type="com.bluetriangle.android.demo.kotlin.MemoryTestViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".kotlin.MemoryTestActivity">
+
+        <Button
+            android:id="@+id/timer_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:onClick="@{(v)->viewModel.onTimerButtonClick()}"
+            android:text="@{viewModel.isTimerStarted() ? @string/stop_timer : @string/start_timer}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAnrTestRun"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="8dp"
+            android:onClick="@{(v)->viewModel.onAllocateHeapMemory()}"
+            android:text="Allocate Heap"
+            app:layout_constraintEnd_toStartOf="@+id/button"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/timer_button" />
+
+        <Button
+            android:id="@+id/button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="16dp"
+            android:text="Allocate Stack"
+            android:onClick="@{(v)->viewModel.onAllocateStackMemory()}"
+            app:layout_constraintBottom_toBottomOf="@+id/btnAnrTestRun"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/btnAnrTestRun"
+            app:layout_constraintTop_toTopOf="@+id/btnAnrTestRun" />
+
+        <Button
+            android:id="@+id/use_memory"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Use Memory"
+            android:onClick="@{(v)->viewModel.useMemory()}"
+            app:layout_constraintEnd_toEndOf="@+id/btnAnrTestRun"
+            app:layout_constraintStart_toStartOf="@+id/btnAnrTestRun"
+            app:layout_constraintTop_toBottomOf="@+id/btnAnrTestRun" />
+
+        <Button
+            android:id="@+id/clear_memory"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Clear Memory"
+            android:onClick="@{(v)->viewModel.clearMemory()}"
+            app:layout_constraintEnd_toEndOf="@+id/button"
+            app:layout_constraintStart_toStartOf="@+id/button"
+            app:layout_constraintTop_toBottomOf="@+id/button" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</layout>

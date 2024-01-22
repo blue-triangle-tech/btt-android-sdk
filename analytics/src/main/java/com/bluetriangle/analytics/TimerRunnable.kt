@@ -28,6 +28,7 @@ internal class TimerRunnable(
     override fun run() {
         var connection: HttpsURLConnection? = null
         val payloadData = buildTimerData()
+        timer.onSubmit()
         try {
             val url = URL(configuration.trackerUrl)
             connection = url.openConnection() as HttpsURLConnection
