@@ -267,13 +267,13 @@ class Tracker private constructor(
     private fun getTimerValue(fieldName: String, timer: Timer?): String {
         if (timer != null) {
             val value = timer.getField(fieldName)
-            if (!TextUtils.isEmpty(value)) {
-                return value!!
+            if (value != null && !TextUtils.isEmpty(value)) {
+                return value
             }
         }
         val value = globalFields[fieldName]
-        return if (!TextUtils.isEmpty(value)) {
-            value!!
+        return if (value != null && !TextUtils.isEmpty(value)) {
+            value
         } else ""
     }
 

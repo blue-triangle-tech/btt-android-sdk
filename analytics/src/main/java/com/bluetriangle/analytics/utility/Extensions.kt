@@ -17,6 +17,7 @@ import androidx.fragment.app.FragmentManager.FragmentLifecycleCallbacks
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.model.Screen
 import com.bluetriangle.analytics.model.ScreenType
+import java.io.File
 import com.bluetriangle.analytics.networkstate.BTTNetworkState
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
@@ -62,6 +63,22 @@ fun FragmentActivity.registerFragmentLifecycleCallback(callback: FragmentLifecyc
 fun FragmentActivity.unregisterFragmentLifecycleCallback(callback: FragmentLifecycleCallbacks) {
     supportFragmentManager.unregisterFragmentLifecycleCallbacks(callback)
 }
+
+val Long.mb:Long
+    get() = this/1024 * 1024
+
+fun <V> any(vararg operations:()->V?):V? {
+    operations.forEach {
+        val value = it()
+        if(value != null) {
+            return@any value
+        }
+    }
+    return null
+}
+
+val File.isDirectoryInvalid: Boolean
+    get() = !isDirectory || !canRead() || !canWrite()
 
 @SuppressLint("InlinedApi")
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)

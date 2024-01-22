@@ -32,6 +32,14 @@ class HomeActivity : AppCompatActivity() {
                 )
             )
         }
+        binding.btnNetworkPOC.setOnClickListener {
+            startActivity(
+                Intent(
+                    this,
+                    NetworkPocActivity::class.java
+                )
+            )
+        }
         DemoApplication.checkLaunchTest(LaunchTestScenario.OnActivityCreate)
     }
 }

@@ -23,10 +23,20 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Kotlin Tests"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/btnNetworkPOC"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/btnJavaTest" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnNetworkPOC"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Network POC"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/btnKotlinTest" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
