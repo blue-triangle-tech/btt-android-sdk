@@ -18,6 +18,9 @@
             android:exported="false" />
 
         <activity
+            android:name=".kotlin.HybridDemoLayoutActivity"
+            android:exported="false" />
+        <activity
             android:name=".kotlin.MemoryTestActivity"
             android:exported="false" />
         <activity

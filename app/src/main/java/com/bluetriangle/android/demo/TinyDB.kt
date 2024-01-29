@@ -86,4 +86,8 @@ class TinyDB(context: Context) {
         editor.remove(key)
         editor.apply()
     }
+
+    fun contains(key:String?): Boolean {
+        return sharedPref.contains(key)
+    }
 }

@@ -227,23 +227,24 @@ class Tracker private constructor(
      * @param capturedRequest
      */
     fun submitCapturedRequest(capturedRequest: CapturedRequest?) {
+        if(capturedRequest == null) return
         if (configuration.shouldSampleNetwork) {
             getMostRecentTimer()?.let { timer ->
                 configuration.logger?.debug("Network Request Captured: $capturedRequest for $timer")
-                capturedRequest?.setNavigationStart(timer.start)
+                capturedRequest.setNavigationStart(timer.start)
                 if (capturedRequests.containsKey(timer.start)) {
-                    capturedRequests[timer.start]!!.add(capturedRequest!!)
+                    capturedRequests[timer.start]!!.add(capturedRequest)
                 } else {
                     val capturedRequestCollection = CapturedRequestCollection(
-                        configuration.siteId!!,
+                        configuration.siteId.toString(),
                         timer.start.toString(),
                         getTimerValue(Timer.FIELD_PAGE_NAME, timer),
                         getTimerValue(Timer.FIELD_CONTENT_GROUP_NAME, timer),
                         getTimerValue(Timer.FIELD_TRAFFIC_SEGMENT_NAME, timer),
-                        configuration.sessionId!!,
+                        configuration.sessionId.toString(),
                         globalFields[Timer.FIELD_BROWSER_VERSION]!!,
                         globalFields[Timer.FIELD_DEVICE]!!,
-                        capturedRequest!!
+                        capturedRequest
                     )
                     capturedRequests[timer.start] = capturedRequestCollection
                 }
