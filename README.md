@@ -387,12 +387,19 @@ implementation 'com.github.blue-triangle-tech.btt-android-sdk:btt-android-sdk:2.
 ```
 As a result, you won't be able to use `BlueTriangleOkHttpInterceptor` as mentioned in [OkHttp Support](#okhttp-support). Instead, you have to use [Manual Network Capture](#manual-network-capture).
 
-## Publishing the Analytics SDK Package
+### Network State Capture
 
-The Analytics SDK is published through [JitPack](https://jitpack.io/).
+BlueTriangle SDK allows capturing of network state data. Network state refers to the availability of any network interfaces on the device. Network interfaces include wifi, ethernet, cellular, etc. Once Network state capturing is enabled, the Network state is associated with all Timers, Errors and Network Requests captured by the SDK. 
 
-To publish a new version of the library:
+To enable Network state capture, use the `isTrackNetworkStateEnabled` property on the configuration object as follows:
 
-1. Update the version in the Analytics library `build.gradle` file and in this readme file.
-2. Create a [GitHub tag/release](https://github.com/blue-triangle-tech/btt-android-sdk/releases) for
-   the new version.
+```kotlin
+val configuration = BlueTriangleConfiguration()
+configuration.isTrackNetworkStateEnabled = true
+```
+
+Also, Network state capturing requires `android.permission.ACCESS_NETWORK_STATE` permission. So, include the permission into your `AndroidManifest.xml` file as follows:
+
+```xml
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+```
