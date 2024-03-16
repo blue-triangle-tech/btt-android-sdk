@@ -9,8 +9,6 @@ internal object MetadataReader {
     private const val SITE_ID = "com.blue-triangle.site-id"
     private const val DEBUG = "com.blue-triangle.debug"
     private const val DEBUG_LEVEL = "com.blue-triangle.debug.level"
-    private const val MAX_CACHE_ITEMS = "com.blue-triangle.cache.max-items"
-    private const val MAX_RETRY_ATTEMPTS = "com.blue-triangle.cache.max-retry-attempts"
     private const val PERFORMANCE_MONITOR_ENABLE = "com.blue-triangle.performance-monitor.enable"
     private const val PERFORMANCE_MONITOR_INTERVAL =
         "com.blue-triangle.performance-monitor.interval-ms"
@@ -21,6 +19,9 @@ internal object MetadataReader {
     private const val SCREEN_TRACKING_ENABLE = "com.blue-triangle.screen-tracking.enable"
     private const val LAUNCH_TIME_ENABLE = "com.blue-triangle.launch-time.enable"
     private const val MEMORY_WARNING_ENABLE = "com.blue-triangle.memory-warning.enable"
+    private const val CACHE_MEMORY_LIMIT = "com.blue-triangle.cache.memory-limit"
+    private const val CACHE_EXPIRY = "com.blue-triangle.cache.expiry"
+    private const val TRACK_NETWORK_STATE_ENABLE = "com.blue-triangle.track-network-state.enable"
 
     fun applyMetadata(context: Context, configuration: BlueTriangleConfiguration) {
         try {
@@ -34,10 +35,6 @@ internal object MetadataReader {
                 }
                 configuration.isDebug = readBool(metadata, DEBUG, configuration.isDebug)
                 configuration.debugLevel = readInt(metadata, DEBUG_LEVEL, configuration.debugLevel)
-                configuration.maxCacheItems =
-                    readInt(metadata, MAX_CACHE_ITEMS, configuration.maxCacheItems)
-                configuration.maxAttempts =
-                    readInt(metadata, MAX_RETRY_ATTEMPTS, configuration.maxAttempts)
                 configuration.isPerformanceMonitorEnabled = readBool(
                     metadata,
                     PERFORMANCE_MONITOR_ENABLE,
@@ -64,6 +61,18 @@ internal object MetadataReader {
                     readBool(metadata, LAUNCH_TIME_ENABLE, configuration.isLaunchTimeEnabled)
                 configuration.isMemoryWarningEnabled =
                     readBool(metadata, MEMORY_WARNING_ENABLE, configuration.isMemoryWarningEnabled)
+                configuration.cacheMemoryLimit = readLong(
+                    metadata,
+                    CACHE_MEMORY_LIMIT,
+                    configuration.cacheMemoryLimit
+                )
+                configuration.cacheExpiryDuration = readLong(
+                    metadata,
+                    CACHE_EXPIRY,
+                    configuration.cacheExpiryDuration
+                )
+                configuration.isTrackNetworkStateEnabled =
+                    readBool(metadata, TRACK_NETWORK_STATE_ENABLE, configuration.isTrackNetworkStateEnabled)
             }
         } catch (e: Throwable) {
             configuration.logger?.error(e, "Error reading metadata configuration")
