@@ -1,17 +1,23 @@
 package com.bluetriangle.analytics
 
+import android.Manifest.permission.ACCESS_NETWORK_STATE
 import android.app.ActivityManager
 import android.app.Application
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import android.text.TextUtils
 import android.util.Log
+import androidx.core.content.ContextCompat
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
 import com.bluetriangle.analytics.launchtime.LaunchTimeMonitor
 import com.bluetriangle.analytics.networkcapture.CapturedRequest
 import com.bluetriangle.analytics.networkcapture.CapturedRequestCollection
+import com.bluetriangle.analytics.networkstate.NetworkStateMonitor
+import com.bluetriangle.analytics.networkstate.NetworkTimelineTracker
 import com.bluetriangle.analytics.screenTracking.ActivityLifecycleTracker
-import com.bluetriangle.analytics.screenTracking.FragmentLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.BTTScreenLifecycleTracker
+import com.bluetriangle.analytics.screenTracking.FragmentLifecycleTracker
 import java.io.File
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
@@ -64,6 +70,9 @@ class Tracker private constructor(
     internal val screenTrackMonitor: BTTScreenLifecycleTracker
     private val activityLifecycleTracker: ActivityLifecycleTracker
 
+    internal var networkTimelineTracker: NetworkTimelineTracker? = null
+    internal var networkStateMonitor: NetworkStateMonitor? = null
+
     init {
         this.context = WeakReference(application.applicationContext)
         this.configuration = configuration
@@ -81,7 +90,7 @@ class Tracker private constructor(
         setGlobalUserId(globalUserId)
         configuration.globalUserId = globalUserId
 
-        val sessionId = configuration.sessionId?:Utils.generateRandomId()
+        val sessionId = configuration.sessionId ?: Utils.generateRandomId()
         Log.d("SessionID", sessionId)
         setSessionId(sessionId)
         configuration.sessionId = sessionId
@@ -94,7 +103,7 @@ class Tracker private constructor(
             screenTrackMonitor,
             fragmentLifecycleTracker
         )
-        if(configuration.isLaunchTimeEnabled) {
+        if (configuration.isLaunchTimeEnabled) {
             LaunchTimeMonitor.initialize(application)
         }
         application.registerActivityLifecycleCallbacks(activityLifecycleTracker)
@@ -107,6 +116,39 @@ class Tracker private constructor(
         if (configuration.isTrackCrashesEnabled) {
             trackCrashes()
         }
+
+        initializeNetworkMonitoring()
+    }
+
+    private fun initializeNetworkMonitoring() {
+        if(!configuration.isTrackNetworkStateEnabled) return
+
+        val appContext = context.get()
+
+        if(appContext == null) {
+            configuration.logger?.error("Unable to start network monitoring: Context is null")
+            return
+        }
+
+        val hasNetworkStatePermission = ContextCompat.checkSelfPermission(
+            appContext,
+            ACCESS_NETWORK_STATE
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if(!hasNetworkStatePermission) {
+            configuration.logger?.error("Unable to start network monitoring: Missing permission (ACCESS_NETWORK_STATE)")
+            return
+        }
+
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            configuration.logger?.error("Unable to start network monitoring: Unsupported Android version.")
+            return
+        }
+
+        networkStateMonitor = NetworkStateMonitor(configuration.logger, appContext)
+        networkTimelineTracker = NetworkTimelineTracker(networkStateMonitor!!)
+
+        configuration.logger?.debug("Network state monitoring started.")
     }
 
     val activityManager: ActivityManager?
@@ -185,23 +227,24 @@ class Tracker private constructor(
      * @param capturedRequest
      */
     fun submitCapturedRequest(capturedRequest: CapturedRequest?) {
+        if(capturedRequest == null) return
         if (configuration.shouldSampleNetwork) {
             getMostRecentTimer()?.let { timer ->
                 configuration.logger?.debug("Network Request Captured: $capturedRequest for $timer")
-                capturedRequest?.setNavigationStart(timer.start)
+                capturedRequest.setNavigationStart(timer.start)
                 if (capturedRequests.containsKey(timer.start)) {
-                    capturedRequests[timer.start]!!.add(capturedRequest!!)
+                    capturedRequests[timer.start]!!.add(capturedRequest)
                 } else {
                     val capturedRequestCollection = CapturedRequestCollection(
-                        configuration.siteId!!,
+                        configuration.siteId.toString(),
                         timer.start.toString(),
                         getTimerValue(Timer.FIELD_PAGE_NAME, timer),
                         getTimerValue(Timer.FIELD_CONTENT_GROUP_NAME, timer),
                         getTimerValue(Timer.FIELD_TRAFFIC_SEGMENT_NAME, timer),
-                        configuration.sessionId!!,
+                        configuration.sessionId.toString(),
                         globalFields[Timer.FIELD_BROWSER_VERSION]!!,
                         globalFields[Timer.FIELD_DEVICE]!!,
-                        capturedRequest!!
+                        capturedRequest
                     )
                     capturedRequests[timer.start] = capturedRequestCollection
                 }
@@ -225,13 +268,13 @@ class Tracker private constructor(
     private fun getTimerValue(fieldName: String, timer: Timer?): String {
         if (timer != null) {
             val value = timer.getField(fieldName)
-            if (!TextUtils.isEmpty(value)) {
-                return value!!
+            if (value != null && !TextUtils.isEmpty(value)) {
+                return value
             }
         }
         val value = globalFields[fieldName]
-        return if (!TextUtils.isEmpty(value)) {
-            value!!
+        return if (value != null && !TextUtils.isEmpty(value)) {
+            value
         } else ""
     }
 
@@ -401,6 +444,15 @@ class Tracker private constructor(
         }
     }
 
+    fun trackError(message: String) {
+        trackException(message, object:Throwable() {
+            override fun fillInStackTrace(): Throwable {
+                stackTrace = arrayOf()
+                return this
+            }
+        })
+    }
+
     /**
      * Manually track an error exception caught by your code
      *
@@ -437,6 +489,7 @@ class Tracker private constructor(
     enum class BTErrorType(val value: String) {
         NativeAppCrash("NativeAppCrash"),
         ANRWarning("ANRWarning"),
+        MemoryWarning("MemoryWarning")
     }
 
     fun raiseTestException() {

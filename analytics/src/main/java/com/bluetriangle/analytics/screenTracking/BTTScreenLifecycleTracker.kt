@@ -13,34 +13,34 @@ internal class BTTScreenLifecycleTracker(private val screenTrackingEnabled: Bool
     private val TAG = this::class.java.simpleName
 
     override fun onLoadStarted(screen: Screen) {
-        if(!screenTrackingEnabled) return
+        if (!screenTrackingEnabled) return
         logD(TAG, "onLoadStarted: $screen")
         timers[screen.toString()] = Timer(screen.name, "ScreenTracker").start()
         loadTime[screen.toString()] = System.currentTimeMillis()
     }
 
     override fun onLoadEnded(screen: Screen) {
-        if(!screenTrackingEnabled) return
+        if (!screenTrackingEnabled) return
         logD(TAG, "onLoadEnded: $screen")
-        if(timers[screen.toString()] == null) {
+        if (timers[screen.toString()] == null) {
             timers[screen.toString()] = Timer(screen.name, "ScreenTracker").start()
             loadTime[screen.toString()] = System.currentTimeMillis()
         }
     }
 
     override fun onViewStarted(screen: Screen) {
-        if(!screenTrackingEnabled) return
+        if (!screenTrackingEnabled) return
         logD(TAG, "onViewStarted: $screen")
         viewTime[screen.toString()] = System.currentTimeMillis()
     }
 
     override fun onViewEnded(screen: Screen) {
-        if(!screenTrackingEnabled) return
+        if (!screenTrackingEnabled) return
         logD(TAG, "onViewEnded: $screen")
         val scr = screen.toString()
         val timer = timers[scr] ?: return
-        val loadTm = loadTime[scr]?:0L
-        val viewTm = viewTime[scr]?:0L
+        val loadTm = loadTime[scr] ?: 0L
+        val viewTm = viewTime[scr] ?: 0L
         val disappearTm = System.currentTimeMillis()
 
         timer.pageTimeCalculator = {

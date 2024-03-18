@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+    <data>
+        <variable
+            name="pocHandler"
+            type="com.bluetriangle.android.demo.NetworkPocHandler" />
+    </data>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        tools:context=".NetworkPocActivity">
+
+        <Button
+            android:id="@+id/getAPI"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Get API" />
+
+        <Button
+            android:id="@+id/postAPI"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Post API" />
+        <Button
+            android:id="@+id/api404"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="404 API" />
+
+        <Button
+            android:id="@+id/failingAtDns"
+            android:onClick="@{pocHandler::failingAtDns}"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Failing at DNS" />
+
+        <Button
+            android:id="@+id/failingAtConnection"
+            android:onClick="@{pocHandler::failingAtConnection}"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Failing at connection" />
+
+        <Button
+            android:id="@+id/connectionTimeout"
+            android:onClick="@{pocHandler::connectionTimeout}"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Connection Timeout" />
+        <Button
+            android:id="@+id/failingAtRequest"
+            android:onClick="@{pocHandler::failingAtRequest}"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Failing at Request" />
+        <Button
+            android:id="@+id/failingAtResponse"
+            android:onClick="@{pocHandler::failingAtResponse}"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Failing at Response" />
+
+        <Button
+            android:id="@+id/failingAtTLS"
+            android:onClick="@{pocHandler::failingAtTLS}"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Failing at TLS" />
+        <Button
+            android:id="@+id/redirectRequest"
+            android:onClick="@{pocHandler::redirectRequest}"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Redirect Request" />
+
+
+    </LinearLayout>
+</layout>

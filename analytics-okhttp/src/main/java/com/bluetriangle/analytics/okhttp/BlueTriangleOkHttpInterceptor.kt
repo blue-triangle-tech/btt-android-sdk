@@ -32,20 +32,4 @@ class BlueTriangleOkHttpInterceptor(private val configuration: BlueTriangleConfi
         return response
     }
 
-    fun requestTypeFromMediaType(filePathSegment: String?, mediaType: MediaType?): RequestType {
-        if (mediaType != null) {
-            // try content sub type first
-            if (mediaType.type == "application" || mediaType.type == "text") {
-                kotlin.runCatching {
-                    return RequestType.valueOf(mediaType.subtype.lowercase(Locale.getDefault()))
-                }
-            }
-
-            // try media type next
-            kotlin.runCatching { return RequestType.valueOf(mediaType.type) }
-        }
-
-        // try based on the URL file extension
-        return RequestType.fromFilePath(filePathSegment)
-    }
 }

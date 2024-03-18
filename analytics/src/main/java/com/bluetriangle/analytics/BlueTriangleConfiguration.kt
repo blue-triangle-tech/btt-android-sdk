@@ -1,6 +1,8 @@
 package com.bluetriangle.analytics
 
+import android.Manifest
 import android.util.Log
+import androidx.annotation.RequiresPermission
 import java.util.concurrent.TimeUnit
 
 class BlueTriangleConfiguration {
@@ -86,10 +88,28 @@ class BlueTriangleConfiguration {
             return field
         }
 
+    /**
+     * Enable or Disable automatic crash detection and reporting
+     */
     var isTrackCrashesEnabled = false
 
+    /**
+     * Enable or disable monitoring and reporting performance metrics
+     */
     var isPerformanceMonitorEnabled = false
+
+    /**
+     * Enable or disable memory warning detection and reporting
+     */
+    var isMemoryWarningEnabled = false
+
+    /**
+     * Set the sampling interval for performance monitoring in milliseconds
+     */
     var performanceMonitorIntervalMs = TimeUnit.SECONDS.toMillis(1)
+        set(value) {
+            field = value.coerceAtLeast(500L)
+        }
 
     /**
      * Enable or disable ANR detection and sending reports to the server.
@@ -101,12 +121,51 @@ class BlueTriangleConfiguration {
      */
     var trackAnrIntervalSec = Constants.ANR_DEFAULT_INTERVAL
 
+    /**
+     * Enable or disable automatic tracking and reporting of page views for Activity and Fragments.
+     * For Jetpack compose use BttTimerEffect
+     */
     var isScreenTrackingEnabled: Boolean = false
+
+    /**
+     * Enable or disable tracking and reporting launch time.
+     * Supported on API Level 29 and above
+     */
     var isLaunchTimeEnabled: Boolean = false
+
+    var cacheExpiryDuration = EXPIRATION_IN_MILLIS
+        set(value) {
+            field = value.coerceAtLeast(MIN_EXPIRY_DURATION).coerceAtMost(MAX_EXPIRY_DURATION)
+        }
+
+    var cacheMemoryLimit = MEMORY_LIMIT
+        set(value) {
+            field = value.coerceAtLeast(MIN_MEMORY_LIMIT).coerceAtMost(MAX_MEMORY_LIMIT)
+        }
+
+
+    /**
+     * Track the network state during Timer, Network request and errors. States include wifi, cellular, ethernet and offline.
+     * Default value is false.
+     * Requires host app to have ACCESS_NETWORK_STATE permission.
+     */
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
+    var isTrackNetworkStateEnabled: Boolean = false
 
     companion object {
         const val DEFAULT_TRACKER_URL = "https://d.btttag.com/analytics.rcv"
         const val DEFAULT_ERROR_REPORTING_URL = "https://d.btttag.com/err.rcv"
         const val DEFAULT_NETWORK_CAPTURE_URL = "https://d.btttag.com/wcdv02.rcv"
+
+        private const val KB = 1024L
+        private const val MB = 1024 * 1024L
+        private const val MIN = 60 * 1000L
+        private const val HOUR = 60 * MIN
+        private const val MIN_MEMORY_LIMIT = 5 * KB
+        private const val MAX_MEMORY_LIMIT = 300 * MB
+        private const val MEMORY_LIMIT = 30 * MB
+        private val MIN_EXPIRY_DURATION = 1 * MIN
+        private val EXPIRATION_IN_MILLIS = 48 * HOUR
+        private val MAX_EXPIRY_DURATION = 240 * HOUR
     }
 }
