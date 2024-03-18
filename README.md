@@ -374,7 +374,7 @@ or by adding the following meta-data in your `AndroidManifest.xml` file.
 
 ## Memory Warning
 
-Memory warning is an error that is reported when the code uses up more than 80% of the app's available memory.
+Memory warning is an error that is reported when the code uses up more than 80% of the app's available memory (heap capacity).
 
 To enable memory warning, use the `isMemoryWarningEnabled` property on the configuration object as follows:
 
@@ -409,11 +409,19 @@ val configuration = BlueTriangleConfiguration()
 configuration.isTrackNetworkStateEnabled = true
 ```
 
-Also, Network state capturing requires `android.permission.ACCESS_NETWORK_STATE` permission. So, include the permission into your `AndroidManifest.xml` file as follows:
+or add the following meta-data:
+
+```xml
+<meta-data android:name="com.blue-triangle.track-network-state.enable" android:value="true"/>
+```
+
+Network state capturing requires `android.permission.ACCESS_NETWORK_STATE` permission. So, include the permission into your `AndroidManifest.xml` file as follows:
 
 ```xml
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 ```
+
+> If Network state capture is enabled and `ACCESS_NETWORK_STATE` permission is not granted, then the SDK won't track network state as it won't be able to.
 
 ## WebView Tracking
 
@@ -421,7 +429,7 @@ Websites integrated in native application that are tracked by BlueTriangle can b
 same session as the
 native app. To achieve this, follow the steps below to configure the WebView:
 
-1. Implement a WebViewClient and call BTTWebViewTracker.onLoadResource
+1. Implement a WebViewClient as shown below:
 
 ```kotlin
 class BTTWebViewClient : WebViewClient() {
@@ -433,8 +441,10 @@ class BTTWebViewClient : WebViewClient() {
 
 }
 ```
+or if you already have a WebViewClient, just call the `BTTWebViewTracker.onLoadResource(view, url)` in it's onLoadResource method.
 
-2. Enable Dom Storage and set the WebViewClient
+
+2. Enable JavaScript and Dom Storage and set the WebViewClient
 
 ```kotlin 
 val webView = getWebViewInstance()
