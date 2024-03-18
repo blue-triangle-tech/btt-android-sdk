@@ -421,7 +421,9 @@ Network state capturing requires `android.permission.ACCESS_NETWORK_STATE` permi
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 ```
 
-> If Network state capture is enabled and `ACCESS_NETWORK_STATE` permission is not granted, then the SDK won't track network state as it won't be able to.
+> Note:
+> 1. If Network state capture is enabled and `ACCESS_NETWORK_STATE` permission is not granted, then the SDK won't track network state as it won't be able to.
+> 2. This feature is only available on API Level 21 and above
 
 ## WebView Tracking
 
