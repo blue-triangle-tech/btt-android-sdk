@@ -33,7 +33,7 @@ Add the package dependency to your application's `build.gradle` file:
 ```
 dependencies {
     ...
-    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.8.1'
+    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.9.0'
 }
 ```
 
