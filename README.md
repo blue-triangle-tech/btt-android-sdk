@@ -317,29 +317,40 @@ To support offline usage tracking, timer and crash reports that cannot be sent i
 cached in the application's cache directory and retried when a successful submission of a timer
 occurs.
 
-To configure cache, add the following meta-data:
+**Memory Limit**
 
-```xml
-<meta-data android:name="com.blue-triangle.cache.max-items" android:value="100"/>
-<meta-data android:name="com.blue-triangle.cache.max-retry-attempts" android:value="3"/>
-```
-
-or set the following properties in rhe configuration object:
+The amount of memory the cache uses (in bytes) can be configured using the `cacheMemoryLimit` property of the
+configuration object:
 
 ```kotlin
 val configuration = BlueTriangleConfiguration()
-configuration.maxCacheItems = 100
-configuration.maxAttempts = 3
+configuration.cacheMemoryLimit = 200000L
+```
+or by setting the following meta-data in the `AndroidManifest.xml`:
+
+```xml
+<meta-data android:name="com.blue-triangle.cache.memory-limit" value="200000"></meta-data>
 ```
 
-The max number of timer and crashes to cache can be configured and this feature can be completely
-disabled by setting the max cache items configuration to 0. The default is 100.
+If new data is sent to the cache after the memory limit exceeds, the cache deletes the oldest data
+and then adds the new data. So, only the most recently captured user data is tracked by the cache. By default the memory limit is 30Mb.
 
-If the cache becomes full, the cache will be rotated to remove the oldest item and insert the newest
-item.
+**Expiry Duration**
 
-Also, the max number of retry attempts can be configured per timer/crash report as well. If the max
-number of retries is exceeded, the timer/crash is dropped. The default is 3 tries.
+The amount of time (in milliseconds) the data is kept in the cache before it expires can be configured using the `cacheExpiryDuration` property of the configuration object:
+
+```kotlin
+val configuration = BlueTriangleConfiguration()
+configuration.cacheExpiryDuration = 86400000L
+```
+
+or by setting the following meta-data in the `AndroidManifest.xml`:
+
+```xml
+<meta-data android:name="com.blue-triangle.cache.expiry" value="86400000"></meta-data>
+```
+
+The data that is kept longer in cache than the expiry duration is automatically deleted. By default the expiry duration is 48 hours.
 
 ## Launch Time
 
@@ -403,3 +414,33 @@ Also, Network state capturing requires `android.permission.ACCESS_NETWORK_STATE`
 ```xml
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 ```
+
+## WebView Tracking
+
+Websites integrated in native application that are tracked by BlueTriangle can be tracked in the
+same session as the
+native app. To achieve this, follow the steps below to configure the WebView:
+
+1. Implement a WebViewClient and call BTTWebViewTracker.onLoadResource
+
+```kotlin
+class BTTWebViewClient : WebViewClient() {
+
+    override fun onLoadResource(view: WebView?, url: String?) {
+        super.onLoadResource(view, url)
+        BTTWebViewTracker.onLoadResource(view, url)
+    }
+
+}
+```
+
+2. Enable Dom Storage and set the WebViewClient
+
+```kotlin 
+val webView = getWebViewInstance()
+webView.settings.javascriptEnabled = true
+webView.settings.domStorageEnabled = true
+webView.webViewClient = BTTWebViewClient()
+```
+
+
