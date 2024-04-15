@@ -28,11 +28,6 @@ class PayloadCache(private val configuration: BlueTriangleConfiguration) {
     private var cacheMemoryLimit = configuration.cacheMemoryLimit
 
     private val directory: File = File(configuration.cacheDirectory!!)
-    private var maxSize = if (isDirectoryValid) {
-        configuration.maxCacheItems
-    } else {
-        0
-    }
     private val memoryLimitVerifier =
         MemoryLimitVerifier(configuration.logger, cacheMemoryLimit, directory)
     private val classifier: Classifier =
