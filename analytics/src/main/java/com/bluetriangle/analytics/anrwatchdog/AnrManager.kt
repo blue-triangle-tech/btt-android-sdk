@@ -3,6 +3,7 @@ package com.bluetriangle.analytics.anrwatchdog
 import com.bluetriangle.analytics.BlueTriangleConfiguration
 import com.bluetriangle.analytics.CrashRunnable
 import com.bluetriangle.analytics.Timer
+import com.bluetriangle.analytics.Timer.Companion.FIELD_PAGE_NAME
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.Utils
 
@@ -31,6 +32,8 @@ internal class AnrManager constructor(private val configuration: BlueTriangleCon
         val timeStamp = System.currentTimeMillis().toString()
         val mostRecentTimer = Tracker.instance?.getMostRecentTimer()
         val crashHitsTimer: Timer = Timer().startWithoutPerformanceMonitor()
+
+        crashHitsTimer.setPageName(mostRecentTimer?.getField(FIELD_PAGE_NAME)?:Tracker.BTErrorType.ANRWarning.value)
         if(mostRecentTimer != null) {
             mostRecentTimer.generateNativeAppProperties()
             crashHitsTimer.nativeAppProperties = mostRecentTimer.nativeAppProperties

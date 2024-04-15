@@ -6,7 +6,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.bluetriangle.android.demo.databinding.ActivityHomeBinding
 import com.bluetriangle.android.demo.java.JavaTestListActivity
+import com.bluetriangle.android.demo.kotlin.HybridDemoLayoutActivity
 import com.bluetriangle.android.demo.kotlin.KotlinTestListActivity
+import com.bluetriangle.android.demo.tests.LaunchTestScenario
 
 class HomeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,5 +33,22 @@ class HomeActivity : AppCompatActivity() {
                 )
             )
         }
+        binding.btnNetworkPOC.setOnClickListener {
+            startActivity(
+                Intent(
+                    this,
+                    NetworkPocActivity::class.java
+                )
+            )
+        }
+        binding.btnHybridTest.setOnClickListener {
+            startActivity(
+                Intent(
+                    this,
+                    HybridDemoLayoutActivity::class.java
+                )
+            )
+        }
+        DemoApplication.checkLaunchTest(LaunchTestScenario.OnActivityCreate)
     }
 }

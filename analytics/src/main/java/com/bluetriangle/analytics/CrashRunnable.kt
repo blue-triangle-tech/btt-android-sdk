@@ -1,6 +1,11 @@
 package com.bluetriangle.analytics
 
 import android.net.Uri
+import android.os.Build
+import com.bluetriangle.analytics.Constants.TIMER_MIN_PGTM
+import com.bluetriangle.analytics.networkcapture.CapturedRequest
+import com.bluetriangle.analytics.utility.value
+import com.bluetriangle.analytics.caching.classifier.CacheType
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -38,6 +43,7 @@ internal class CrashRunnable(
     private val errorType: Tracker.BTErrorType = Tracker.BTErrorType.NativeAppCrash,
 
     private val mostRecentTimer: Timer? = null,
+    private val errorCount:Int = 1
 ) : Runnable {
     override fun run() {
         submitTimer()
@@ -46,11 +52,16 @@ internal class CrashRunnable(
 
     private fun submitTimer() {
         val tracker = Tracker.instance
+        crashHitsTimer.pageTimeCalculator = {
+            TIMER_MIN_PGTM
+        }
         crashHitsTimer.end()
         crashHitsTimer.setField(Timer.FIELD_EXCLUDED, "20")
-        crashHitsTimer.setPageName(
-            mostRecentTimer?.getField(Timer.FIELD_PAGE_NAME) ?: Constants.CRASH_PAGE_NAME
-        )
+        if (errorType == Tracker.BTErrorType.NativeAppCrash) {
+            crashHitsTimer.setPageName(
+                mostRecentTimer?.getField(Timer.FIELD_PAGE_NAME) ?: Constants.CRASH_PAGE_NAME
+            )
+        }
         crashHitsTimer.setFields(tracker?.globalFields?.toMap() ?: emptyMap())
         val timerRunnable = TimerRunnable(configuration, crashHitsTimer)
         timerRunnable.run()
@@ -159,9 +170,15 @@ internal class CrashRunnable(
      * @param payloadData payload data to send
      */
     private fun cachePayload(url: String, payloadData: String) {
-        if (errorType == Tracker.BTErrorType.ANRWarning) return
         configuration.logger?.info("Caching crash report")
-        configuration.payloadCache?.cachePayload(Payload(url = url, data = payloadData))
+        configuration.payloadCache?.save(
+            Payload(
+                url = url,
+                data = payloadData,
+                type = CacheType.Error,
+                createdAt = System.currentTimeMillis()
+            )
+        )
     }
 
     /**
@@ -170,17 +187,24 @@ internal class CrashRunnable(
      * @return base 64 encoded JSON payload
      */
     private fun buildCrashReportData(): String {
-        val crashReport = mapOf(
+        val crashReport = mutableMapOf<String, Any?>(
             "msg" to stackTrace,
             "eTp" to errorType.value,
-            "eCnt" to "1",
+            "eCnt" to errorCount.toString(),
             "url" to configuration.applicationName,
             "line" to "1",
             "col" to "1",
             "time" to timeStamp,
         )
 
-        val crashDataArray = JSONArray(listOf(JSONObject(crashReport)))
+        val netStateMonitor = Tracker.instance?.networkStateMonitor
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && netStateMonitor != null) {
+            crashReport[Timer.FIELD_NATIVE_APP] = mapOf(
+                CapturedRequest.FIELD_NETWORK_STATE to netStateMonitor.state.value.value
+            )
+        }
+
+        val crashDataArray = JSONArray(listOf(JSONObject(crashReport.toMap())))
         val jsonData = crashDataArray.toString(if (configuration.isDebug) 2 else 0)
         configuration.logger?.debug("Crash Report Data: $jsonData")
         return jsonData

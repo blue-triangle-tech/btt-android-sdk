@@ -15,6 +15,7 @@ import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.MutableLiveData;
 
 import com.bluetriangle.analytics.Timer;
+import com.bluetriangle.analytics.okhttp.NetworkTracker;
 import com.bluetriangle.android.demo.DemoApplication;
 import com.bluetriangle.android.demo.HomeActivity;
 import com.bluetriangle.android.demo.R;
@@ -22,6 +23,8 @@ import com.bluetriangle.android.demo.databinding.ActivityAnrTestJavaBinding;
 import com.bluetriangle.android.demo.tests.ANRTest;
 import com.bluetriangle.android.demo.tests.ANRTestFactory;
 import com.bluetriangle.android.demo.tests.ANRTestScenario;
+
+import okhttp3.OkHttpClient;
 
 public class ANRTestActivity extends AppCompatActivity {
     public static String TestScenario = "TestScenario";

@@ -15,3 +15,10 @@ enum class ANRTestScenario {
     OnApplicationCreate,
     Unknown
 }
+
+enum class LaunchTestScenario {
+    OnApplicationCreate,
+    OnActivityCreate,
+    OnActivityStart,
+    OnActivityResume
+}

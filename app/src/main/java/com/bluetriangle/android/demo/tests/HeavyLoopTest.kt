@@ -2,9 +2,7 @@ package com.bluetriangle.android.demo.tests
 
 import kotlin.random.Random
 
-class HeavyLoopTest : BTTTestCase {
-
-    var interval = 10L
+class HeavyLoopTest(var interval: Long = 10L) : BTTTestCase {
 
     override val title: String
         get() = "HeavyLoop $interval Sec."

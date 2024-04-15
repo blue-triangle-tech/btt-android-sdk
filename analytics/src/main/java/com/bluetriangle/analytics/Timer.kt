@@ -3,6 +3,9 @@ package com.bluetriangle.analytics
 import android.os.Parcel
 import android.os.Parcelable
 import com.bluetriangle.analytics.model.NativeAppProperties
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
+import com.bluetriangle.analytics.utility.getNumberOfCPUCores
 
 /**
  * A timer instance that can be started, marked interactive, and ended.
@@ -152,8 +155,19 @@ class Timer : Parcelable {
             null,
             null,
             performanceMonitor?.maxMainThreadUsage,
-            null
+            null,
+            getNumberOfCPUCores()
         )
+        Tracker.instance?.networkTimelineTracker?.let {
+            val networkSlice = it.sliceStats(
+                start,
+                if (end == 0L) System.currentTimeMillis() else end
+            )
+            nativeAppProperties.cellular = networkSlice.cellular
+            nativeAppProperties.wifi = networkSlice.wifi
+            nativeAppProperties.ethernet = networkSlice.ethernet
+            nativeAppProperties.offline = networkSlice.offline
+        }
     }
 
     /**
@@ -309,13 +323,16 @@ class Timer : Parcelable {
      */
     fun isInteractive(): Boolean = start > 0 && interactive > 0
 
+    fun onSubmit() {
+        performanceMonitor?.onTimerSubmit(this)
+    }
     /**
      * Convenience method to submit this timer to the global tracker
      */
     fun submit() {
         val tracker = Tracker.instance
         if (tracker != null) {
-            if(nativeAppProperties.loadTime == null) {
+            if (nativeAppProperties.loadTime == null) {
                 generateNativeAppProperties()
             }
             tracker.submitTimer(this)

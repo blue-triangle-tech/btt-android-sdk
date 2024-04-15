@@ -1,9 +1,17 @@
 package com.bluetriangle.analytics.networkcapture
 
+import android.os.Build
+import com.bluetriangle.analytics.Timer
+import com.bluetriangle.analytics.Timer.Companion.FIELD_NATIVE_APP
 import com.bluetriangle.analytics.Tracker
+import com.bluetriangle.analytics.networkstate.BTTNetworkState
+import com.bluetriangle.analytics.utility.value
 import java.net.URI
+import org.json.JSONObject
 
 class CapturedRequest {
+    var nativeAppProperties: NetworkNativeAppProperties? = null
+
     /**
      * entry type. Fixed value of "resource".
      */
@@ -32,7 +40,7 @@ class CapturedRequest {
             value?.let {
                 val parsedUri = URI(it)
                 host = parsedUri.host
-                file = parsedUri.path.split("/").filter { segment -> segment.isNotEmpty() }.last()
+                file = parsedUri.path.split("/").lastOrNull { segment -> segment.isNotEmpty() }
             }
         }
 
@@ -76,27 +84,44 @@ class CapturedRequest {
      */
     var responseStatusCode: Int? = null
 
-    val payload: Map<String, String?>
+    /**
+     * The Network State while the network call was happening
+     */
+    private var networkState: BTTNetworkState? = null
+
+    val payload: JSONObject
         get() {
-            val payload = mutableMapOf(
-                FIELD_ENTRY_TYPE to entryType,
-                FIELD_DOMAIN to domain,
-                FIELD_HOST to host,
-                FIELD_URL to url,
-                FIELD_FILE to file,
-                FIELD_START_TIME to startTime.toString(),
-                FIELD_END_TIME to endTime.toString(),
-                FIELD_DURATION to duration.toString(),
-                FIELD_REQUEST_TYPE to requestType?.name,
-                FIELD_DECODED_BODY_SIZE to decodedBodySize.toString(),
-                FIELD_ENCODED_BODY_SIZE to encodedBodySize.toString(),
+            val payload = JSONObject(
+                mapOf(
+                    FIELD_ENTRY_TYPE to entryType,
+                    FIELD_DOMAIN to domain,
+                    FIELD_HOST to host,
+                    FIELD_URL to url,
+                    FIELD_FILE to file,
+                    FIELD_START_TIME to startTime.toString(),
+                    FIELD_END_TIME to endTime.toString(),
+                    FIELD_DURATION to duration.toString(),
+                    FIELD_REQUEST_TYPE to requestType?.name,
+                    FIELD_DECODED_BODY_SIZE to decodedBodySize.toString(),
+                    FIELD_ENCODED_BODY_SIZE to encodedBodySize.toString()
+                )
             )
 
-            responseStatusCode?.let { code ->
-                payload[FIELD_RESPONSE_CODE] = code.toString()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                payload.put(
+                    FIELD_NATIVE_APP, JSONObject(mapOf(FIELD_NETWORK_STATE to networkState?.value.toString()))
+                )
             }
 
-            return payload.toMap()
+            responseStatusCode?.let { code ->
+                payload.put(FIELD_RESPONSE_CODE, code.toString())
+            }
+
+            nativeAppProperties?.let {
+                payload.put(FIELD_NATIVE_APP, it.toJSONObject())
+            }
+
+            return payload
         }
 
     /**
@@ -105,6 +130,9 @@ class CapturedRequest {
     fun start() {
         if (startTime == 0L) {
             startTime = System.currentTimeMillis()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                networkState = Tracker.instance?.networkStateMonitor?.state?.value
+            }
         }
     }
 
@@ -152,5 +180,6 @@ class CapturedRequest {
         const val FIELD_DECODED_BODY_SIZE = "dz"
         const val FIELD_ENCODED_BODY_SIZE = "ez"
         const val FIELD_RESPONSE_CODE = "rCd"
+        const val FIELD_NETWORK_STATE = "netState"
     }
 }

@@ -27,16 +27,16 @@ internal class PayloadRunnable(private val configuration: BlueTriangleConfigurat
             val statusCode = connection.responseCode
             if (statusCode >= 300) {
                 val responseBody = BufferedReader(InputStreamReader(connection.errorStream)).use { it.readText() }
-                configuration.logger?.error("HTTP Error $statusCode submitting payload ${payload.id}: $responseBody")
+                configuration.logger?.error("HTTP Error $statusCode submitting payload $payload : $responseBody")
                 // If server error, cache the payload and try again later
                 if (statusCode >= 500) {
                     cachePayload()
                 }
             } else {
-                configuration.logger?.debug("Cached payload ${payload.id} submitted successfully")
+                configuration.logger?.debug("Cached payload $payload submitted successfully")
 
                 // successfully submitted a timer, lets check if there are any cached timers that we can try and submit too
-                val nextCachedPayload = configuration.payloadCache?.nextCachedPayload
+                val nextCachedPayload = configuration.payloadCache?.pickNext()
                 if (nextCachedPayload != null) {
                     Tracker.instance?.submitPayload(nextCachedPayload)
                 }
@@ -54,7 +54,11 @@ internal class PayloadRunnable(private val configuration: BlueTriangleConfigurat
      * Cache the payload to try again in the future
      */
     private fun cachePayload() {
+        if (payload.payloadAttempts >= configuration.maxAttempts) {
+            configuration.logger?.warn("Payload ${payload.id} has exceeded max attempts ${payload.payloadAttempts}")
+            return
+        }
         configuration.logger?.info("Caching crash report")
-        configuration.payloadCache?.cachePayload(payload)
+        configuration.payloadCache?.save(payload.copy(payloadAttempts = payload.payloadAttempts + 1))
     }
 }

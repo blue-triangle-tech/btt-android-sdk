@@ -40,7 +40,7 @@ class CapturedRequestCollection(
     }
 
     fun buildCapturedRequestData(indentSpaces: Int): String {
-        val requests = JSONArray(capturedRequests.map { JSONObject(it.payload) })
+        val requests = JSONArray(capturedRequests.map { it.payload })
         return requests.toString(indentSpaces)
     }
 
