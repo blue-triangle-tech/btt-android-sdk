@@ -35,7 +35,7 @@ Add the package dependency to your application's `build.gradle` file:
 ```groovy
 dependencies {
     //...
-    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.9.0'
+    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.10.0'
 }
 ```
 
@@ -44,7 +44,7 @@ dependencies {
 If project uses gradle plugin version 8.2.0 and above, use exclude with dependency like below.
 
 ```groovy
-implementation("com.github.blue-triangle-tech:btt-android-sdk:2.9.0") {
+implementation("com.github.blue-triangle-tech:btt-android-sdk:2.10.0") {
     exclude("com.squareup.okhttp3", "okhttp-bom")
 }
 ```
