@@ -2,14 +2,16 @@
 
 [![jitpack.io build status](https://jitpack.io/v/blue-triangle-tech/btt-android-sdk.svg)](https://jitpack.io/#blue-triangle-tech/btt-android-sdk)
 
-## Installation
+## Getting Started
+
+### Installation
 
 Add the Maven repository to the project's `build.gradle` file:
 
-```
+```groovy
 allprojects {
 	repositories {
-		...
+		//...
 		maven { url 'https://jitpack.io' }
 	}
 }
@@ -17,9 +19,9 @@ allprojects {
 
 **Or** `settings.gradle` file:
 
-```
+```groovy
 dependencyResolutionManagement {
-    ...
+    //...
     repositories {
         google()
         mavenCentral()
@@ -30,85 +32,83 @@ dependencyResolutionManagement {
 
 Add the package dependency to your application's `build.gradle` file:
 
-```
+```groovy
 dependencies {
-    ...
+    //...
     implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.9.0'
 }
 ```
 
+**Note: For Gradle Plugin Version 8.2.0+**
 
+If project uses gradle plugin version 8.2.0 and above, use exclude with dependency like below.
 
-
-## Using the Analytics library
-
-### Initializing the Tracker
-
-The `Tracker` is a singleton instance that is responsible for sending timers to Blue Triangle.
-Before any timers can be tracked, the `Tracker` needs to be initialized.
-
-The best place to do this in the Android `Application`. In the `Application`, the tracker can be
-initialized via the `init` static methods.
-
-If a site ID is not set during the initialization, it will attempt to look up the site ID via the
-application's meta-data (as well as fallback to the deprecated String resource lookup). If a tracker
-URL is not provided, the default tracker URL will be used.
-
-```xml
-
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application>
-        <meta-data android:name="com.blue-triangle.site-id" android:value="SITE_ID_HERE"/>
-    </application>
-</manifest>
-```
-
-```java
-// init with all defaults, use site ID from meta data
-Tracker.init(getApplicationContext());
-// init with given site ID
-        Tracker.init(getApplicationContext(),"BTT_SITE_ID");
-// init with given site ID and tracker URL
-        Tracker.init(getApplicationContext(),"BTT_SITE_ID","https://webhook.site/5afd62e7-acde-4cf3-825c-c40c491b0714");
+```groovy
+implementation("com.github.blue-triangle-tech:btt-android-sdk:2.9.0") {
+    exclude("com.squareup.okhttp3", "okhttp-bom")
+}
 ```
 
 ### Configuration
 
-Blue Triangle SDK allows you to enable/disable or configure to certain features through the
-use of configurations. Each feature mentioned in this document provides ways to customize it through available
-configurations.
-There are two possible ways to use any configuration:
+In order to start using the SDK, you need to first configure the SDK. To do that, perform the following steps:
 
-1. **Programmatically**<br/>
-   For each configuration, there is a property in the `BlueTriangleConfiguration`. To apply configuration
-   programmatically, set the corresponding property while initializing the
-   SDK. [See Initialization](#initializing-the-tracker).
+1. Add BlueTriangle site ID metadata in the manifest as follows
 
-   For instance, to enable logging programmatically, the initialization code will look like below:
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <meta-data android:name="com.blue-triangle.site-id" android:value="<BTT_SITE_ID>"/>
+        
+        <!-- Your other manifest stuff goes here -->
+    </application>
+</manifest>
+```
 
-   ```kotlin
-   val config = BlueTriangleConfiguration()
-   config.isDebug = true
-   Tracker.init(application, config)
-   ```
+2. Initialize the Tracker in your Application class's onCreate as follows
 
-2. **Manifest Meta-data**<br/>
-   To provide the configuration in AndroidManifest.xml, add `<meta-data>` tags inside the `<application>` tag as
-   follows:
+```kotlin
+import android.app.Application
+import com.bluetriangle.analytics.Tracker // Import BlueTriangle Tracker
+//...
 
-   ```xml
-   <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-       <application>
-           <meta-data android:name="<configuration-name>" android:value="<configuration-value>"/>
-       </application>
-   </manifest>
-   ```
+class YourApplication:Application() {
 
-> **Note:** <br/>
-> If you provide configuration both in AndroidManifest.xml and through BlueTriangleConfiguration object, then
-> the value from the AndroidManifest.xml meta-data will be given precedence.
+    override fun onCreate() {
+        super.onCreate()
+        
+        Tracker.init(this) // Initialize the BlueTriangle Tracker
+        
+        //...
+        
+    }
+    
+}
+```
 
-### Using Timers
+Alternatively, if you don't want to add meta-data in your Manifest file, you can provide the site ID programmatically as follows
+
+```kotlin
+import android.app.Application
+import com.bluetriangle.analytics.Tracker // Import BlueTriangle Tracker
+//...
+
+class YourApplication:Application() {
+
+    override fun onCreate() {
+        super.onCreate()
+        Tracker.init(this, "<BTT_SITE_ID>") // Initialize the BTT SDK with the given site ID
+
+        //...
+        
+    }
+    
+}
+```
+
+Replace `<BTT_SITE_ID>` with your **site ID**. You can find instructions on how to find your **site ID** [**here**](https://help.bluetriangle.com/hc/en-us/articles/28809592302483-How-to-find-your-Site-ID-for-the-BTT-SDK).
+
+## Using Timers
 
 Timers are simple data objects that contain the associated times, fields related to the timer
 instance, and methods to start, mark interactive, and end a timer. Fields associated with the timer
@@ -160,28 +160,13 @@ The timer's fields are then converted to JSON and sent via HTTP POST to the conf
 
 ## Screen View Tracking
 
-Screen tracking captures screen views which can be seen on our dashboard. Screen tracking can be enabled
-using `isScreenTrackingEnabled` configuration flag as shown below.
-
-```kotlin
-val configuration = BlueTriangleConfiguration()
-configuration.isScreenTrackingEnabled = true
-```
-
-or by adding the following meta-data:
-
-```xml
-
-<meta-data android:name="com.blue-triangle.screen-tracking.enable" android:value="false"/>
-```
-
-All activities and fragments will be captured automatically. You will see fragment and activity class names on our
+Screen tracking automatically captures all activities and fragments in your app. You will see fragment and activity class names on our
 dashboard with view count.
 
-For composables use our side-effect `BttTimerEffect(<screen name>)` like below. Unlike Activities and Fragments,
+**Tracking Composables**  
+If your app uses Jetpack Compose UI, use our side-effect `BttTimerEffect(<screen name>)` like below. Unlike Activities and Fragments,
 Composable screens are not automatically tracked. You need to call `BttTimerEffect` side-effect for each screen you want
-to track. The only parameter to this side-effect is screen name.
-
+to track. The only parameter to this side-effect is screen name.  
 ```kotlin
 @Composable
 fun UserProfileScreen() {
@@ -190,106 +175,93 @@ fun UserProfileScreen() {
 }
 ```
 
-For more such usage examples you can refer to our [Demo app](https://github.com/blue-triangle-tech/btt-android-demo).
-
 If your app is using both Composables and Fragments. Then for those composables which are added to fragment no need to
 use `BttTimerEffect`, because its fragment is automatically tracked.
 
+<br/>
+
+You can disable Screen tracking by adding the following meta-data:
+```xml
+<meta-data android:name="com.blue-triangle.screen-tracking.enable" android:value="false"/>
+```
+
+<br/>
+
 > **Note:**<br/>
-> Enabling screen tracking also allows co-relating errors and network requests with the screens. The crash or network
+> Screen tracking also allows co-relating errors and network requests with the screens. The crash or network
 > request associates screen name on which this crash or network request occurred. Thus, if screen tracking is disabled,
 > the page name of most recently started manual Timer's page name will be sent along with the crash or network request.
 
 ## ANR Detection
 
 The ANR Detector identifies blocks in the main thread over a specified period of time and reports them as Application
-Not Responding (ANR) incidents. ANR detection can be enabled by adding the `com.blue-triangle.track-anr.enable` metadata
-to the manifest file. Additionally, you can configure the interval duration that qualifies as an ANR state by using
-the `com.blue-triangle.track-anr.interval-sec` metadata.
-
-Alternatively, you can set these configurations in the `BlueTriangleConfiguration` object when initializing your Tracker
-instance as shown below.
-
-```kotlin
-val configuration = BlueTriangleConfiguration()
-configuration.isTrackAnrEnabled = true
-configuration.trackAnrIntervalSec = 3
-```
-
-or by adding the following meta-data:
+Not Responding (ANR) incidents. By default, the ANR is reported if your app's main thread is blocked for 5 seconds or more. You can modify this duration (in seconds) by setting
+the `com.blue-triangle.track-anr.interval-sec` metadata as follows:
 
 ```xml
-<meta-data android:name="com.blue-triangle.track-anr.enable" android:value="true"/>
 <meta-data android:name="com.blue-triangle.track-anr.interval-sec" android:value="5"/>
 ```
 
-By default, the ANR interval is set to 5 seconds.
+You can disable ANR detection by setting the following meta-data:
+
+```xml
+<meta-data android:name="com.blue-triangle.track-anr.enable" android:value="false"/>
+```
 
 ## Track Crashes
 
-The SDK provides automatic tracking and reporting of crashes. To enable this feature, just set
-the `isTrackCrashesEnabled` property to true in the configuration object as shown below:
-
-```kotlin
-val configuration = BlueTriangleConfiguration()
-configuration.isTrackCrashesEnabled = true
-```
-
-or add the following meta-data:
+The SDK automatically tracks and reports all crashes. To disable this feature, add the following meta-data:
 
 ```xml
-<meta-data android:name="com.blue-triangle.track-crashes.enable" android:value="true"/>
+<meta-data android:name="com.blue-triangle.track-crashes.enable" android:value="false"/>
 ```
 
 ## Network Capture
 
-The tracker now also supports capturing network requests. This can be done automatically
-using [OkHttp Interceptors](https://square.github.io/okhttp/features/interceptors/) or manually.
-
-#### Sample rate
-
-Sample rate defines the percentage of user sessions for which network calls will be captured. A value of 0.025 means
-that 2.5% of user session's network requests will be tracked.
-A value of 0.0 means that no network requests will be captured for any user sessions, and a value of 1.0 will track all
-network requests for all user sessions. Whether network requests will be
-tracked is determined on application start, and will either be set to on or off for the entirety of the user session.
-
-You can configure the sample rate by setting the `networkSampleRate` property in the configuration object as shown
-below:
-
-```kotlin
-val configuration = BlueTriangleConfiguration()
-configuration.networkSampleRate = 0.025
-```
-
-or by adding the following meta-data in your AndroidManifest.xml:
-
-```xml
-<meta-data android:name="com.blue-triangle.sample-rate.network" android:value="0.025"/>
-```
-
-The recommended setting is 1.0 to capture all network requests.
+Network capture refers to capturing of Http calls that are made through your app.
 
 ### OkHttp Support
 
-OkHttp support is provided out of the box with the SDK. Just add the `BlueTriangleOkHttpInterceptor` interceptor to
+The SDK provides plug and play support for OkHttp which allows you to easily track all your network requests going through an OkHttpClient. Just add the `BlueTriangleOkHttpInterceptor` interceptor and `BlueTriangleOkHttpEventListener` event listener to
 your `OkHttpClient` as follows:
 
 ```kotlin
+import com.bluetriangle.analytics.okhttp.BlueTriangleOkHttpInterceptor
+import com.bluetriangle.analytics.okhttp.BlueTriangleOkHttpEventListener
+//...
+
 val okHttpClient = OkHttpClient.Builder()
+    //...
+    // Add BlueTriangleOkHttpInterceptor
     .addInterceptor(BlueTriangleOkHttpInterceptor(Tracker.instance!!.configuration))
+    // Add BlueTriangleOkHttpEventListener
+    .eventListener(BlueTriangleOkHttpEventListener(Tracker.instance!!.configuration))
+    //...
     .build()
 ```
 
-The `BlueTriangleOkHttpInterceptor` will automatically handle capturing network requests and
-submitting them to the tracker.
+If your app already implements and sets an EventListener object to the OkHttpClient. The SDK provides a constructor for `BlueTriangleOkHttpEventListener` that takes in another EventListener object. You can use that as shown below:
+
+```kotlin
+val okHttpClient = OkHttpClient.Builder()
+    //...
+    // Add BlueTriangleOkHttpInterceptor
+    .addInterceptor(BlueTriangleOkHttpInterceptor(Tracker.instance!!.configuration))
+    // Add BlueTriangleOkHttpEventListener
+    .eventListener(BlueTriangleOkHttpEventListener(Tracker.instance!!.configuration, `<your event listener instance>`))
+    //...
+    .build()
+```
 
 ### Manual Network Capture
 
-For other network capture requirements, captured requests can be manually created and submitted to
-the tracker.
+If you are not using OkHttp or you don't want to track all requests done by OkHttp, you can manually track and submit network requests by using CapturedRequest object as shown below:
 
 ```kotlin
+// Import CapturedRequest
+import com.bluetriangle.analytics.networkcapture.CapturedRequest
+//...
+
 // create a captured request object
 val capturedRequest = CapturedRequest()
 // set the URL which also sets the host, domain, and file parameters that could be set otherwise
@@ -297,7 +269,7 @@ capturedRequest.url = "https://bluetriangle.com/platform/business-analytics/"
 // start timing the request
 capturedRequest.start()
 // make the network request
-// end timing the request
+// end timing the request on response/error 
 capturedRequest.stop()
 
 // (Optional) set HTTP response status code
@@ -311,6 +283,22 @@ capturedRequest.requestType = RequestType.html
 Tracker.instance?.submitCapturedRequest(capturedRequest)
 ```
 
+### Sample rate
+
+Sample rate defines the percentage of user sessions for which network calls will be captured. A value of 0.025 means
+that 2.5% of user session's network requests will be tracked.
+A value of 0.0 means that no network requests will be captured for any user sessions, and a value of 1.0 will track all
+network requests for all user sessions. Whether network requests will be
+tracked is determined on application start, and will either be set to on or off for the entirety of the user session.
+
+You can configure the sample rate by adding the following meta-data in your AndroidManifest.xml:
+
+```xml
+<meta-data android:name="com.blue-triangle.sample-rate.network" android:value="0.025"/>
+```
+
+The recommended setting is 1.0.
+
 ## Caching
 
 To support offline usage tracking, timer and crash reports that cannot be sent immediately will be
@@ -319,14 +307,7 @@ occurs.
 
 **Memory Limit**
 
-The amount of memory the cache uses (in bytes) can be configured using the `cacheMemoryLimit` property of the
-configuration object:
-
-```kotlin
-val configuration = BlueTriangleConfiguration()
-configuration.cacheMemoryLimit = 200000L
-```
-or by setting the following meta-data in the `AndroidManifest.xml`:
+The amount of memory the cache uses (in bytes) can be configured by setting the following meta-data in the `AndroidManifest.xml`:
 
 ```xml
 <meta-data android:name="com.blue-triangle.cache.memory-limit" value="200000"></meta-data>
@@ -337,14 +318,7 @@ and then adds the new data. So, only the most recently captured user data is tra
 
 **Expiry Duration**
 
-The amount of time (in milliseconds) the data is kept in the cache before it expires can be configured using the `cacheExpiryDuration` property of the configuration object:
-
-```kotlin
-val configuration = BlueTriangleConfiguration()
-configuration.cacheExpiryDuration = 86400000L
-```
-
-or by setting the following meta-data in the `AndroidManifest.xml`:
+The amount of time (in milliseconds) the data is kept in the cache before it expires can be configured by setting the following meta-data in the `AndroidManifest.xml`:
 
 ```xml
 <meta-data android:name="com.blue-triangle.cache.expiry" value="86400000"></meta-data>
@@ -355,15 +329,9 @@ The data that is kept longer in cache than the expiry duration is automatically 
 ## Launch Time
 
 The Launch Time feature tracks the time it took from the start of your app launch (i.e. onCreate of your Application
-class) to the time your app became fully interactive (i.e. The onResume of your launcher Activity). Launch time feature
-can be enabled using `isLaunchTimeEnabled` configuration flag as shown below.
+class) to the time your app became fully interactive (i.e. The onResume of your launcher Activity). 
 
-```kotlin
-val configuration = BlueTriangleConfiguration()
-configuration.isLaunchTimeEnabled = true
-```
-
-or by adding the following meta-data in your `AndroidManifest.xml` file.
+You can disable Launch Time feature by adding the following meta-data in your `AndroidManifest.xml` file.
 
 ```xml
 <meta-data android:name="com.blue-triangle.launch-time.enable" android:value="false"/>
@@ -374,19 +342,14 @@ or by adding the following meta-data in your `AndroidManifest.xml` file.
 
 ## Memory Warning
 
-Memory warning is an error that is reported when the code uses up more than 80% of the app's available memory (heap capacity).
+When the Java Virtual Machine cannot allocate an object because it is out of memory, and no more memory could be made available by the garbage collector, an OutOfMemoryError is thrown.
 
-To enable memory warning, use the `isMemoryWarningEnabled` property on the configuration object as follows:
+The SDK automatically tracks the memory consumption of your app and reports a Memory warning error if your code uses up more than 80% of the app's available memory (heap capacity).
 
-```kotlin
-val configuration = BlueTriangleConfiguration()
-configuration.isMemoryWarningEnabled = true
-```
-
-or add the following meta-data:
+To disable memory warning, add the following meta-data:
 
 ```xml
-<meta-data android:name="com.blue-triangle.memory-warning.enable" android:value="true"/>
+<meta-data android:name="com.blue-triangle.memory-warning.enable" android:value="false"/>
 ```
 
 ## OkHttp Dependency
@@ -398,7 +361,7 @@ implementation 'com.github.blue-triangle-tech.btt-android-sdk:btt-android-sdk:2.
 ```
 As a result, you won't be able to use `BlueTriangleOkHttpInterceptor` as mentioned in [OkHttp Support](#okhttp-support). Instead, you have to use [Manual Network Capture](#manual-network-capture).
 
-### Network State Capture
+## Network State Capture
 
 BlueTriangle SDK allows capturing of network state data. Network state refers to the availability of any network interfaces on the device. Network interfaces include wifi, ethernet, cellular, etc. Once Network state capturing is enabled, the Network state is associated with all Timers, Errors and Network Requests captured by the SDK. 
 
@@ -434,11 +397,17 @@ native app. To achieve this, follow the steps below to configure the WebView:
 1. Implement a WebViewClient as shown below:
 
 ```kotlin
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import com.bluetriangle.analytics.BTTWebViewTracker
+//...
+
 class BTTWebViewClient : WebViewClient() {
 
     override fun onLoadResource(view: WebView?, url: String?) {
         super.onLoadResource(view, url)
         BTTWebViewTracker.onLoadResource(view, url)
+        //...
     }
 
 }
@@ -449,10 +418,61 @@ or if you already have a WebViewClient, just call the `BTTWebViewTracker.onLoadR
 2. Enable JavaScript and Dom Storage and set the WebViewClient
 
 ```kotlin 
+//...
 val webView = getWebViewInstance()
 webView.settings.javascriptEnabled = true
 webView.settings.domStorageEnabled = true
 webView.webViewClient = BTTWebViewClient()
+//...
 ```
 
 
+**WebView tracking full example with Layout:**
+
+```kotlin
+import android.os.Bundle
+import android.webkit.WebView
+import androidx.appcompat.app.AppCompatActivity
+import com.bluetriangle.bluetriangledemo.utils.BTTWebViewClient
+import com.bluetriangle.bluetriangledemo.R
+
+class WebViewActivity : AppCompatActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_web_view)
+
+        val webView = findViewById<WebView>(R.id.webView)
+        webView.webViewClient = BTTWebViewClient() // Set BTTWebViewClient declared above
+        // Enable Javascript and DOM Storage
+        webView.settings.javaScriptEnabled = true
+        webView.settings.domStorageEnabled = true
+
+        binding?.webView?.loadUrl("https://www.bluetriangle.com/")
+    }
+}
+
+```
+
+**WebView tracking full example with Compose:**
+
+```kotlin
+import androidx.compose.runtime.Composable
+import android.webkit.WebView
+import androidx.compose.ui.viewinterop.AndroidView
+import com.bluetriangle.bluetriangledemo.utils.BTTWebViewClient
+
+@Composable
+fun WebViewScreen() {
+    AndroidView(factory = { context ->
+        WebView(context).apply {
+            webViewClient = BTTWebViewClient() // Set BTTWebViewClient declared above
+            // Enable Javascript and DOM Storage
+            settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
+        }
+    }, update = {
+        it.loadUrl("https://www.bluetriangle.com/")
+    })
+}
+```
