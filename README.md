@@ -365,23 +365,16 @@ As a result, you won't be able to use `BlueTriangleOkHttpInterceptor` as mention
 
 BlueTriangle SDK allows capturing of network state data. Network state refers to the availability of any network interfaces on the device. Network interfaces include wifi, ethernet, cellular, etc. Once Network state capturing is enabled, the Network state is associated with all Timers, Errors and Network Requests captured by the SDK. 
 
-To enable Network state capture, use the `isTrackNetworkStateEnabled` property on the configuration object as follows:
-
-```kotlin
-val configuration = BlueTriangleConfiguration()
-configuration.isTrackNetworkStateEnabled = true
-```
-
-or add the following meta-data:
-
-```xml
-<meta-data android:name="com.blue-triangle.track-network-state.enable" android:value="true"/>
-```
-
 Network state capturing requires `android.permission.ACCESS_NETWORK_STATE` permission. So, include the permission into your `AndroidManifest.xml` file as follows:
 
 ```xml
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+```
+
+To disable Network state capture, add the following meta-data:
+
+```xml
+<meta-data android:name="com.blue-triangle.track-network-state.enable" android:value="false"/>
 ```
 
 > Note:
