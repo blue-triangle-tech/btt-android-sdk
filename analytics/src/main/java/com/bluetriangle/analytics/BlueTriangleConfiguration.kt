@@ -50,7 +50,7 @@ class BlueTriangleConfiguration {
     var debugLevel = Log.DEBUG
     var logger: Logger? = null
         get() {
-            if (field == null) {
+            if (field == null && isDebug) {
                 field = AndroidLogger(debugLevel)
             }
             return field
@@ -70,6 +70,7 @@ class BlueTriangleConfiguration {
     /**
      * Max items in the cache
      */
+    @Deprecated(message = "Max cache items has been replaced in favor of cacheMemoryLimit", replaceWith = ReplaceWith("cacheMemoryLimit"))
     var maxCacheItems = 100
 
     /**
@@ -91,17 +92,17 @@ class BlueTriangleConfiguration {
     /**
      * Enable or Disable automatic crash detection and reporting
      */
-    var isTrackCrashesEnabled = false
+    var isTrackCrashesEnabled = true
 
     /**
      * Enable or disable monitoring and reporting performance metrics
      */
-    var isPerformanceMonitorEnabled = false
+    var isPerformanceMonitorEnabled = true
 
     /**
      * Enable or disable memory warning detection and reporting
      */
-    var isMemoryWarningEnabled = false
+    var isMemoryWarningEnabled = true
 
     /**
      * Set the sampling interval for performance monitoring in milliseconds
@@ -114,7 +115,7 @@ class BlueTriangleConfiguration {
     /**
      * Enable or disable ANR detection and sending reports to the server.
      */
-    var isTrackAnrEnabled: Boolean = false
+    var isTrackAnrEnabled: Boolean = true
 
     /**
      * time interval for ANR warning based on track ANR is enabled or disabled, default to 5 seconds, minimum is 3 second, if set less then minimum allowed set value is ignored
@@ -125,19 +126,25 @@ class BlueTriangleConfiguration {
      * Enable or disable automatic tracking and reporting of page views for Activity and Fragments.
      * For Jetpack compose use BttTimerEffect
      */
-    var isScreenTrackingEnabled: Boolean = false
+    var isScreenTrackingEnabled: Boolean = true
 
     /**
      * Enable or disable tracking and reporting launch time.
      * Supported on API Level 29 and above
      */
-    var isLaunchTimeEnabled: Boolean = false
+    var isLaunchTimeEnabled: Boolean = true
 
+    /**
+     * sets the duration after which a payload item in cache gets expired.
+     */
     var cacheExpiryDuration = EXPIRATION_IN_MILLIS
         set(value) {
             field = value.coerceAtLeast(MIN_EXPIRY_DURATION).coerceAtMost(MAX_EXPIRY_DURATION)
         }
 
+    /**
+     * sets the amounts of bytes the SDK can utilize for caching.
+     */
     var cacheMemoryLimit = MEMORY_LIMIT
         set(value) {
             field = value.coerceAtLeast(MIN_MEMORY_LIMIT).coerceAtMost(MAX_MEMORY_LIMIT)
@@ -150,7 +157,7 @@ class BlueTriangleConfiguration {
      * Requires host app to have ACCESS_NETWORK_STATE permission.
      */
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
-    var isTrackNetworkStateEnabled: Boolean = false
+    var isTrackNetworkStateEnabled: Boolean = true
 
     companion object {
         const val DEFAULT_TRACKER_URL = "https://d.btttag.com/analytics.rcv"
