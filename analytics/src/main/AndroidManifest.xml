@@ -1,4 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
-    <application/>
+    <application>
+        <provider
+            android:authorities="${applicationId}.bttprovider"
+            android:name=".BlueTriangleContentProvider"
+            android:exported="false"/>
+    </application>
 </manifest>

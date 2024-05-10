@@ -36,16 +36,11 @@ internal class NetworkTimelineTracker(private val networkStateMonitor: NetworkSt
     fun sliceStats(from:Long, to:Long):NetworkSliceStats {
         val networkStats = NetworkSliceStats(from, to)
         val networkSwitchesSnapshot = ArrayList(networkSwitches)
-        val baseLine = networkSwitchesSnapshot[0].startTimestamp
-//        Tracker.instance?.configuration?.logger?.debug("NetworkTimelineTracker: ${from - baseLine} - ${to - baseLine} : ${networkSwitchesSnapshot.map { "${it.startTimestamp - baseLine} : ${it.toState.value}" }}")
         for(switch in networkSwitchesSnapshot) {
             if(switch.overlaps(from, to)) {
-//                Tracker.instance?.configuration?.logger?.debug("NetworkTimelineTracker: Overlapping : ${from - baseLine} - ${to - baseLine} : ${switch.startTimestamp - baseLine} - ${switch.endTimestamp?.minus(baseLine)}: ${switch.toState.value}}")
                 val switchStart = switch.startTimestamp
                 val switchEnd = if(switch.endTimestamp == null) to else switch.endTimestamp!!
                 networkStats.add(switch.toState, switchEnd.coerceAtMost(to) - switchStart.coerceAtLeast(from))
-            } else {
-//                Tracker.instance?.configuration?.logger?.debug("NetworkTimelineTracker: Not Overlapping : ${from - baseLine} - ${to - baseLine} : ${switch.startTimestamp - baseLine} - ${switch.endTimestamp?.minus(baseLine)} : ${switch.toState.value}}")
             }
         }
         return networkStats

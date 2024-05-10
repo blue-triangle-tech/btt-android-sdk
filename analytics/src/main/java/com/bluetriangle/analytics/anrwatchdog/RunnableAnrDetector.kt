@@ -2,9 +2,9 @@ package com.bluetriangle.analytics.anrwatchdog
 
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import com.bluetriangle.analytics.Constants.ANR_DEFAULT_INTERVAL
 import com.bluetriangle.analytics.Constants.CHECK_INTERVAL
+import com.bluetriangle.analytics.Tracker
 import java.util.concurrent.Executors
 
 /**
@@ -25,6 +25,8 @@ internal class RunnableAnrDetector(private val trackAnrIntervalSec: Int = ANR_DE
      * handler instance with that thread's handler instance.
      */
     private val handler = Handler(Looper.getMainLooper())
+
+    private val logger = Tracker.instance?.configuration?.logger
 
     /**
      * Start detecting ANR. Once started it creates an infinite loop which only ends when stopDetection is called
@@ -66,9 +68,8 @@ internal class RunnableAnrDetector(private val trackAnrIntervalSec: Int = ANR_DE
                 checkAndNotifyAnr()
             }
         } catch (e: InterruptedException) {
-            Log.d(
-                "RunnableAnrDetector",
-                "Exception while calling sleep on detector thread: ${e.message}"
+            logger?.error(
+                "ANRDetector: Exception while calling sleep on detector thread: ${e.message}"
             )
         }
     }
@@ -94,7 +95,6 @@ internal class RunnableAnrDetector(private val trackAnrIntervalSec: Int = ANR_DE
     private fun notifyIfNotAlreadyNotified(delay: Long) {
         if (!isNotified) {
             isNotified = true
-            Log.d("RunnableAnrDetector", "Notifying ANR")
             notifyListeners(AnrException(delay))
         }
     }

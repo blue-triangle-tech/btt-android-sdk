@@ -175,4 +175,28 @@ class BlueTriangleConfiguration {
         private val EXPIRATION_IN_MILLIS = 48 * HOUR
         private val MAX_EXPIRY_DURATION = 240 * HOUR
     }
+
+    override fun toString(): String {
+        return """configurations = {
+            siteId : "$siteId"
+            sessionId : "$sessionId"
+            applicationName : "$applicationName"
+            networkSampleRate : $networkSampleRate
+            shouldSampleNetwork : $shouldSampleNetwork
+            isDebug : $isDebug
+            debugLevel : $debugLevel
+            isTrackCrashesEnabled : $isTrackCrashesEnabled
+            isPerformanceMonitorEnabled : $isPerformanceMonitorEnabled
+            isMemoryWarningEnabled : $isMemoryWarningEnabled
+            performanceMonitorIntervalMs : $performanceMonitorIntervalMs
+            isTrackAnrEnabled : $isTrackAnrEnabled
+            trackAnrIntervalSec : $trackAnrIntervalSec
+            isScreenTrackingEnabled : $isScreenTrackingEnabled
+            isLaunchTimeEnabled : $isLaunchTimeEnabled
+            cacheExpiryDuration : $cacheExpiryDuration
+            cacheMemoryLimit : $cacheMemoryLimit
+            isTrackNetworkStateEnabled : $isTrackNetworkStateEnabled
+        }
+        """.trimIndent()
+    }
 }

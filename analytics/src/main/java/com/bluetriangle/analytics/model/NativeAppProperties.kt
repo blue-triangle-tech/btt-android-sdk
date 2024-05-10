@@ -15,7 +15,8 @@ internal data class NativeAppProperties(
     var wifi: Long? = null,
     var cellular: Long? = null,
     var ethernet: Long? = null,
-    var offline: Long? = null
+    var offline: Long? = null,
+    var launchScreenName:String?=null
 ) : Parcelable {
     fun toJSONObject(): JSONObject {
         val obj = JSONObject()
@@ -46,6 +47,8 @@ internal data class NativeAppProperties(
         if (maxField.isNotEmpty()) {
             obj.put(CapturedRequest.FIELD_NETWORK_STATE, maxField)
         }
+        obj.put("launchScreenName", launchScreenName)
+
         return obj
     }
 }
