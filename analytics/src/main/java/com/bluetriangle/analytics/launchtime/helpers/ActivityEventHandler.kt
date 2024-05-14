@@ -17,6 +17,10 @@ internal class ActivityEventHandler(val listener: AppEventConsumer) :
     }
 
     override fun onActivityResumed(activity: Activity) {
+
+    }
+
+    override fun onActivityPostResumed(activity: Activity) {
         listener.onActivityResumed(activity)
     }
 
