@@ -1,10 +1,10 @@
 package com.bluetriangle.analytics
 
 import android.os.Process
-import com.bluetriangle.analytics.monitor.CpuMonitor
-import com.bluetriangle.analytics.monitor.MainThreadMonitor
-import com.bluetriangle.analytics.monitor.MemoryMonitor
-import com.bluetriangle.analytics.monitor.MetricMonitor
+import com.bluetriangle.analytics.performancemonitor.CpuMonitor
+import com.bluetriangle.analytics.performancemonitor.MainThreadMonitor
+import com.bluetriangle.analytics.performancemonitor.MemoryMonitor
+import com.bluetriangle.analytics.performancemonitor.MetricMonitor
 
 class PerformanceMonitor(configuration: BlueTriangleConfiguration) : Thread(THREAD_NAME) {
     private val logger = configuration.logger

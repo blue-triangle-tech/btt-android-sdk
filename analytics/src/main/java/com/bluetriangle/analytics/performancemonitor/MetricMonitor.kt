@@ -1,4 +1,4 @@
-package com.bluetriangle.analytics.monitor
+package com.bluetriangle.analytics.performancemonitor
 
 import com.bluetriangle.analytics.Timer
 
