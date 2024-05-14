@@ -107,7 +107,7 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
             updateCpu(cpuUsage)
             totalClockTicsLastCollection = totalClockTicks
             elapsedTimeLastCollection = elapsedTime
-            logger?.debug(String.format(Locale.getDefault(), "CPU Usage: %.2f", cpuUsage))
+            logger?.debug(String.format(Locale.ENGLISH, "CPU Usage: %.2f", cpuUsage))
         }
     }
 
