@@ -104,7 +104,7 @@ internal class BlueTriangleOkHttpEventListener(
         capturedRequest?.apply {
             encodedBodySize = call.request().body?.contentLength() ?: 0
             responseStatusCode = 600
-            nativeAppProperties = NetworkNativeAppProperties("${ioe::class.java.simpleName} : ${ioe.message}")
+            nativeAppProperties?.err = "${ioe::class.java.simpleName} : ${ioe.message}"
             stop()
             submit()
         }

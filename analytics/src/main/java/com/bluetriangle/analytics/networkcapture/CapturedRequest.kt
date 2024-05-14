@@ -84,11 +84,6 @@ class CapturedRequest {
      */
     var responseStatusCode: Int? = null
 
-    /**
-     * The Network State while the network call was happening
-     */
-    private var networkState: BTTNetworkState? = null
-
     val payload: JSONObject
         get() {
             val payload = JSONObject(
@@ -107,12 +102,6 @@ class CapturedRequest {
                 )
             )
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                payload.put(
-                    FIELD_NATIVE_APP, JSONObject(mapOf(FIELD_NETWORK_STATE to networkState?.value.toString()))
-                )
-            }
-
             responseStatusCode?.let { code ->
                 payload.put(FIELD_RESPONSE_CODE, code.toString())
             }
@@ -130,10 +119,17 @@ class CapturedRequest {
     fun start() {
         if (startTime == 0L) {
             startTime = System.currentTimeMillis()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                networkState = Tracker.instance?.networkStateMonitor?.state?.value
-            }
+            initNativeAppProperties()
         }
+    }
+
+    private fun initNativeAppProperties() {
+        val netState = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Tracker.instance?.networkStateMonitor?.state?.value?.value
+        } else {
+            null
+        }
+        nativeAppProperties = NetworkNativeAppProperties(null, netState)
     }
 
     /**
