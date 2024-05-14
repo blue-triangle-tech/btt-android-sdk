@@ -16,6 +16,7 @@ import java.io.IOException
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Proxy
+import java.util.Locale
 
 internal class BlueTriangleOkHttpEventListener(
     private val configuration: BlueTriangleConfiguration,
@@ -42,7 +43,7 @@ internal class BlueTriangleOkHttpEventListener(
             callStartNanos = nowNanos
         }
         val elapsedNanos = nowNanos - callStartNanos
-        logger?.info(String.format("%s : %.3f : %s%n", TAG, elapsedNanos / 1000000000.0, name))
+        logger?.info(String.format(Locale.ENGLISH, "%s : %.3f : %s%n", TAG, elapsedNanos / 1000000000.0, name))
     }
 
     override fun cacheHit(call: Call, response: Response) {

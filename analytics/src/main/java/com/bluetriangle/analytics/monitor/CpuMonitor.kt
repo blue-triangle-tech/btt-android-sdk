@@ -14,6 +14,7 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
 import java.io.IOException
+import java.util.Locale
 
 internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMonitor {
 
@@ -107,7 +108,7 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
             updateCpu(cpuUsage)
             totalClockTicsLastCollection = totalClockTicks
             elapsedTimeLastCollection = elapsedTime
-            logger?.debug(String.format("CPU Usage: %.2f", cpuUsage))
+            logger?.debug(String.format(Locale.ENGLISH, "CPU Usage: %.2f", cpuUsage))
         }
     }
 
