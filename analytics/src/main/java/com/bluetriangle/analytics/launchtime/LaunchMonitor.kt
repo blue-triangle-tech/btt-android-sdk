@@ -17,11 +17,10 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.launch
 
 @OptIn(DelicateCoroutinesApi::class)
-internal class LaunchMonitor private constructor():AppEventConsumer, LaunchEventProducer {
-
-    private val logger = Tracker.instance?.configuration?.logger
+internal class LaunchMonitor private constructor():AppEventConsumer, LaunchEventProducer, ErrorHolder {
 
     companion object {
+        private const val ERROR_BUFFER_SIZE = 10
         private var _instance:LaunchMonitor?=null
 
         val instance:LaunchMonitor
@@ -34,7 +33,7 @@ internal class LaunchMonitor private constructor():AppEventConsumer, LaunchEvent
     }
 
     private val activityEventHandler = ActivityEventHandler(this)
-    private val appEventAccumulator = AppEventAccumulator()
+    private val appEventAccumulator = AppEventAccumulator(this)
 
     override fun onAppCreated(application:Application) {
         application.registerActivityLifecycleCallbacks(activityEventHandler)
@@ -52,7 +51,6 @@ internal class LaunchMonitor private constructor():AppEventConsumer, LaunchEvent
             val activityName = activity::class.java.simpleName
             val startTime = result.events[0].time
             GlobalScope.launch {
-                logger?.debug("Launch event detected: ${result.type}")
                 _launchEvents.send(LaunchEvent.create(result.type, activityName, startTime))
             }
         }
@@ -66,5 +64,16 @@ internal class LaunchMonitor private constructor():AppEventConsumer, LaunchEvent
     private val _launchEvents = Channel<LaunchEvent>(UNLIMITED)
     override val launchEvents: ReceiveChannel<LaunchEvent>
         get() = _launchEvents
+
+    private val _errors = mutableListOf<String>()
+    override val errors: List<String>
+        get() = _errors
+
+    override fun logError(error: String) {
+        while(_errors.size >= ERROR_BUFFER_SIZE) {
+            _errors.removeFirst()
+        }
+        _errors.add(error)
+    }
 
 }

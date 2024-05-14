@@ -115,9 +115,17 @@ class Tracker private constructor(
 
         initializeNetworkMonitoring()
         if (configuration.isLaunchTimeEnabled) {
-            LaunchReporter(LaunchMonitor.instance).start()
+            logLaunchMonitorErrors()
+            LaunchReporter(LaunchMonitor.instance)
         }
         configuration.logger?.debug("BlueTriangleSDK Initialized: $configuration")
+    }
+
+    private fun logLaunchMonitorErrors() {
+        val errors = LaunchMonitor.instance.errors
+        for(error in errors) {
+            configuration.logger?.error(error)
+        }
     }
 
     private fun initializeNetworkMonitoring() {
