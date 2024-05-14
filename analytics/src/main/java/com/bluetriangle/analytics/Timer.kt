@@ -2,6 +2,7 @@ package com.bluetriangle.analytics
 
 import android.os.Parcel
 import android.os.Parcelable
+import android.util.Log
 import com.bluetriangle.analytics.model.NativeAppProperties
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -337,7 +338,7 @@ class Timer : Parcelable {
             }
             tracker.submitTimer(this)
         } else {
-            logger?.error("Tracker not initialized")
+            Log.e("BlueTriangle", "Tracker not initialized")
         }
     }
 

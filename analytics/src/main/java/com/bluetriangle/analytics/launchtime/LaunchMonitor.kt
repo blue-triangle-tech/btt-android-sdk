@@ -51,6 +51,9 @@ internal class LaunchMonitor private constructor():AppEventConsumer, LaunchEvent
             val activityName = activity::class.java.simpleName
             val startTime = result.events[0].time
             GlobalScope.launch {
+                // Remove if there is a launch event is in the channel that hasn't been processed yet
+                // so as to keep only one LaunchEvent in the channel
+                _launchEvents.tryReceive()
                 _launchEvents.send(LaunchEvent.create(result.type, activityName, startTime))
             }
         }
@@ -61,7 +64,7 @@ internal class LaunchMonitor private constructor():AppEventConsumer, LaunchEvent
         application.registerActivityLifecycleCallbacks(activityEventHandler)
     }
 
-    private val _launchEvents = Channel<LaunchEvent>(UNLIMITED)
+    private val _launchEvents = Channel<LaunchEvent>(1)
     override val launchEvents: ReceiveChannel<LaunchEvent>
         get() = _launchEvents
 

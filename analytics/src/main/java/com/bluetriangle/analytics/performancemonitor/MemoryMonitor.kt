@@ -1,7 +1,6 @@
-package com.bluetriangle.analytics.monitor
+package com.bluetriangle.analytics.performancemonitor
 
 import com.bluetriangle.analytics.BlueTriangleConfiguration
-import com.bluetriangle.analytics.BuildConfig
 import com.bluetriangle.analytics.CrashRunnable
 import com.bluetriangle.analytics.PerformanceReport
 import com.bluetriangle.analytics.Timer
