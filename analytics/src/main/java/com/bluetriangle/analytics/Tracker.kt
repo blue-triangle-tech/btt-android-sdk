@@ -122,9 +122,9 @@ class Tracker private constructor(
     }
 
     private fun logLaunchMonitorErrors() {
-        val errors = LaunchMonitor.instance.errors
-        for(error in errors) {
-            configuration.logger?.error(error)
+        val logs = LaunchMonitor.instance.logs
+        for(log in logs) {
+            configuration.logger?.log(log.level, log.message)
         }
     }
 
