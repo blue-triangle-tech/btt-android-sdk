@@ -1,18 +1,20 @@
 package com.bluetriangle.analytics.launchtime.helpers
 
-import com.bluetriangle.analytics.launchtime.ErrorHolder
+import android.util.Log
+import com.bluetriangle.analytics.launchtime.LogData
+import com.bluetriangle.analytics.launchtime.LogHolder
 import com.bluetriangle.analytics.launchtime.data.AppEvent
 import com.bluetriangle.analytics.launchtime.data.LaunchType
 import java.util.LinkedList
 import java.util.Queue
 
-internal class AppEventAccumulator(private val errorHolder: ErrorHolder) {
+internal class AppEventAccumulator(private val logHolder: LogHolder) {
 
-    private var events:Queue<AppEvent> = LinkedList()
+    private var events: Queue<AppEvent> = LinkedList()
 
     fun accumulate(event: AppEvent): Result? {
         events.offer(event)
-        if(event is AppEvent.ActivityResumed) {
+        if (event is AppEvent.ActivityResumed) {
             val appEvents = events.toList()
             events.clear()
 
@@ -20,7 +22,12 @@ internal class AppEventAccumulator(private val errorHolder: ErrorHolder) {
                 is AppEvent.AppCreated -> Result(LaunchType.Cold, appEvents)
                 is AppEvent.ActivityStarted -> Result(LaunchType.Hot, appEvents)
                 else -> {
-                    errorHolder.logError("Invalid App Event State: Activity.onResumed recieved but, Application.onCreate or Activity.onStart not recieved")
+                    logHolder.log(
+                        LogData(
+                            level = Log.ERROR,
+                            "Invalid App Event State: Activity.onResumed received but, Application.onCreate or Activity.onStart not received."
+                        )
+                    )
                     null
                 }
             }
@@ -28,5 +35,5 @@ internal class AppEventAccumulator(private val errorHolder: ErrorHolder) {
         return null
     }
 
-    class Result(val type: LaunchType, val events:List<AppEvent>)
+    class Result(val type: LaunchType, val events: List<AppEvent>)
 }

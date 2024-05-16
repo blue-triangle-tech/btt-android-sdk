@@ -5,7 +5,9 @@ import android.content.ContentProvider
 import android.content.ContentValues
 import android.database.Cursor
 import android.net.Uri
+import android.util.Log
 import com.bluetriangle.analytics.launchtime.LaunchMonitor
+import com.bluetriangle.analytics.launchtime.LogData
 
 class BlueTriangleContentProvider: ContentProvider() {
     override fun onCreate(): Boolean {
@@ -13,7 +15,7 @@ class BlueTriangleContentProvider: ContentProvider() {
             val application = (context!!.applicationContext as Application)
             LaunchMonitor.instance.onAppCreated(application)
         } catch (e: Exception) {
-            LaunchMonitor.instance.logError("Error while getting Application instance in ContentProvider.onCreate : ${e::class.java.simpleName}(\"${e.message}\")")
+            LaunchMonitor.instance.log(LogData(Log.ERROR, "Error while getting Application instance in ContentProvider.onCreate : ${e::class.java.simpleName}(\"${e.message}\")"))
         }
         return true
     }
