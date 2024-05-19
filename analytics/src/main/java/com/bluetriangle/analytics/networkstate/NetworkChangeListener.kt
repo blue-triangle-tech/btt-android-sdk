@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 @RequiresApi(LOLLIPOP)
 internal class NetworkChangeListener(
     private val logger: Logger?,
-    private val state: BTTNetworkState
+    state: BTTNetworkState
 ) :
     NetworkCallback() {
 
