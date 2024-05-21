@@ -69,7 +69,7 @@ internal object Utils {
      */
     fun generateRandomId(): String {
         val random = Math.abs(Random().nextLong())
-        return String.format("%019d", random).substring(0, 19)
+        return String.format(Locale.ENGLISH, "%019d", random).substring(0, 19)
     }
 
     /**

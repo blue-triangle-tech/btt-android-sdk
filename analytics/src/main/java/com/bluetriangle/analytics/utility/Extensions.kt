@@ -80,25 +80,9 @@ fun <V> any(vararg operations:()->V?):V? {
 val File.isDirectoryInvalid: Boolean
     get() = !isDirectory || !canRead() || !canWrite()
 
-@SuppressLint("InlinedApi")
-@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-val allTransports = arrayOf(
-    NetworkCapabilities.TRANSPORT_BLUETOOTH,
-    NetworkCapabilities.TRANSPORT_CELLULAR,
-    NetworkCapabilities.TRANSPORT_ETHERNET,
-    NetworkCapabilities.TRANSPORT_LOWPAN,
-    NetworkCapabilities.TRANSPORT_USB,
-    NetworkCapabilities.TRANSPORT_VPN,
-    NetworkCapabilities.TRANSPORT_WIFI,
-    NetworkCapabilities.TRANSPORT_WIFI_AWARE
-)
-
-@SuppressLint("InlinedApi")
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 val wifiTransports = intArrayOf(
     NetworkCapabilities.TRANSPORT_WIFI,
-    NetworkCapabilities.TRANSPORT_WIFI_AWARE,
-    NetworkCapabilities.TRANSPORT_USB,
     NetworkCapabilities.TRANSPORT_BLUETOOTH,
     NetworkCapabilities.TRANSPORT_VPN
 )
@@ -108,28 +92,6 @@ val cellularTransports = intArrayOf(NetworkCapabilities.TRANSPORT_CELLULAR)
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 val ethernetTransports = intArrayOf(NetworkCapabilities.TRANSPORT_ETHERNET)
-
-@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-fun IntArray.satisfiedBy(networkCapabilities: NetworkCapabilities): Boolean {
-    val netCapTransports = allTransports.filter {
-        networkCapabilities.hasTransport(it)
-    }
-    return netCapTransports.intersect(this.toSet()).isNotEmpty()
-}
-
-@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-@RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
-internal fun ConnectivityManager.getNetworkTypeFrom(network: Network): BTTNetworkState? {
-    val activeNetworkCapabilities = getNetworkCapabilities(network) ?: return null
-
-    return if (wifiTransports.satisfiedBy(activeNetworkCapabilities)) {
-        BTTNetworkState.Wifi
-    } else if (cellularTransports.satisfiedBy(activeNetworkCapabilities)) {
-        BTTNetworkState.Cellular
-    } else if (ethernetTransports.satisfiedBy(activeNetworkCapabilities)) {
-        BTTNetworkState.Ethernet
-    } else BTTNetworkState.Offline
-}
 
 
 internal val BTTNetworkState.value:String

@@ -1,11 +1,10 @@
-package com.bluetriangle.analytics.monitor
+package com.bluetriangle.analytics.performancemonitor
 
 import android.os.Build
 import android.os.SystemClock
 import android.system.Os
 import android.system.OsConstants
 import com.bluetriangle.analytics.BlueTriangleConfiguration
-import com.bluetriangle.analytics.BuildConfig
 import com.bluetriangle.analytics.PerformanceReport
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Timer.Companion.FIELD_PAGE_NAME
@@ -14,6 +13,7 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
 import java.io.IOException
+import java.util.Locale
 
 internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMonitor {
 
@@ -24,7 +24,7 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
 
     companion object {
         /**
-         * /proc/pid/stat file contains the information about the CPU usage for the process with pid = [pid]
+         * /proc/pid/stat file contains the information about the CPU usage for the process with pid = <pid>
          * Where pid can be replaced with "self" to get the current process's stat
          * To get information about it's fields refer to
          * @link https://web.archive.org/web/20130302063336/http://www.lindevdoc.org/wiki//proc/pid/stat
@@ -107,7 +107,7 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
             updateCpu(cpuUsage)
             totalClockTicsLastCollection = totalClockTicks
             elapsedTimeLastCollection = elapsedTime
-            logger?.debug(String.format("CPU Usage: %.2f", cpuUsage))
+            logger?.debug(String.format(Locale.ENGLISH, "CPU Usage: %.2f", cpuUsage))
         }
     }
 

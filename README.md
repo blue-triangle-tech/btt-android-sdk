@@ -328,8 +328,21 @@ The data that is kept longer in cache than the expiry duration is automatically 
 
 ## Launch Time
 
-The Launch Time feature tracks the time it took from the start of your app launch (i.e. onCreate of your Application
-class) to the time your app became fully interactive (i.e. The onResume of your launcher Activity). 
+BlueTriangle tracks app launch performance. Launch time refers to the duration it takes for an app to become ready for user interaction after it has been started. BlueTriangle automatically tracks both hot launch and cold launch.
+
+### Cold Launch
+
+A cold launch is a launch wherein the app process was not already in main memory. This can happen if the System or user terminated your apps process or the app is launching for the first time since it's installed/updated or since the device was booted.  
+
+The SDK measures the cold launch latency, which is the time between the `onCreate` of the BlueTriangle SDK's `ContentProvider` and `onResume` call for the first `Activity`.
+
+### Hot Launch
+
+A Hot Launch occurs when the app is already running in the background and is brought to the foreground. This type of launch is typically faster since the app's state is preserved in memory.
+
+The BlueTriangle SDK measures the hot launch latency, which is the time between the `onStart` and `onResume` of the first `Activity` after the app is brought into foreground.
+
+When user lock the device while app was on screen and unlocks it, the System calls the same lifecycle callbacks as when the user puts the app in background and brings it to foreground. Hence, unlocking followed by lock while app was active is tracked as Hot Launch.
 
 You can disable Launch Time feature by adding the following meta-data in your `AndroidManifest.xml` file.
 

@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 internal class NetworkTransportHandler(
-    private val transports:IntArray,
+    transports:IntArray,
     logger: Logger?,
     networkState: BTTNetworkState
 ) {

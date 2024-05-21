@@ -24,8 +24,10 @@ internal class NetworkTimelineTracker(private val networkStateMonitor: NetworkSt
     private val networkSwitches = arrayListOf<NetworkSwitch>()
 
     private fun onNetworkChange(network: BTTNetworkState) {
-        Tracker.instance?.configuration?.logger?.debug("BTTNetworkStateChange: ${network.name}")
+        Tracker.instance?.configuration?.logger?.info("Network change received: ${network.name}")
         val timestamp = System.currentTimeMillis()
+        // if this is not the first network state, there will be other network switch info in the array.
+        // get the last one from that and set it's end time to current time
         if(networkSwitches.isNotEmpty()) {
             val lastSwitch = networkSwitches[networkSwitches.lastIndex]
             lastSwitch.endTimestamp = timestamp
@@ -33,19 +35,22 @@ internal class NetworkTimelineTracker(private val networkStateMonitor: NetworkSt
         networkSwitches.add(NetworkSwitch(network, timestamp))
     }
 
+    /**
+     * @param from the start timestamp (in milliseconds) of the duration for which Network state data to be fetched
+     * @param to the end timestamp (in milliseconds) of the duration for which Network state data to be fetched
+     * @return NetworkSliceStats that tells the amount of time the device was in wifi, ethernet, cellular, offline states respectively during the duration between [from] and [to].
+     */
     fun sliceStats(from:Long, to:Long):NetworkSliceStats {
         val networkStats = NetworkSliceStats(from, to)
+        // Get the snapshot of the network state switch data for the entire Tracker session till this moment
         val networkSwitchesSnapshot = ArrayList(networkSwitches)
-        val baseLine = networkSwitchesSnapshot[0].startTimestamp
-//        Tracker.instance?.configuration?.logger?.debug("NetworkTimelineTracker: ${from - baseLine} - ${to - baseLine} : ${networkSwitchesSnapshot.map { "${it.startTimestamp - baseLine} : ${it.toState.value}" }}")
+
+        // iterate over each of them to see which network state data falls under the duration [from] and [to]
         for(switch in networkSwitchesSnapshot) {
             if(switch.overlaps(from, to)) {
-//                Tracker.instance?.configuration?.logger?.debug("NetworkTimelineTracker: Overlapping : ${from - baseLine} - ${to - baseLine} : ${switch.startTimestamp - baseLine} - ${switch.endTimestamp?.minus(baseLine)}: ${switch.toState.value}}")
                 val switchStart = switch.startTimestamp
                 val switchEnd = if(switch.endTimestamp == null) to else switch.endTimestamp!!
                 networkStats.add(switch.toState, switchEnd.coerceAtMost(to) - switchStart.coerceAtLeast(from))
-            } else {
-//                Tracker.instance?.configuration?.logger?.debug("NetworkTimelineTracker: Not Overlapping : ${from - baseLine} - ${to - baseLine} : ${switch.startTimestamp - baseLine} - ${switch.endTimestamp?.minus(baseLine)} : ${switch.toState.value}}")
             }
         }
         return networkStats

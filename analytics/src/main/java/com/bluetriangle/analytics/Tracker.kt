@@ -7,10 +7,10 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.text.TextUtils
-import android.util.Log
 import androidx.core.content.ContextCompat
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
-import com.bluetriangle.analytics.launchtime.LaunchTimeMonitor
+import com.bluetriangle.analytics.launchtime.LaunchMonitor
+import com.bluetriangle.analytics.launchtime.LaunchReporter
 import com.bluetriangle.analytics.networkcapture.CapturedRequest
 import com.bluetriangle.analytics.networkcapture.CapturedRequestCollection
 import com.bluetriangle.analytics.networkstate.NetworkStateMonitor
@@ -91,7 +91,6 @@ class Tracker private constructor(
         configuration.globalUserId = globalUserId
 
         val sessionId = configuration.sessionId ?: Utils.generateRandomId()
-        Log.d("SessionID", sessionId)
         setSessionId(sessionId)
         configuration.sessionId = sessionId
 
@@ -103,9 +102,6 @@ class Tracker private constructor(
             screenTrackMonitor,
             fragmentLifecycleTracker
         )
-        if (configuration.isLaunchTimeEnabled) {
-            LaunchTimeMonitor.initialize(application)
-        }
         application.registerActivityLifecycleCallbacks(activityLifecycleTracker)
 
         anrManager = AnrManager(configuration)
@@ -118,6 +114,18 @@ class Tracker private constructor(
         }
 
         initializeNetworkMonitoring()
+        if (configuration.isLaunchTimeEnabled) {
+            logLaunchMonitorErrors()
+            LaunchReporter(configuration.logger, LaunchMonitor.instance)
+        }
+        configuration.logger?.debug("BlueTriangleSDK Initialized: $configuration")
+    }
+
+    private fun logLaunchMonitorErrors() {
+        val logs = LaunchMonitor.instance.logs
+        for(log in logs) {
+            configuration.logger?.log(log.level, log.message)
+        }
     }
 
     private fun initializeNetworkMonitoring() {

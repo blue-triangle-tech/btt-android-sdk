@@ -6,11 +6,13 @@ import org.json.JSONObject
 
 @Parcelize
 data class NetworkNativeAppProperties(
-    val err:String
+    var err:String?,
+    var netState: String?
 ):Parcelable {
     fun toJSONObject(): JSONObject {
         val obj = JSONObject()
         obj.put("err", err)
+        obj.put(CapturedRequest.FIELD_NETWORK_STATE, netState)
         return obj
     }
 }

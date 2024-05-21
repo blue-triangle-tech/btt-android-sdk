@@ -7,7 +7,7 @@ import com.bluetriangle.analytics.Timer.Companion.FIELD_PAGE_NAME
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.Utils
 
-internal class AnrManager constructor(private val configuration: BlueTriangleConfiguration) :
+internal class AnrManager(private val configuration: BlueTriangleConfiguration) :
     AnrListener {
 
     private val detector: AnrDetector = RunnableAnrDetector(configuration.trackAnrIntervalSec)

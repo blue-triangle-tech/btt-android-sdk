@@ -1,4 +1,4 @@
-package com.bluetriangle.analytics.monitor
+package com.bluetriangle.analytics.performancemonitor
 
 import android.os.Handler
 import android.os.Looper
