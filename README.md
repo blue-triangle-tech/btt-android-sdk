@@ -139,7 +139,6 @@ Tracking Composables (If using composables, these steps are mandatory)
 Unlike Activities and Fragments, Composable screens are not automatically tracked. You need to call BttTimerEffect side-effect for each screen you want to track. If your app uses Jetpack Compose UI, use our side-effect BttTimerEffect(<screen name>) shown below. The only parameter to this side-effect is screen name:
 
 ```kotlin
-
 @Composable
 fun UserProfileScreen() {
     BttTimerEffect("User Profile")
@@ -152,8 +151,7 @@ If your app is using both Composables and Fragments, then for those composables 
  
 You can disable Screen tracking by adding the following meta-data:
 
-```kotlin
-
+```xml
 <meta-data android:name="com.blue-triangle.screen-tracking.enable" android:value="false"/>
 ```
 
@@ -185,7 +183,7 @@ class BTTWebViewClient : WebViewClient() {
 or if you already have a WebViewClient, call the following in its onLoadResource method:
 
 ```kotlin
-BTTWebViewTracker.onLoadResource(view, url) 
+BTTWebViewTracker.onLoadResource(view, url)
 ```
 
 **Enable JavaScript and Dom Storage and set the WebViewClient**
@@ -227,7 +225,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.bluetriangle.bluetriangledemo.utils.BTTWebViewClient
 
 @Composable
-
 fun WebViewScreen() {
     AndroidView(factory = { context ->
         WebView(context).apply {
@@ -248,10 +245,9 @@ To capture network details, you need to add one of these code snippets.
 #### OkHttp Support
 The SDK provides plug and play support for OkHttp which allows you to easily track all your network requests going through an OkHttpClient. Add the BlueTriangleOkHttpInterceptor & BlueTriangleOkHttpEventListener 
 
-to your OkHttpClient as follows:
+to your `OkHttpClient` as follows:
 
 ```kotlin
-
 import com.bluetriangle.analytics.okhttp.BlueTriangleOkHttpInterceptor
 import com.bluetriangle.analytics.okhttp.BlueTriangleOkHttpEventListener
 //...
@@ -263,7 +259,6 @@ val okHttpClient = OkHttpClient.Builder()
     .eventListener(BlueTriangleOkHttpEventListener(Tracker.instance!!.configuration))
     //...
     .build()
-
 ```
 
 If your app already implements and sets an EventListener object to the OkHttpClient, the SDK provides a constructor for BlueTriangleOkHttpEventListener that takes in another EventListener object. You can use this as shown below:
@@ -285,7 +280,6 @@ val okHttpClient = OkHttpClient.Builder()
 If you are not using OkHttp or you don't want to track all requests done by OkHttp, you can manually track and submit network requests by using CapturedRequest object as shown below:
 
 ```kotlin
-
 // Import CapturedRequest
 import com.bluetriangle.analytics.networkcapture.CapturedRequest
 //...
@@ -311,42 +305,39 @@ capturedRequest.requestType = RequestType.html
 
 // submit the captured request to the tracker instance
 Tracker.instance?.submitCapturedRequest(capturedRequest)
-
 ```
+
 ### Network State Capture- Mandatory
 
 The BlueTriangle SDK allows capturing of network state data. Network state refers to the availability of any network interfaces on the device. Network interfaces include wifi, ethernet, cellular, etc. Once Network state capturing is enabled, the Network state is associated with all Timers, Errors and Network Requests captured by the SDK.
 
 
-This requires the android.permission.ACCESS_NETWORK_STATE permission. Include the permission into your AndroidManifest.xml file as follows:
+This requires the `android.permission.ACCESS_NETWORK_STATE` permission. Include the permission into your `AndroidManifest.xml` file as follows:
 
-```kotlin
-
+```xml
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
 ```
 
 To disable Network state capture, add the following meta-data:
 
-```kotlin
+```xml
 <meta-data android:name="com.blue-triangle.track-network-state.enable" android:value="false"/>
 ```
 
 **Note:**
 
-- If Network state capture is enabled and the ACCESS_NETWORK_STATE permission is not granted, then the SDK will not track network state.
+- If Network state capture is enabled and the `ACCESS_NETWORK_STATE` permission is not granted, then the SDK will not track network state.
 - **This feature is only available on API Level 21 and above**
 
 ## Recommended (Optional) Configurations
 
 ### Network Capture Sample Rate
-The network sample rate will determine the percentage of session network requests that are captured. For example a value of 0.05 means that network capture will be randomly enabled for 5% of user sessions. Network sample rate value should be between 0.0 to 1.0 representing fraction value of percent 0 to 100. The default value is 0.05, i.e only 5% of sessions network request are captured.
+The network sample rate will determine the percentage of session network requests that are captured. For example a value of 0.05 means that network capture will be randomly enabled for 5% of user sessions. Network sample rate value should be between 0.0 to 1.0 representing fraction value of percent 0 to 100. The default value is 0.05, i.e only 5% of sessions network request are captured.
 
 Configure the sample rate by adding the following meta-data in your AndroidManifest.xml:
-```kotlin
 
+```xml
 <meta-data android:name="com.blue-triangle.sample-rate.network" android:value="0.05"/>
-
 ```
 
 To disable network capture, set this value to 0.0 during configuration.
@@ -357,34 +348,30 @@ It is recommended to have 100% sample rate while developing/debugging, by settin
 
 The following fields can be used to identify and segment users for optimized analytics contextualization. They can be configured in the SDK and modified in the app in real time, and they show in the Blue Triangle portal as parameters for reporting.
 
-
-| Field                                        | Implication                                                                                                                                                           |  
-|----------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| abTestID="MY_AB_TEST_ID"                     | Capture a variable that allows us to understand a live AB test of two variants in the app.                                                                            | 
-| campaignMedium="MY_CAMPAIGN_MEDIUM"          | Understand the general reason the journey started (email, paid search, organic search, etc)                                                                           | 
-| campaignName="MY_CAMPAIGN_NAME"              | Understand the campaign name that started the journey.                                                                                                                | 
-| campaignSource="MY_CAMPAIGN_SOURCE"          | Understanding the type of marketing campaign.                                                                                                                         | 
-| dataCenter="MY_DATA_CENTER"                  | Understand if you have multiple data centers that serve your customers you can group data by them.                                                                    | 
-| trafficSegmentName="MY_SEGMENT_NAME"         | This can be used to segment environment type.  For instance, we can use this to understand if you have beta vs prod but both are live versions of the app.            | 
+| Field                                           | Implication                                                                                                                                                           |  
+|-------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| setSessionAbTestIdentifier("MY_AB_TEST_ID")     | Capture a variable that allows us to understand a live AB test of two variants in the app.                                                                            | 
+| setSessionCampaignMedium("MY_CAMPAIGN_MEDIUM")  | Understand the general reason the journey started (email, paid search, organic search, etc)                                                                           | 
+| setSessionCampaignName("MY_CAMPAIGN_NAME")      | Understand the campaign name that started the journey.                                                                                                                | 
+| setSessionCampaignSource("MY_CAMPAIGN_SOURCE")  | Understanding the type of marketing campaign.                                                                                                                         | 
+| setSessionDataCenter("MY_DATA_CENTER")          | Understand if you have multiple data centers that serve your customers you can group data by them.                                                                    | 
+| setSessionTrafficSegmentName("MY_SEGMENT_NAME") | This can be used to segment environment type.  For instance, we can use this to understand if you have beta vs prod but both are live versions of the app.            | 
 
 ```kotlin
-BlueTriangle.configure { config in
-    config.abTestID = "MY_AB_TEST_ID"
-    config.campaignMedium = "MY_CAMPAIGN_MEDIUM"
-    config.campaignName = "MY_CAMPAIGN_NAME"
-    config.campaignSource = "MY_CAMPAIGN_SOURCE"
-    config.dataCenter = "MY_DATA_CANTER "
-    config.trafficSegmentName = "MY_TRAFFIC_SEGEMENT_NAME"
-}
+Tracker.instance?.setSessionAbTestIdentifier("MY_AB_TEST_ID")
+Tracker.instance?.setSessionCampaignMedium("MY_CAMPAIGN_MEDIUM")
+Tracker.instance?.setSessionCampaignName("MY_CAMPAIGN_NAME")
+Tracker.instance?.setSessionCampaignSource("MY_CAMPAIGN_SOURCE")
+Tracker.instance?.setSessionDataCenter("MY_DATA_CENTER")
+Tracker.instance?.setSessionTrafficSegmentName("MY_SEGMENT_NAME")
 ```
 
 ### Custom Timers 
 While **Screen Views are automatically tracked upon installation**, Custom Timers can also be configured if needed. 
 
-```kotlin
-
+```java
 // create and start a timer
-final Timer timer=new Timer("Page Name","Traffic Segment Name").start();
+final Timer timer = new Timer("Page Name", "Traffic Segment Name").start();
 
 // do work...
 
@@ -403,20 +390,20 @@ timer.end().submit();
 timer.end();
 timer.setBrandValue(99.99);
 timer.submit();
-
 ```
-Timers implement a Parcelable to allow timers to be passed via Bundle such as between activities in an Intent.
 
-```kotlin
+Timers implement a Parcelable to allow timers to be passed via `Bundle` such as between activities in an Intent.
 
+```java
 // MainActivity.java
-final Timer timer=new Timer("Next Page","Android Traffic").start();
-final Intent intent=new Intent(this,NextActivity.class);
-intent.putExtra(Timer.EXTRA_TIMER,timer);
+final Timer timer = new Timer("Next Page", "Android Traffic").start();
+final Intent intent = new Intent(this, NextActivity.class);
+intent.putExtra(Timer.EXTRA_TIMER, timer);
+
 startActivity(intent);
 
 // NextActivity.java
-final Timer timer=getIntent().getParcelableExtra(Timer.EXTRA_TIMER);
+final Timer timer = getIntent().getParcelableExtra(Timer.EXTRA_TIMER);
 timer.end().submit();
 ```
 
@@ -522,7 +509,7 @@ occurs.
 The amount of memory the cache uses (in bytes) can be configured by setting the following meta-data in the `AndroidManifest.xml`:
 
 ```xml
-<meta-data android:name="com.blue-triangle.cache.memory-limit" value="200000"></meta-data>
+<meta-data android:name="com.blue-triangle.cache.memory-limit" value="200000"/>
 ```
 
 If new data is sent to the cache after the memory limit exceeds, the cache deletes the oldest data
@@ -533,7 +520,7 @@ and then adds the new data. So, only the most recently captured user data is tra
 The amount of time (in milliseconds) the data is kept in the cache before it expires can be configured by setting the following meta-data in the `AndroidManifest.xml`:
 
 ```xml
-<meta-data android:name="com.blue-triangle.cache.expiry" value="86400000"></meta-data>
+<meta-data android:name="com.blue-triangle.cache.expiry" value="86400000"/>
 ```
 
 The data that is kept longer in cache than the expiry duration is automatically deleted. By default the expiry duration is 48 hours.
@@ -578,16 +565,16 @@ You can declare and call the following function to generate a memory warning:
 
 ```kotlin
 
-fun testMemoryWarning() { 
- Thread { 
- val timer = Timer("MemoryWarningTimer", "AndroidNative") 
- timer.start() 
- Thread.sleep(1000) 
- val memoryBlock = ByteArray((Runtime.getRuntime().maxMemory() * 0.85).toInt()) 
- Log.d("MemoryWarningTest", "AllocatedMemory: ${memoryBlock.size}") 
- Thread.sleep(1000) 
- timer.submit() 
- }.start() 
+fun testMemoryWarning() {
+    Thread {
+        val timer = Timer("MemoryWarningTimer", "AndroidNative")
+        timer.start()
+        Thread.sleep(1000)
+        val memoryBlock = ByteArray((Runtime.getRuntime().maxMemory() * 0.85).toInt())
+        Log.d("MemoryWarningTest", "AllocatedMemory: ${memoryBlock.size}")
+        Thread.sleep(1000)
+        timer.submit()
+    }.start()
 }
 ```
 
@@ -595,8 +582,11 @@ fun testMemoryWarning() {
 To test ANR Tracking, you can declare and call the following function on the main thread:
 
 ```kotlin
-fun testANRTracking() {  val startTime = System.currentTimeMillis()  while(System.currentTimeMillis() - startTime <= (6000)) {
-  } 
+fun testANRTracking() {
+    val startTime = System.currentTimeMillis()
+    while (System.currentTimeMillis() - startTime <= (6000)) {
+    
+    }
 }
 ```
 
@@ -605,8 +595,9 @@ fun testANRTracking() {  val startTime = System.currentTimeMillis()  while(Syste
 To test Crash Tracking, you can declare and call the following function:
 
 ```kotlin
-
-fun testCrashTracking() {  throw ArithmeticException() }
+fun testCrashTracking() {
+    throw ArithmeticException()
+}
 ```
 
 ## Further General Information
