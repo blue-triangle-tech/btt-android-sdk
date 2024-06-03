@@ -6,13 +6,13 @@ The Blue Triangle SDK for Android enables application owners to track their user
 
 ## Supported metrics
 - Performance & Network Timings
- - Main Timers
- - Network Timers
- - Custom Timers
+  - Main Timers
+  - Network Timers
+  - Custom Timers
 - Errors & Crashes
-- Application Not Responding (ANR)
-- HTTP Response Codes
-- App Crashes
+  - Application Not Responding (ANR)
+  - HTTP Response Codes
+  - App Crashes
 - Device Stats & Session Attributes
  - OS/OS Version
  - App Version
@@ -22,6 +22,7 @@ The Blue Triangle SDK for Android enables application owners to track their user
  - Memory Warnings
  - Memory/Out of Memory
  - Hot/Cold Launch
+
 Coming Soon
 - Network Type
  
@@ -409,6 +410,36 @@ timer.end().submit();
 
 When a timer is submitted to the tracker, the tracker sets any global fields such as site ID, session ID, and user ID. Additional global fields may be set as needed and applied to all timers. The timer's fields are then converted to JSON and sent via HTTP POST to the configured tracker URL.
 
+
+### Checkout Event Data
+Upon a customer checkout, it is possible to configure the following data parameters for the event.
+
+Brand Value
+
+```kotlin
+
+val timer = Timer() timer.start() 
+timer.setPageName("SignUp") 
+//... 
+timer.setBrandValue(99.99) 
+timer.submit()
+```
+
+
+Cart Value, Order Number, Order Time
+
+```kotlin
+val timer = Timer() 
+timer.start() 
+timer.setPageName("Cart") 
+//... 
+timer.setCartValue(99.99) 
+timer.setOrderNumber("XYZ1234") 
+timer.setOrderTime(System.currentTimeMillis()) 
+timer.submit()
+```
+
+## Optional Configuration Steps
 
 ### ANR Detection
 
