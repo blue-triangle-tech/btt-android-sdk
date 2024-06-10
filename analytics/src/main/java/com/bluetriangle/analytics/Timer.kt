@@ -90,7 +90,6 @@ class Timer : Parcelable {
             FIELD_REFERRER_URL to "",
             FIELD_URL to "",
             FIELD_CART_VALUE to "0",
-            FIELD_ORDER_TIME to "0",
             FIELD_ORDER_NUMBER to "",
             FIELD_PAGE_VALUE to "0",
             FIELD_CONTENT_GROUP_NAME to "",
@@ -293,6 +292,9 @@ class Timer : Parcelable {
             } else if (end != 0L) {
                 logger?.error("Timer already ended")
             }
+        }
+        if(!fields.containsKey(FIELD_ORDER_TIME)) {
+            setOrderTime(end)
         }
         if (performanceMonitor != null) {
             performanceMonitor!!.stopRunning()
