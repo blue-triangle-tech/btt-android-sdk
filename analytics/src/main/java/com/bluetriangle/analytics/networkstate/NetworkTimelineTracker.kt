@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 internal class NetworkTimelineTracker(private val networkStateMonitor: NetworkStateMonitor) {
 
     private var appScope = CoroutineScope(Dispatchers.IO)
+    private val networkSwitches = arrayListOf<NetworkSwitch>()
 
     init {
         appScope.launch {
@@ -21,8 +22,7 @@ internal class NetworkTimelineTracker(private val networkStateMonitor: NetworkSt
         }
     }
 
-    private val networkSwitches = arrayListOf<NetworkSwitch>()
-
+    @Synchronized
     private fun onNetworkChange(network: BTTNetworkState) {
         Tracker.instance?.configuration?.logger?.info("Network change received: ${network.name}")
         val timestamp = System.currentTimeMillis()
@@ -40,6 +40,7 @@ internal class NetworkTimelineTracker(private val networkStateMonitor: NetworkSt
      * @param to the end timestamp (in milliseconds) of the duration for which Network state data to be fetched
      * @return NetworkSliceStats that tells the amount of time the device was in wifi, ethernet, cellular, offline states respectively during the duration between [from] and [to].
      */
+    @Synchronized
     fun sliceStats(from:Long, to:Long):NetworkSliceStats {
         val networkStats = NetworkSliceStats(from, to)
         // Get the snapshot of the network state switch data for the entire Tracker session till this moment
