@@ -26,6 +26,7 @@ class Timer : Parcelable {
         const val FIELD_NAVIGATION_START = "nStart"
         const val FIELD_UNLOAD_EVENT_START = "unloadEventStart"
         const val FIELD_CONTENT_GROUP_NAME = "pageType"
+        @Deprecated("Page value is deprecated in 2.12.0 and will be removed in upcoming major releases")
         const val FIELD_PAGE_VALUE = "pageValue"
         const val FIELD_PAGE_TIME = "pgTm"
         const val FIELD_DOM_INTERACTIVE = "domInteractive"
@@ -401,6 +402,7 @@ class Timer : Parcelable {
      * @param pageValue value of page
      * @return this timer
      */
+    @Deprecated("Page value is deprecated in 2.12.0 and will be removed in upcoming major releases")
     fun setPageValue(pageValue: Double): Timer {
         return setField(FIELD_PAGE_VALUE, pageValue)
     }
