@@ -60,7 +60,7 @@ Add the package dependency to your application's `build.gradle` file:
 ```groovy
 dependencies {
     //...
-    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.11.1'
+    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.12.0'
 }
 ```
 
@@ -69,7 +69,7 @@ dependencies {
 If project uses gradle plugin version 8.2.0 and above, use exclude with dependency like below.
 
 ```groovy
-implementation("com.github.blue-triangle-tech:btt-android-sdk:2.11.1") {
+implementation("com.github.blue-triangle-tech:btt-android-sdk:2.12.0") {
     exclude("com.squareup.okhttp3", "okhttp-bom")
 }
 ```
@@ -381,7 +381,6 @@ timer.interactive();
 
 // maybe set a field
 timer.setCartValue(99.99);
-
 // do some more work
 
 // end the timer and submit
@@ -426,16 +425,18 @@ timer.submit()
 ```
 
 
-Cart Value, Order Number, Order Time
+Cart Value, Cart Count, Cart Count Checkout, Order Number, Order Time
 
 ```kotlin
 val timer = Timer() 
 timer.start() 
-timer.setPageName("Cart") 
+timer.setPageName("Confirmation") 
 //... 
 timer.setCartValue(99.99) 
 timer.setOrderNumber("XYZ1234") 
-timer.setOrderTime(System.currentTimeMillis()) 
+timer.setCartCount(2)
+timer.setCartCountCheckout(5)
+timer.setOrderTime(System.currentTimeMillis()) // Optional
 timer.submit()
 ```
 
@@ -565,6 +566,20 @@ BlueTriangle tracks app launch performance. Launch time refers to the duration i
 A cold launch is a launch wherein the app process was not already in main memory. This can happen if the System or user terminated your apps process or the app is launching for the first time since it's installed/updated or since the device was booted.  
 
 The SDK measures the cold launch latency, which is the time between the `onCreate` of the BlueTriangle SDK's `ContentProvider` and `onResume` call for the first `Activity`.
+
+#### Warm Launch
+
+A Warm Launch occurs when the app is evicted from memory by the system when it's in the background and the user re-launches it bringing it back to foreground. This type of launch has less overhead than the cold start but since the activity needs to be recreated, it takes somewhat longer than a hot start.
+
+The BlueTriangle SDK measures the warm launch latency, which is the time between the `onCreate` and `onResume` of the first `Activity` after the app is brought into foreground.
+
+
+You can disable Launch Time feature by adding the following meta-data in your `AndroidManifest.xml` file.
+
+```xml
+<meta-data android:name="com.blue-triangle.launch-time.enable" android:value="false"/>
+```
+
 
 #### Hot Launch
 
