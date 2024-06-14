@@ -20,6 +20,7 @@ internal class AppEventAccumulator(private val logHolder: LogHolder) {
 
             return when (appEvents.first()) {
                 is AppEvent.AppCreated -> Result(LaunchType.Cold, appEvents)
+                is AppEvent.ActivityCreated -> Result(LaunchType.Warm, appEvents)
                 is AppEvent.ActivityStarted -> Result(LaunchType.Hot, appEvents)
                 else -> {
                     logHolder.log(

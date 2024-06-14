@@ -9,7 +9,7 @@ internal class ActivityEventHandler(val listener: AppEventConsumer) :
     Application.ActivityLifecycleCallbacks {
 
     override fun onActivityCreated(activity: Activity, data: Bundle?) {
-
+        listener.onActivityCreated(activity, data)
     }
 
     override fun onActivityStarted(activity: Activity) {

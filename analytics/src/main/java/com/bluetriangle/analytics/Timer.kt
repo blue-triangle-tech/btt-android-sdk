@@ -92,7 +92,6 @@ class Timer : Parcelable {
             FIELD_URL to "",
             FIELD_CART_VALUE to "0",
             FIELD_ORDER_NUMBER to "",
-            FIELD_PAGE_VALUE to "0",
             FIELD_CONTENT_GROUP_NAME to "",
         )
 

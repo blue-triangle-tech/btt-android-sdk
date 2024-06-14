@@ -8,6 +8,10 @@ internal sealed class LaunchEvent private constructor(val data: LaunchData) {
         LaunchType.Hot
     )
 
+    class WarmLaunch(activityName:String, startTime:Long) : LaunchEvent(activityName, startTime,
+        LaunchType.Warm
+    )
+
     class ColdLaunch(activityName: String, startTime: Long) : LaunchEvent(activityName, startTime,
         LaunchType.Cold
     )
@@ -15,6 +19,7 @@ internal sealed class LaunchEvent private constructor(val data: LaunchData) {
         fun create(type: LaunchType, activityName: String, startTime: Long): LaunchEvent {
             return when(type) {
                 LaunchType.Hot -> HotLaunch(activityName, startTime)
+                LaunchType.Warm -> WarmLaunch(activityName, startTime)
                 LaunchType.Cold -> ColdLaunch(activityName, startTime)
             }
         }
