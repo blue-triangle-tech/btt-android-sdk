@@ -573,14 +573,6 @@ A Warm Launch occurs when the app is evicted from memory by the system when it's
 
 The BlueTriangle SDK measures the warm launch latency, which is the time between the `onCreate` and `onResume` of the first `Activity` after the app is brought into foreground.
 
-
-You can disable Launch Time feature by adding the following meta-data in your `AndroidManifest.xml` file.
-
-```xml
-<meta-data android:name="com.blue-triangle.launch-time.enable" android:value="false"/>
-```
-
-
 #### Hot Launch
 
 A Hot Launch occurs when the app is already running in the background and is brought to the foreground. This type of launch is typically faster since the app's state is preserved in memory.
