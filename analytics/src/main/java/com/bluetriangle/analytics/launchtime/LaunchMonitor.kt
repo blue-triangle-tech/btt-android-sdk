@@ -3,6 +3,7 @@ package com.bluetriangle.analytics.launchtime
 import android.app.Activity
 import android.app.Application
 import android.os.Build
+import android.os.Bundle
 import android.os.Process
 import android.os.SystemClock
 import android.util.Log
@@ -66,6 +67,11 @@ internal class LaunchMonitor private constructor():AppEventConsumer, LaunchEvent
         application.registerActivityLifecycleCallbacks(activityEventHandler)
         ProcessLifecycleOwner.get().lifecycle.addObserver(AppBackgroundNotifier(application, this))
         appEventAccumulator.accumulate(AppEvent.AppCreated())
+    }
+
+    override fun onActivityCreated(activity: Activity, data: Bundle?) {
+        log(LogData(level = Log.VERBOSE, message = "${getPrefix()} onActivityCreated: $data"))
+        appEventAccumulator.accumulate(AppEvent.ActivityCreated(data))
     }
 
     override fun onActivityStarted(activity: Activity) {

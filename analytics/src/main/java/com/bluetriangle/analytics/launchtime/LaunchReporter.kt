@@ -20,8 +20,11 @@ internal class LaunchReporter(
         logger?.debug("Started launch time reporting...")
         GlobalScope.launch {
             for (event in launchEventProducer.launchEvents) {
-                val launchPageName =
-                    if (event is LaunchEvent.HotLaunch) "HotLaunchTime" else "ColdLaunchTime"
+                val launchPageName = when (event) {
+                    is LaunchEvent.HotLaunch -> "HotLaunchTime"
+                    is LaunchEvent.WarmLaunch -> "WarmLaunchTime"
+                    is LaunchEvent.ColdLaunch -> "ColdLaunchTime"
+                }
 
                 // As Reporter is initialized inside the Tracker constructor.
                 // The Tracker instance won't be immediately available in the singleton.

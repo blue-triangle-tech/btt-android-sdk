@@ -26,6 +26,7 @@ class Timer : Parcelable {
         const val FIELD_NAVIGATION_START = "nStart"
         const val FIELD_UNLOAD_EVENT_START = "unloadEventStart"
         const val FIELD_CONTENT_GROUP_NAME = "pageType"
+        @Deprecated("Page value is deprecated in 2.12.0 and will be removed in upcoming major releases")
         const val FIELD_PAGE_VALUE = "pageValue"
         const val FIELD_PAGE_TIME = "pgTm"
         const val FIELD_DOM_INTERACTIVE = "domInteractive"
@@ -64,6 +65,8 @@ class Timer : Parcelable {
         const val FIELD_NATIVE_APP = "NATIVEAPP"
         const val FIELD_ERR = "ERR"
         const val FIELD_NA_FLG = "NAflg"
+        internal const val FIELD_CART_COUNT = "c_count"
+        internal const val FIELD_CART_COUNT_CHECKOUT = "co_count"
 
         /**
          * A map of fields and their associated default values
@@ -88,9 +91,7 @@ class Timer : Parcelable {
             FIELD_REFERRER_URL to "",
             FIELD_URL to "",
             FIELD_CART_VALUE to "0",
-            FIELD_ORDER_TIME to "0",
             FIELD_ORDER_NUMBER to "",
-            FIELD_PAGE_VALUE to "0",
             FIELD_CONTENT_GROUP_NAME to "",
         )
 
@@ -292,6 +293,9 @@ class Timer : Parcelable {
                 logger?.error("Timer already ended")
             }
         }
+        if(!fields.containsKey(FIELD_ORDER_TIME)) {
+            setOrderTime(end)
+        }
         if (performanceMonitor != null) {
             performanceMonitor!!.stopRunning()
             val performanceReport = performanceMonitor!!.performanceReport
@@ -397,6 +401,7 @@ class Timer : Parcelable {
      * @param pageValue value of page
      * @return this timer
      */
+    @Deprecated("Page value is deprecated in 2.12.0 and will be removed in upcoming major releases")
     fun setPageValue(pageValue: Double): Timer {
         return setField(FIELD_PAGE_VALUE, pageValue)
     }
@@ -439,6 +444,26 @@ class Timer : Parcelable {
      */
     fun setOrderTime(orderTime: Long): Timer {
         return setField(FIELD_ORDER_TIME, orderTime)
+    }
+
+    /**
+     * Set the cart count for this timer
+     *
+     * @param cartCount the cart count for this timer
+     * @return this timer
+     */
+    fun setCartCount(cartCount: Int): Timer {
+        return setField(FIELD_CART_COUNT, cartCount)
+    }
+
+    /**
+     * Set the checkout cart count for this timer
+     *
+     * @param cartCountCheckout the checkout cart count for this timer
+     * @return this timer
+     */
+    fun setCartCountCheckout(cartCountCheckout: Int):Timer {
+        return setField(FIELD_CART_COUNT_CHECKOUT, cartCountCheckout)
     }
 
     /**

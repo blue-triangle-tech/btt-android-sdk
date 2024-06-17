@@ -2,5 +2,6 @@ package com.bluetriangle.analytics.launchtime.data
 
 internal enum class LaunchType {
     Hot,
-    Cold;
+    Warm,
+    Cold
 }
