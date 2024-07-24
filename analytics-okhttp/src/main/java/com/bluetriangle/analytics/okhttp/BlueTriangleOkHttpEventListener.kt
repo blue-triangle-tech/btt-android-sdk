@@ -1,5 +1,6 @@
 package com.bluetriangle.analytics.okhttp
 
+import android.util.Log
 import com.bluetriangle.analytics.BlueTriangleConfiguration
 import com.bluetriangle.analytics.networkcapture.CapturedRequest
 import com.bluetriangle.analytics.networkcapture.NetworkNativeAppProperties
@@ -45,7 +46,7 @@ internal class BlueTriangleOkHttpEventListener(
             callStartNanos = nowNanos
         }
         val elapsedNanos = nowNanos - callStartNanos
-        logger?.info(String.format(Locale.ENGLISH, "%s : %.3f : %s%n", TAG, elapsedNanos / 1000000000.0, name))
+        logger?.log(Log.VERBOSE, String.format(Locale.ENGLISH, "%s : %.3f : %s%n", TAG, elapsedNanos / 1000000000.0, name))
     }
 
     override fun cacheHit(call: Call, response: Response) {
