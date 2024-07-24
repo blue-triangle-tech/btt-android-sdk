@@ -16,8 +16,12 @@ class CapturedRequestRunnable(
     private val capturedRequestCollections: List<CapturedRequestCollection>
 ) : Runnable {
     override fun run() {
-        capturedRequestCollections.forEach {
-            submitCapturedRequestCollection(it)
+        try {
+            capturedRequestCollections.forEach {
+                submitCapturedRequestCollection(it)
+            }
+        } catch (e: Exception) {
+            configuration.logger?.error("Error while submitting captured requests: ${e.message}")
         }
     }
 

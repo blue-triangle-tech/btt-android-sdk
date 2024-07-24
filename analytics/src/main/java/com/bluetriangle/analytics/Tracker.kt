@@ -234,6 +234,7 @@ class Tracker private constructor(
      *
      * @param capturedRequest
      */
+    @Synchronized
     fun submitCapturedRequest(capturedRequest: CapturedRequest?) {
         if(capturedRequest == null) return
         if (configuration.shouldSampleNetwork) {
@@ -263,6 +264,7 @@ class Tracker private constructor(
     /**
      * Returns a list of captured request collections for the current timer as well as all past timers to send
      */
+    @Synchronized
     fun getCapturedRequestCollectionsForTimer(timer: Timer): List<CapturedRequestCollection> {
         val keysToSend = capturedRequests.keys().toList().filter { it <= timer.start }
         val capturedRequestCollections = mutableListOf<CapturedRequestCollection>()

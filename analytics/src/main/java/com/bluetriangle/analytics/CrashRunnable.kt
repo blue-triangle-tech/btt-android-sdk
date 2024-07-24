@@ -46,8 +46,12 @@ internal class CrashRunnable(
     private val errorCount:Int = 1
 ) : Runnable {
     override fun run() {
-        submitTimer()
-        submitCrashReport()
+        try {
+            submitTimer()
+            submitCrashReport()
+        } catch (e: Exception) {
+            configuration.logger?.error("Error while submitting crash report: ${e.message}")
+        }
     }
 
     private fun submitTimer() {
@@ -63,7 +67,7 @@ internal class CrashRunnable(
             )
         }
         crashHitsTimer.setFields(tracker?.globalFields?.toMap() ?: emptyMap())
-        val timerRunnable = TimerRunnable(configuration, crashHitsTimer)
+        val timerRunnable = TimerRunnable(configuration, crashHitsTimer, false)
         timerRunnable.run()
     }
 
