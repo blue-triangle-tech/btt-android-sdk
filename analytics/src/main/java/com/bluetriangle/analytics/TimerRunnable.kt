@@ -24,57 +24,66 @@ internal class TimerRunnable(
     /**
      * The timer to submit
      */
-    val timer: Timer
+    val timer: Timer,
+    val shouldSendCapturedRequests: Boolean = true
 ) : Runnable {
     override fun run() {
-        var connection: HttpsURLConnection? = null
-        val payloadData = buildTimerData()
-        var capturedRequestCollections =
-            Tracker.instance?.getCapturedRequestCollectionsForTimer(timer)
-        timer.onSubmit()
         try {
-            val url = URL(configuration.trackerUrl)
-            connection = url.openConnection() as HttpsURLConnection
-            connection.requestMethod = Constants.METHOD_POST
-            connection.setRequestProperty(
-                Constants.HEADER_CONTENT_TYPE,
-                Constants.CONTENT_TYPE_JSON
-            )
-            connection.setRequestProperty(Constants.HEADER_USER_AGENT, configuration.userAgent)
-            connection.doOutput = true
-            DataOutputStream(connection.outputStream).use { it.write(Utils.b64encode(payloadData)) }
-            val statusCode = connection.responseCode
-            if (!capturedRequestCollections.isNullOrEmpty()) {
-                CapturedRequestRunnable(configuration, capturedRequestCollections).run()
-                capturedRequestCollections = null
-            }
-            if (statusCode >= 300) {
-                val responseBody =
-                    BufferedReader(InputStreamReader(connection.errorStream)).use { it.readText() }
-                configuration.logger?.error("Server Error submitting $timer: $statusCode - $responseBody")
-
-                // If server error, cache the payload and try again later
-                if (statusCode >= 500) {
-                    cachePayload(configuration.trackerUrl, payloadData)
-                }
+            var connection: HttpsURLConnection? = null
+            val payloadData = buildTimerData()
+            var capturedRequestCollections = if(shouldSendCapturedRequests) {
+                Tracker.instance?.getCapturedRequestCollectionsForTimer(timer)
             } else {
-                configuration.logger?.debug("$timer submitted successfully")
-
-                // successfully submitted a timer, lets check if there are any cached timers that we can try and submit too
-                val nextCachedPayload = configuration.payloadCache?.pickNext()
-                if (nextCachedPayload != null) {
-                    Tracker.instance?.submitPayload(nextCachedPayload)
+                configuration.logger?.info("shouldSendCapturedRequests is false, ignoring captured requests collections for timer: ${timer}")
+                listOf()
+            }
+            timer.onSubmit()
+            try {
+                val url = URL(configuration.trackerUrl)
+                connection = url.openConnection() as HttpsURLConnection
+                connection.requestMethod = Constants.METHOD_POST
+                connection.setRequestProperty(
+                    Constants.HEADER_CONTENT_TYPE,
+                    Constants.CONTENT_TYPE_JSON
+                )
+                connection.setRequestProperty(Constants.HEADER_USER_AGENT, configuration.userAgent)
+                connection.doOutput = true
+                DataOutputStream(connection.outputStream).use { it.write(Utils.b64encode(payloadData)) }
+                val statusCode = connection.responseCode
+                if (!capturedRequestCollections.isNullOrEmpty()) {
+                    CapturedRequestRunnable(configuration, capturedRequestCollections).run()
+                    capturedRequestCollections = null
                 }
+                if (statusCode >= 300) {
+                    val responseBody =
+                        BufferedReader(InputStreamReader(connection.errorStream)).use { it.readText() }
+                    configuration.logger?.error("Server Error submitting $timer: $statusCode - $responseBody")
+
+                    // If server error, cache the payload and try again later
+                    if (statusCode >= 500) {
+                        cachePayload(configuration.trackerUrl, payloadData)
+                    }
+                } else {
+                    configuration.logger?.debug("$timer submitted successfully")
+
+                    // successfully submitted a timer, lets check if there are any cached timers that we can try and submit too
+                    val nextCachedPayload = configuration.payloadCache?.pickNext()
+                    if (nextCachedPayload != null) {
+                        Tracker.instance?.submitPayload(nextCachedPayload)
+                    }
+                }
+                connection.getHeaderField(0)
+            } catch (e: Exception) {
+                if (!capturedRequestCollections.isNullOrEmpty()) {
+                    CapturedRequestRunnable(configuration, capturedRequestCollections).run()
+                }
+                configuration.logger?.error(e, "Android Error submitting $timer: ${e.message}")
+                cachePayload(configuration.trackerUrl, payloadData)
+            } finally {
+                connection?.disconnect()
             }
-            connection.getHeaderField(0)
-        } catch (e: Exception) {
-            if (!capturedRequestCollections.isNullOrEmpty()) {
-                CapturedRequestRunnable(configuration, capturedRequestCollections).run()
-            }
-            configuration.logger?.error(e, "Android Error submitting $timer: ${e.message}")
-            cachePayload(configuration.trackerUrl, payloadData)
-        } finally {
-            connection?.disconnect()
+        } catch(e: Exception) {
+            configuration.logger?.error("Error while submitting timer: ${e.message}")
         }
     }
 

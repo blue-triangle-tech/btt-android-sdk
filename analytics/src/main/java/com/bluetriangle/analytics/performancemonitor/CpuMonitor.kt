@@ -4,6 +4,7 @@ import android.os.Build
 import android.os.SystemClock
 import android.system.Os
 import android.system.OsConstants
+import android.util.Log
 import com.bluetriangle.analytics.BlueTriangleConfiguration
 import com.bluetriangle.analytics.PerformanceReport
 import com.bluetriangle.analytics.Timer
@@ -20,7 +21,7 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
     var totalClockTicsLastCollection = 0L
     var elapsedTimeLastCollection = 0.0
 
-    var isDebug = configuration.isDebug
+    var isVerboseDebug = configuration.isDebug && configuration.debugLevel == Log.VERBOSE
 
     companion object {
         /**
@@ -67,7 +68,9 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
         if (cpu > maxCpu) {
             maxCpu = cpu
         }
-        cpuUsed.add(cpu)
+        if(isVerboseDebug) {
+            cpuUsed.add(cpu)
+        }
         cumulativeCpu += cpu
         cpuCount++
     }
@@ -107,7 +110,7 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
             updateCpu(cpuUsage)
             totalClockTicsLastCollection = totalClockTicks
             elapsedTimeLastCollection = elapsedTime
-            logger?.debug(String.format(Locale.ENGLISH, "CPU Usage: %.2f", cpuUsage))
+            logger?.log(Log.VERBOSE, String.format(Locale.ENGLISH, "CPU Usage: %.2f", cpuUsage))
         }
     }
 
@@ -161,9 +164,9 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
 
     override fun onTimerSubmit(timer: Timer) {
         super.onTimerSubmit(timer)
-        if (isDebug) {
+        if (isVerboseDebug) {
             val pageName = timer.getField(FIELD_PAGE_NAME)
-            logger?.debug("CPU Samples for $pageName : $cpuUsed")
+            logger?.log(Log.VERBOSE, "CPU Samples for $pageName : $cpuUsed")
         }
     }
 }
