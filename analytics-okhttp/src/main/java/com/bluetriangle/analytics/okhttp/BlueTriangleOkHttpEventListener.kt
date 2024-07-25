@@ -1,5 +1,6 @@
 package com.bluetriangle.analytics.okhttp
 
+import android.util.Log
 import com.bluetriangle.analytics.BlueTriangleConfiguration
 import com.bluetriangle.analytics.networkcapture.CapturedRequest
 import com.bluetriangle.analytics.networkcapture.NetworkNativeAppProperties
@@ -32,7 +33,9 @@ internal class BlueTriangleOkHttpEventListener(
 
     override fun cacheConditionalHit(call: Call, cachedResponse: Response) {
         super.cacheConditionalHit(call, cachedResponse)
-        eventListener?.cacheConditionalHit(call, cachedResponse)
+        guarded {
+            eventListener?.cacheConditionalHit(call, cachedResponse)
+        }
     }
 
     private var callStartNanos: Long = 0
@@ -43,12 +46,14 @@ internal class BlueTriangleOkHttpEventListener(
             callStartNanos = nowNanos
         }
         val elapsedNanos = nowNanos - callStartNanos
-        logger?.info(String.format(Locale.ENGLISH, "%s : %.3f : %s%n", TAG, elapsedNanos / 1000000000.0, name))
+        logger?.log(Log.VERBOSE, String.format(Locale.ENGLISH, "%s : %.3f : %s%n", TAG, elapsedNanos / 1000000000.0, name))
     }
 
     override fun cacheHit(call: Call, response: Response) {
         super.cacheHit(call, response)
-        eventListener?.cacheHit(call, response)
+        guarded {
+            eventListener?.cacheHit(call, response)
+        }
     }
 
     override fun cacheMiss(call: Call) {
@@ -78,74 +83,90 @@ internal class BlueTriangleOkHttpEventListener(
 
     override fun callStart(call: Call) {
         super.callStart(call)
-        eventListener?.callStart(call)
-        printEvent("1.1. callStart(${call.request().url})")
-        if (!configuration.shouldSampleNetwork) {
-            configuration.logger?.error("Not sampling network")
-            return
-        }
-        capturedRequest = CapturedRequest().apply {
-            start()
-            url = call.request().url.toString()
-            val mediaType = call.request().headers["Content-Type"]?.toMediaType()
-            requestType = requestTypeFromMediaType(file, mediaType)
+        guarded {
+            eventListener?.callStart(call)
+            printEvent("1.1. callStart(${call.request().url})")
+            if (!configuration.shouldSampleNetwork) {
+                configuration.logger?.error("Not sampling network")
+                return@guarded
+            }
+            capturedRequest = CapturedRequest().apply {
+                start()
+                url = call.request().url.toString()
+                val mediaType = call.request().headers["Content-Type"]?.toMediaType()
+                requestType = requestTypeFromMediaType(file, mediaType)
+            }
         }
     }
 
     override fun callFailed(call: Call, ioe: IOException) {
         super.callFailed(call, ioe)
-        eventListener?.callFailed(call, ioe)
-        printEvent("1.2. callFailed(${call.request().url}, ${ioe::class.java.simpleName}(\"${ioe.message}\"))")
-        if (!configuration.shouldSampleNetwork) {
-            configuration.logger?.error("Not sampling network")
-            return
-        }
+        guarded {
+            eventListener?.callFailed(call, ioe)
+            printEvent("1.2. callFailed(${call.request().url}, ${ioe::class.java.simpleName}(\"${ioe.message}\"))")
+            if (!configuration.shouldSampleNetwork) {
+                configuration.logger?.error("Not sampling network")
+                return@guarded
+            }
 
-        capturedRequest?.apply {
-            encodedBodySize = call.request().body?.contentLength() ?: 0
-            responseStatusCode = 600
-            nativeAppProperties?.err = "${ioe::class.java.simpleName} : ${ioe.message}"
-            stop()
-            submit()
-        }
+            capturedRequest?.apply {
+                encodedBodySize = call.request().body?.contentLength() ?: 0
+                responseStatusCode = 600
+                nativeAppProperties?.err = "${ioe::class.java.simpleName} : ${ioe.message}"
+                stop()
+                submit()
+            }
 
-        configuration.logger?.debug("Submitted request: ${capturedRequest?.url}, ${capturedRequest?.duration}")
+            configuration.logger?.debug("Submitted request: ${capturedRequest?.url}, ${capturedRequest?.duration}")
+        }
     }
 
     override fun callEnd(call: Call) {
         super.callEnd(call)
-        eventListener?.callEnd(call)
-        printEvent("1.3. callEnd(${call.request().url})")
+        guarded {
+            eventListener?.callEnd(call)
+            printEvent("1.3. callEnd(${call.request().url})")
+        }
     }
 
     override fun dnsStart(call: Call, domainName: String) {
         super.dnsStart(call, domainName)
-        eventListener?.dnsStart(call, domainName)
-        printEvent("2.1. dnsStart(${call.request().url}, $domainName)")
+        guarded {
+            eventListener?.dnsStart(call, domainName)
+            printEvent("2.1. dnsStart(${call.request().url}, $domainName)")
+        }
     }
 
     override fun dnsEnd(call: Call, domainName: String, inetAddressList: List<InetAddress>) {
         super.dnsEnd(call, domainName, inetAddressList)
-        eventListener?.dnsEnd(call, domainName, inetAddressList)
-        printEvent("2.2. dnsEnd(${call.request().url}, $domainName, $inetAddressList)")
+        guarded {
+            eventListener?.dnsEnd(call, domainName, inetAddressList)
+            printEvent("2.2. dnsEnd(${call.request().url}, $domainName, $inetAddressList)")
+        }
     }
 
     override fun connectStart(call: Call, inetSocketAddress: InetSocketAddress, proxy: Proxy) {
         super.connectStart(call, inetSocketAddress, proxy)
-        eventListener?.connectStart(call, inetSocketAddress, proxy)
-        printEvent("3.1. connectStart(${call.request().url}, $inetSocketAddress, $proxy)")
+        guarded {
+            eventListener?.connectStart(call, inetSocketAddress, proxy)
+            printEvent("3.1. connectStart(${call.request().url}, $inetSocketAddress, $proxy)")
+        }
     }
 
     override fun connectionAcquired(call: Call, connection: Connection) {
         super.connectionAcquired(call, connection)
-        eventListener?.connectionAcquired(call, connection)
-        printEvent("3.2. connectionAcquired(${call.request().url}, $connection)")
+        guarded {
+            eventListener?.connectionAcquired(call, connection)
+            printEvent("3.2. connectionAcquired(${call.request().url}, $connection)")
+        }
     }
 
     override fun connectionReleased(call: Call, connection: Connection) {
         super.connectionReleased(call, connection)
-        eventListener?.connectionReleased(call, connection)
-        printEvent("3.3. connectionReleased(${call.request().url}, $connection)")
+        guarded {
+            eventListener?.connectionReleased(call, connection)
+            printEvent("3.3. connectionReleased(${call.request().url}, $connection)")
+        }
     }
 
     override fun connectFailed(
@@ -156,9 +177,10 @@ internal class BlueTriangleOkHttpEventListener(
         ioe: IOException
     ) {
         super.connectFailed(call, inetSocketAddress, proxy, protocol, ioe)
-        eventListener?.connectFailed(call, inetSocketAddress, proxy, protocol, ioe)
-        printEvent("3.4. connectFailed($${call.request().url}, $inetSocketAddress, $proxy, $protocol, $${ioe::class.java.simpleName}(\"${ioe.message}\"))")
-
+        guarded {
+            eventListener?.connectFailed(call, inetSocketAddress, proxy, protocol, ioe)
+            printEvent("3.4. connectFailed($${call.request().url}, $inetSocketAddress, $proxy, $protocol, $${ioe::class.java.simpleName}(\"${ioe.message}\"))")
+        }
     }
 
     override fun connectEnd(
@@ -168,80 +190,114 @@ internal class BlueTriangleOkHttpEventListener(
         protocol: Protocol?
     ) {
         super.connectEnd(call, inetSocketAddress, proxy, protocol)
-        eventListener?.connectEnd(call, inetSocketAddress, proxy, protocol)
-        printEvent("3.5. connectEnd(${call.request().url}, $inetSocketAddress, $proxy, $protocol)")
+        guarded {
+            eventListener?.connectEnd(call, inetSocketAddress, proxy, protocol)
+            printEvent("3.5. connectEnd(${call.request().url}, $inetSocketAddress, $proxy, $protocol)")
+        }
     }
 
     override fun requestHeadersStart(call: Call) {
         super.requestHeadersStart(call)
-        eventListener?.requestHeadersStart(call)
-        printEvent("4.1. requestHeadersStart(${call.request().url})")
+        guarded {
+            eventListener?.requestHeadersStart(call)
+            printEvent("4.1. requestHeadersStart(${call.request().url})")
+        }
     }
 
     override fun requestHeadersEnd(call: Call, request: Request) {
         super.requestHeadersEnd(call, request)
-        eventListener?.requestHeadersEnd(call, request)
-        printEvent("4.2. requestHeadersEnd(${call.request().url}, ${request.url}, ${request.body?.contentLength()})")
+        guarded {
+            eventListener?.requestHeadersEnd(call, request)
+            printEvent("4.2. requestHeadersEnd(${call.request().url}, ${request.url}, ${request.body?.contentLength()})")
+        }
     }
 
     override fun requestBodyStart(call: Call) {
         super.requestBodyStart(call)
-        eventListener?.requestBodyStart(call)
-        printEvent("4.3. requestBodyStart(${call.request().url})")
+        guarded {
+            eventListener?.requestBodyStart(call)
+            printEvent("4.3. requestBodyStart(${call.request().url})")
+        }
     }
 
     override fun requestBodyEnd(call: Call, byteCount: Long) {
         super.requestBodyEnd(call, byteCount)
-        eventListener?.requestBodyEnd(call, byteCount)
-        printEvent("4.4. requestBodyEnd(${call.request().url}, $byteCount)")
+        guarded {
+            eventListener?.requestBodyEnd(call, byteCount)
+            printEvent("4.4. requestBodyEnd(${call.request().url}, $byteCount)")
+        }
     }
 
     override fun requestFailed(call: Call, ioe: IOException) {
         super.requestFailed(call, ioe)
-        eventListener?.requestFailed(call, ioe)
-        printEvent("4.5. requestFailed(${call.request().url}, ${ioe::class.java.simpleName}(\"${ioe.message}\"))")
+        guarded {
+            eventListener?.requestFailed(call, ioe)
+            printEvent("4.5. requestFailed(${call.request().url}, ${ioe::class.java.simpleName}(\"${ioe.message}\"))")
+        }
     }
 
     override fun responseHeadersStart(call: Call) {
         super.responseHeadersStart(call)
-        eventListener?.responseHeadersStart(call)
-        printEvent("5.1. responseHeadersStart(${call.request().url})")
+        guarded {
+            eventListener?.responseHeadersStart(call)
+            printEvent("5.1. responseHeadersStart(${call.request().url})")
+        }
     }
 
     override fun responseHeadersEnd(call: Call, response: Response) {
         super.responseHeadersEnd(call, response)
-        eventListener?.responseHeadersEnd(call, response)
-        printEvent("5.2. responseHeadersEnd(${call.request().url}, ${response.code})")
+        guarded {
+            eventListener?.responseHeadersEnd(call, response)
+            printEvent("5.2. responseHeadersEnd(${call.request().url}, ${response.code})")
+        }
     }
 
     override fun responseBodyStart(call: Call) {
         super.responseBodyStart(call)
-        eventListener?.responseBodyStart(call)
-        printEvent("5.3. responseBodyStart(${call.request().url})")
+        guarded {
+            eventListener?.responseBodyStart(call)
+            printEvent("5.3. responseBodyStart(${call.request().url})")
+        }
     }
 
     override fun responseBodyEnd(call: Call, byteCount: Long) {
         super.responseBodyEnd(call, byteCount)
-        eventListener?.responseBodyEnd(call, byteCount)
-        printEvent("5.4. responseBodyEnd(${call.request().url}, $byteCount)")
+        guarded {
+            eventListener?.responseBodyEnd(call, byteCount)
+            printEvent("5.4. responseBodyEnd(${call.request().url}, $byteCount)")
+        }
     }
 
     override fun responseFailed(call: Call, ioe: IOException) {
         super.responseFailed(call, ioe)
-        eventListener?.responseFailed(call, ioe)
-        printEvent("5.5. responseFailed(${call.request().url}, ${ioe::class.java.simpleName}(\"${ioe.message}\"))")
+        guarded {
+            eventListener?.responseFailed(call, ioe)
+            printEvent("5.5. responseFailed(${call.request().url}, ${ioe::class.java.simpleName}(\"${ioe.message}\"))")
+        }
     }
 
     override fun secureConnectStart(call: Call) {
         super.secureConnectStart(call)
-        eventListener?.secureConnectStart(call)
-        printEvent("6.1. secureConnectStart(${call.request().url})")
+        guarded {
+            eventListener?.secureConnectStart(call)
+            printEvent("6.1. secureConnectStart(${call.request().url})")
+        }
     }
 
     override fun secureConnectEnd(call: Call, handshake: Handshake?) {
         super.secureConnectEnd(call, handshake)
-        eventListener?.secureConnectEnd(call, handshake)
-        printEvent("6.2. secureConnectEnd(${call.request().url}, $handshake)")
+        guarded {
+            eventListener?.secureConnectEnd(call, handshake)
+            printEvent("6.2. secureConnectEnd(${call.request().url}, $handshake)")
+        }
+    }
+
+    private fun guarded(function: () -> Unit) {
+        try {
+            function()
+        } catch (e: Exception) {
+            logger?.error("Exception while handling listener response: ${e.message}")
+        }
     }
 
 }

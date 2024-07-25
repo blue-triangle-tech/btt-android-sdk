@@ -1,5 +1,6 @@
 package com.bluetriangle.analytics.performancemonitor
 
+import android.util.Log
 import com.bluetriangle.analytics.BlueTriangleConfiguration
 import com.bluetriangle.analytics.CrashRunnable
 import com.bluetriangle.analytics.PerformanceReport
@@ -26,6 +27,7 @@ internal class MemoryMonitor(val configuration: BlueTriangleConfiguration) : Met
     private var memoryCount: Long = 0
     private val logger = configuration.logger
     private var memoryWarningException: MemoryWarningException? = null
+    private val isVerboseDebug = configuration.isDebug || configuration.debugLevel == Log.VERBOSE
     private var memoryUsed = arrayListOf<Long>()
 
     private fun calculateAverageMemory(): Long {
@@ -106,7 +108,9 @@ internal class MemoryMonitor(val configuration: BlueTriangleConfiguration) : Met
         if (memory > maxMemory) {
             maxMemory = memory
         }
-        memoryUsed.add(memory)
+        if(isVerboseDebug) {
+            memoryUsed.add(memory)
+        }
         cumulativeMemory += memory
         memoryCount++
     }
@@ -120,9 +124,9 @@ internal class MemoryMonitor(val configuration: BlueTriangleConfiguration) : Met
         memoryWarningException?.let {
             onThresholdReached(timer, it)
         }
-        if (configuration.isDebug) {
+        if (isVerboseDebug) {
             val pageName = timer.getField(FIELD_PAGE_NAME)?:""
-            logger?.debug("Memory Samples for $pageName : $memoryUsed")
+            logger?.log(Log.VERBOSE, "Memory Samples for $pageName : $memoryUsed")
         }
     }
 }

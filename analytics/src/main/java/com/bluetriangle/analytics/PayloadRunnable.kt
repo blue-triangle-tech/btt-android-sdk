@@ -14,39 +14,47 @@ import javax.net.ssl.HttpsURLConnection
  */
 internal class PayloadRunnable(private val configuration: BlueTriangleConfiguration, val payload: Payload) : Runnable {
     override fun run() {
-        var connection: HttpsURLConnection? = null
         try {
-            val url = URL(payload.url)
-            connection = url.openConnection() as HttpsURLConnection
-            connection.requestMethod = Constants.METHOD_POST
-            connection.setRequestProperty(Constants.HEADER_CONTENT_TYPE, Constants.CONTENT_TYPE_JSON)
-            connection.setRequestProperty(Constants.HEADER_USER_AGENT, configuration.userAgent)
-            connection.doOutput = true
-            DataOutputStream(connection.outputStream).use { it.write(Utils.b64encode(payload.data)) }
-            
-            val statusCode = connection.responseCode
-            if (statusCode >= 300) {
-                val responseBody = BufferedReader(InputStreamReader(connection.errorStream)).use { it.readText() }
-                configuration.logger?.error("HTTP Error $statusCode submitting payload $payload : $responseBody")
-                // If server error, cache the payload and try again later
-                if (statusCode >= 500) {
-                    cachePayload()
-                }
-            } else {
-                configuration.logger?.debug("Cached payload $payload submitted successfully")
+            var connection: HttpsURLConnection? = null
+            try {
+                val url = URL(payload.url)
+                connection = url.openConnection() as HttpsURLConnection
+                connection.requestMethod = Constants.METHOD_POST
+                connection.setRequestProperty(
+                    Constants.HEADER_CONTENT_TYPE,
+                    Constants.CONTENT_TYPE_JSON
+                )
+                connection.setRequestProperty(Constants.HEADER_USER_AGENT, configuration.userAgent)
+                connection.doOutput = true
+                DataOutputStream(connection.outputStream).use { it.write(Utils.b64encode(payload.data)) }
 
-                // successfully submitted a timer, lets check if there are any cached timers that we can try and submit too
-                val nextCachedPayload = configuration.payloadCache?.pickNext()
-                if (nextCachedPayload != null) {
-                    Tracker.instance?.submitPayload(nextCachedPayload)
+                val statusCode = connection.responseCode
+                if (statusCode >= 300) {
+                    val responseBody =
+                        BufferedReader(InputStreamReader(connection.errorStream)).use { it.readText() }
+                    configuration.logger?.error("HTTP Error $statusCode submitting payload $payload : $responseBody")
+                    // If server error, cache the payload and try again later
+                    if (statusCode >= 500) {
+                        cachePayload()
+                    }
+                } else {
+                    configuration.logger?.debug("Cached payload $payload submitted successfully")
+
+                    // successfully submitted a timer, lets check if there are any cached timers that we can try and submit too
+                    val nextCachedPayload = configuration.payloadCache?.pickNext()
+                    if (nextCachedPayload != null) {
+                        Tracker.instance?.submitPayload(nextCachedPayload)
+                    }
                 }
+                connection.getHeaderField(0)
+            } catch (e: Exception) {
+                configuration.logger?.error(e, "Error submitting payload ${payload.id}")
+                cachePayload()
+            } finally {
+                connection?.disconnect()
             }
-            connection.getHeaderField(0)
         } catch (e: Exception) {
-            configuration.logger?.error(e, "Error submitting payload ${payload.id}")
-            cachePayload()
-        } finally {
-            connection?.disconnect()
+            configuration.logger?.error("Error while submitting cache payload: ${e.message}")
         }
     }
 
