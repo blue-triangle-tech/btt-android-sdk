@@ -26,25 +26,9 @@ fun logD(tag: String, message: String) {
     Tracker.instance?.configuration?.logger?.debug("$tag: $message")
 }
 
-inline fun <reified T : Any, reified R> T.getPrivateProperty(name: String): R? {
-    val property = T::class
-        .memberProperties
-        .firstOrNull { it.name == name }
-        ?.apply { isAccessible = true }
-        ?.get(this)
-    if (property is R) {
-        return property
-    }
-    return null
-}
-
-fun Fragment.getUniqueId(): String? {
-    return this.getPrivateProperty<Fragment, String>("mWho")
-}
-
 internal val Fragment.screen: Screen
     get() = Screen(
-        getUniqueId() ?: "",
+        hashCode().toString(),
         this::class.java.simpleName,
         ScreenType.Fragment
     )
