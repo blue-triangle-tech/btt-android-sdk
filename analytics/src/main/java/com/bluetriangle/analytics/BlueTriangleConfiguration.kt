@@ -20,6 +20,8 @@ class BlueTriangleConfiguration {
      * Session ID
      */
     var sessionId: String? = null
+        @Synchronized get
+        @Synchronized set
 
     /**
      * the application's name

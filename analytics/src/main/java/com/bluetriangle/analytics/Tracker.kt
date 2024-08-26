@@ -9,6 +9,7 @@ import android.os.Build
 import android.text.TextUtils
 import androidx.core.content.ContextCompat
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
+import com.bluetriangle.analytics.hybrid.BTTWebViewTracker
 import com.bluetriangle.analytics.launchtime.LaunchMonitor
 import com.bluetriangle.analytics.launchtime.LaunchReporter
 import com.bluetriangle.analytics.networkcapture.CapturedRequest
@@ -18,6 +19,7 @@ import com.bluetriangle.analytics.networkstate.NetworkTimelineTracker
 import com.bluetriangle.analytics.screenTracking.ActivityLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.BTTScreenLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.FragmentLifecycleTracker
+import com.bluetriangle.analytics.sessionmanager.SessionManager
 import java.io.File
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
@@ -72,9 +74,14 @@ class Tracker private constructor(
 
     internal var networkTimelineTracker: NetworkTimelineTracker? = null
     internal var networkStateMonitor: NetworkStateMonitor? = null
+    private var sessionManager: SessionManager
 
     init {
         this.context = WeakReference(application.applicationContext)
+        this.sessionManager = SessionManager(application.applicationContext)
+
+        AppEventHub.instance.addConsumer(this.sessionManager)
+
         this.configuration = configuration
         globalFields = HashMap(8)
         configuration.siteId?.let { globalFields[Timer.FIELD_SITE_ID] = it }
@@ -90,7 +97,7 @@ class Tracker private constructor(
         setGlobalUserId(globalUserId)
         configuration.globalUserId = globalUserId
 
-        val sessionId = configuration.sessionId ?: Utils.generateRandomId()
+        val sessionId = sessionManager.sessionId
         setSessionId(sessionId)
         configuration.sessionId = sessionId
 
@@ -446,6 +453,14 @@ class Tracker private constructor(
      */
     fun clearGlobalField(fieldName: String) {
         synchronized(globalFields) { globalFields.remove(fieldName) }
+    }
+
+    @Synchronized
+    internal fun updateSession(sessionId: String) {
+        configuration.logger?.debug("Updating session ID from ${configuration.sessionId} to $sessionId")
+        configuration.sessionId = sessionId
+        setSessionId(sessionId)
+        BTTWebViewTracker.updateSession(sessionId)
     }
 
     fun trackCrashes() {

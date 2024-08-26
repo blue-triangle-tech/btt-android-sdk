@@ -7,12 +7,9 @@ import android.os.Bundle
 import android.os.Process
 import android.os.SystemClock
 import android.util.Log
-import androidx.lifecycle.ProcessLifecycleOwner
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.launchtime.data.AppEvent
 import com.bluetriangle.analytics.launchtime.data.LaunchEvent
-import com.bluetriangle.analytics.launchtime.helpers.ActivityEventHandler
-import com.bluetriangle.analytics.launchtime.helpers.AppBackgroundNotifier
 import com.bluetriangle.analytics.launchtime.helpers.AppEventAccumulator
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -36,7 +33,6 @@ internal class LaunchMonitor private constructor():AppEventConsumer, LaunchEvent
             }
     }
 
-    private val activityEventHandler = ActivityEventHandler(this)
     private val appEventAccumulator = AppEventAccumulator(this)
 
     private val _logs = mutableListOf<LogData>()
@@ -64,8 +60,6 @@ internal class LaunchMonitor private constructor():AppEventConsumer, LaunchEvent
 
     override fun onAppCreated(application:Application) {
         log(LogData(level = Log.VERBOSE, message = "${getPrefix()} onAppCreated"))
-        application.registerActivityLifecycleCallbacks(activityEventHandler)
-        ProcessLifecycleOwner.get().lifecycle.addObserver(AppBackgroundNotifier(application, this))
         appEventAccumulator.accumulate(AppEvent.AppCreated())
     }
 
@@ -94,12 +88,10 @@ internal class LaunchMonitor private constructor():AppEventConsumer, LaunchEvent
                 _launchEvents.send(LaunchEvent.create(result.type, activityName, startTime))
             }
         }
-        activity.application.unregisterActivityLifecycleCallbacks(activityEventHandler)
     }
 
     override fun onAppMovedToBackground(application:Application) {
         log(LogData(level = Log.VERBOSE, message = "${getPrefix()} onAppMovedToBackground"))
-        application.registerActivityLifecycleCallbacks(activityEventHandler)
     }
 
     private val _launchEvents = Channel<LaunchEvent>(1)

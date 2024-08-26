@@ -6,14 +6,24 @@ import android.os.Bundle
 
 internal interface AppEventConsumer {
 
-    fun onAppCreated(application: Application)
+    fun onAppCreated(application: Application) {
 
-    fun onActivityCreated(activity: Activity, data: Bundle?)
+    }
 
-    fun onActivityStarted(activity: Activity)
+    fun onActivityCreated(activity: Activity, data: Bundle?) {
 
-    fun onActivityResumed(activity: Activity)
+    }
 
-    fun onAppMovedToBackground(application:Application)
+    fun onActivityStarted(activity: Activity) {
+
+    }
+
+    fun onActivityResumed(activity: Activity) {
+
+    }
+
+    fun onAppMovedToBackground(application:Application) {
+
+    }
 
 }
