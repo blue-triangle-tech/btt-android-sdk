@@ -152,6 +152,8 @@ class BlueTriangleConfiguration {
             field = value.coerceAtLeast(MIN_MEMORY_LIMIT).coerceAtMost(MAX_MEMORY_LIMIT)
         }
 
+    var sessionExpirationDuration:Long = SESSION_EXPIRATION_IN_MILLIS
+        private set
 
     /**
      * Track the network state during Timer, Network request and errors. States include wifi, cellular, ethernet and offline.
@@ -176,6 +178,8 @@ class BlueTriangleConfiguration {
         private val MIN_EXPIRY_DURATION = 1 * MIN
         private val EXPIRATION_IN_MILLIS = 48 * HOUR
         private val MAX_EXPIRY_DURATION = 240 * HOUR
+
+        private val SESSION_EXPIRATION_IN_MILLIS = 30 * MIN
     }
 
     override fun toString(): String {

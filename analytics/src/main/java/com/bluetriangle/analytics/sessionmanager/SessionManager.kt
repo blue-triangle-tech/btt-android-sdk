@@ -7,11 +7,10 @@ import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.Utils
 import com.bluetriangle.analytics.launchtime.AppEventConsumer
 
-class SessionManager(context: Context): AppEventConsumer {
+class SessionManager(context: Context, private val expirationDurationInMillis:Long): AppEventConsumer {
 
     private var currentSession: SessionData? = null
     private var sessionStore:SessionStore = SharedPrefsSessionStore(context)
-    private var expirationDurationInMillis =  10 * 1000
 
     val sessionId: String
         get() {
