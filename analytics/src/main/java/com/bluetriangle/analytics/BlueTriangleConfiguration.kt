@@ -152,7 +152,7 @@ class BlueTriangleConfiguration {
             field = value.coerceAtLeast(MIN_MEMORY_LIMIT).coerceAtMost(MAX_MEMORY_LIMIT)
         }
 
-    var sessionExpirationDuration:Long = SESSION_EXPIRATION_IN_MILLIS
+    var sessionExpiryDuration:Long = SESSION_EXPIRATION_IN_MILLIS
         private set
 
     /**

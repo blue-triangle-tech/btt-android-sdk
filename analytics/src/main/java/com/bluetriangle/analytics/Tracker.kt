@@ -78,7 +78,7 @@ class Tracker private constructor(
 
     init {
         this.context = WeakReference(application.applicationContext)
-        this.sessionManager = SessionManager(application.applicationContext, configuration.sessionExpirationDuration)
+        this.sessionManager = SessionManager(application.applicationContext, configuration.sessionExpiryDuration)
 
         AppEventHub.instance.addConsumer(this.sessionManager)
 
