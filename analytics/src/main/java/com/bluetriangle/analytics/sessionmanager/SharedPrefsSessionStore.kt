@@ -5,7 +5,7 @@ import com.bluetriangle.analytics.sessionmanager.SessionData.Companion.toSession
 import com.bluetriangle.analytics.sessionmanager.SessionData.Companion.toJsonObject
 import org.json.JSONObject
 
-class SharedPrefsSessionStore(val context: Context):SessionStore {
+internal class SharedPrefsSessionStore(val context: Context):SessionStore {
 
     companion object {
         private const val SESSION_STORE = "session_store"

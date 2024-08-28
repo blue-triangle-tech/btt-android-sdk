@@ -3,7 +3,7 @@ package com.bluetriangle.analytics.sessionmanager
 import com.bluetriangle.analytics.Tracker
 import org.json.JSONObject
 
-data class SessionData(
+internal data class SessionData(
     val sessionId:String,
     val expiration:Long
 ) {

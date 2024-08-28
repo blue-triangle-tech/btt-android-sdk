@@ -1,6 +1,6 @@
 package com.bluetriangle.analytics.sessionmanager
 
-interface SessionStore {
+internal interface SessionStore {
 
     fun storeSessionData(sessionData: SessionData)
 
