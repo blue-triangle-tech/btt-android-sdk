@@ -12,7 +12,7 @@ internal data class SessionData(
         private const val SESSION_ID = "sessionId"
         private const val EXPIRATION = "expiration"
 
-        fun JSONObject.toSessionData():SessionData? {
+        internal fun JSONObject.toSessionData():SessionData? {
             try {
                 return SessionData(
                     sessionId = getString(SESSION_ID),
@@ -24,7 +24,7 @@ internal data class SessionData(
             }
         }
 
-        fun SessionData.toJsonObject() = JSONObject().apply {
+        internal fun SessionData.toJsonObject() = JSONObject().apply {
             put(SESSION_ID, sessionId)
             put(EXPIRATION, expiration)
         }
