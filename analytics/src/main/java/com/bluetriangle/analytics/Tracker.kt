@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.text.TextUtils
 import androidx.core.content.ContextCompat
+import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
 import com.bluetriangle.analytics.hybrid.BTTWebViewTracker
 import com.bluetriangle.analytics.launchtime.LaunchMonitor
@@ -80,7 +81,7 @@ class Tracker private constructor(
         this.context = WeakReference(application.applicationContext)
         this.sessionManager = SessionManager(application.applicationContext, configuration.sessionExpiryDuration)
 
-        AppEventHub.instance.appendToStart(this.sessionManager)
+        AppEventHub.instance.addConsumer(this.sessionManager)
 
         this.configuration = configuration
         globalFields = HashMap(8)
@@ -233,6 +234,7 @@ class Tracker private constructor(
             timer.end()
         }
         timer.setFields(globalFields.toMap())
+        timer.setField(FIELD_SESSION_ID, sessionManager.sessionId)
         trackerExecutor.submit(TimerRunnable(configuration, timer))
     }
 

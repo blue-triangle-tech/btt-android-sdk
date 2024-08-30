@@ -38,10 +38,6 @@ internal class AppEventHub private constructor():AppEventConsumer  {
         consumers.add(WeakReference(consumer))
     }
 
-    fun appendToStart(consumer: AppEventConsumer) {
-        consumers.add(0, WeakReference(consumer))
-    }
-
     fun removeConsumer(consumer: AppEventConsumer) {
         consumers.removeAll { reference -> reference.get() == consumer }
     }
