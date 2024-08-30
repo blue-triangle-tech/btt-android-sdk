@@ -45,15 +45,11 @@ internal class AppEventHub private constructor():AppEventConsumer  {
     private val activityEventHandler = ActivityEventHandler()
 
     private fun notifyConsumers(notify:(AppEventConsumer)-> Unit) {
-        scope.launch(IO) {
-            consumers.forEach {
-                val consumer = it.get()
+        consumers.forEach {
+            val consumer = it.get()
 
-                if(consumer != null) {
-                    withContext(Dispatchers.Main) {
-                        notify(consumer)
-                    }
-                }
+            if(consumer != null) {
+                notify(consumer)
             }
         }
     }
