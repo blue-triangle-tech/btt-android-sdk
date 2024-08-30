@@ -459,6 +459,8 @@ class Tracker private constructor(
 
     @Synchronized
     internal fun updateSession(sessionId: String) {
+        if(configuration.sessionId == sessionId) return
+
         configuration.logger?.debug("Updating session ID from ${configuration.sessionId} to $sessionId")
         configuration.sessionId = sessionId
         setSessionId(sessionId)

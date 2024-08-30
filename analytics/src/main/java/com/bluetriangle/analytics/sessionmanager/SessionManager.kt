@@ -44,9 +44,7 @@ internal class SessionManager(context: Context, private val expirationDurationIn
     private fun getNewExpiration() = System.currentTimeMillis() + expirationDurationInMillis
 
     fun onLaunch() {
-        if(invalidateSessionData()) {
-            Tracker.instance?.updateSession(currentSession!!.sessionId)
-        }
+        Tracker.instance?.updateSession(currentSession!!.sessionId)
     }
 
     fun onOffScreen() {
