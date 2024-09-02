@@ -13,7 +13,7 @@ internal class SessionManager(context: Context, private val expirationDurationIn
     private var sessionStore:SessionStore = SharedPrefsSessionStore(context)
 
     val sessionId: String
-        get() {
+        @Synchronized get() {
             invalidateSessionData()
             return currentSession!!.sessionId
         }
@@ -28,6 +28,7 @@ internal class SessionManager(context: Context, private val expirationDurationIn
             currentSession = generateNewSession().apply {
                 sessionStore.storeSessionData(this)
             }
+            Tracker.instance?.configuration?.logger?.debug("Session Expired! Updating session to ${currentSession?.sessionId}")
             return true
         }
         currentSession = sessionStore.retrieveSessionData()
@@ -43,11 +44,11 @@ internal class SessionManager(context: Context, private val expirationDurationIn
 
     private fun getNewExpiration() = System.currentTimeMillis() + expirationDurationInMillis
 
-    fun onLaunch() {
+    @Synchronized fun onLaunch() {
         Tracker.instance?.updateSession(currentSession!!.sessionId)
     }
 
-    fun onOffScreen() {
+    @Synchronized fun onOffScreen() {
         currentSession?.let {
             sessionStore.storeSessionData(
                 SessionData(
