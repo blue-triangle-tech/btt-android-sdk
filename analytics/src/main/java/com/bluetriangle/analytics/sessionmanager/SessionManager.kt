@@ -10,6 +10,9 @@ import com.bluetriangle.analytics.launchtime.AppEventConsumer
 internal class SessionManager(context: Context, private val expirationDurationInMillis:Long): AppEventConsumer {
 
     private var currentSession: SessionData? = null
+        @Synchronized get
+        @Synchronized set
+
     private var sessionStore:SessionStore = SharedPrefsSessionStore(context)
 
     val sessionId: String
