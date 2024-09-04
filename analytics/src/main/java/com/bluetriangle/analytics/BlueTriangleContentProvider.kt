@@ -12,8 +12,10 @@ import com.bluetriangle.analytics.launchtime.LogData
 class BlueTriangleContentProvider: ContentProvider() {
     override fun onCreate(): Boolean {
         try {
+            AppEventHub.instance.addConsumer(LaunchMonitor.instance)
+
             val application = (context!!.applicationContext as Application)
-            LaunchMonitor.instance.onAppCreated(application)
+            AppEventHub.instance.onAppCreated(application)
         } catch (e: Exception) {
             LaunchMonitor.instance.log(LogData(Log.ERROR, "Error while getting Application instance in ContentProvider.onCreate : ${e::class.java.simpleName}(\"${e.message}\")"))
         }
