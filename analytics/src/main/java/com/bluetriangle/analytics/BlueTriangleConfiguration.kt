@@ -172,7 +172,7 @@ class BlueTriangleConfiguration {
         private const val MB = 1024 * 1024L
         private const val MIN = 60 * 1000L
         private const val HOUR = 60 * MIN
-        private const val MIN_MEMORY_LIMIT = 5 * KB
+        private const val MIN_MEMORY_LIMIT = 10 * MB
         private const val MAX_MEMORY_LIMIT = 300 * MB
         private const val MEMORY_LIMIT = 30 * MB
         private val MIN_EXPIRY_DURATION = 1 * MIN
