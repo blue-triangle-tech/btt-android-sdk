@@ -3,13 +3,13 @@ package com.bluetriangle.analytics.launchtime.helpers
 import android.app.Application
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import com.bluetriangle.analytics.launchtime.AppEventConsumer
+import com.bluetriangle.analytics.AppEventHub
 
-internal class AppBackgroundNotifier(val application: Application, val listener: AppEventConsumer):DefaultLifecycleObserver {
+internal class AppBackgroundNotifier(val application: Application):DefaultLifecycleObserver {
 
     override fun onStop(owner: LifecycleOwner) {
         super.onStop(owner)
-        listener.onAppMovedToBackground(application)
+        AppEventHub.instance.onAppMovedToBackground(application)
     }
 
 }

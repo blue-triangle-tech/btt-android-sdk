@@ -3,17 +3,17 @@ package com.bluetriangle.analytics.launchtime.helpers
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
-import com.bluetriangle.analytics.launchtime.AppEventConsumer
+import com.bluetriangle.analytics.AppEventHub
 
-internal class ActivityEventHandler(val listener: AppEventConsumer) :
+internal class ActivityEventHandler :
     Application.ActivityLifecycleCallbacks {
 
     override fun onActivityCreated(activity: Activity, data: Bundle?) {
-        listener.onActivityCreated(activity, data)
+        AppEventHub.instance.onActivityCreated(activity, data)
     }
 
     override fun onActivityStarted(activity: Activity) {
-        listener.onActivityStarted(activity)
+        AppEventHub.instance.onActivityStarted(activity)
     }
 
     override fun onActivityResumed(activity: Activity) {
@@ -21,7 +21,7 @@ internal class ActivityEventHandler(val listener: AppEventConsumer) :
     }
 
     override fun onActivityPostResumed(activity: Activity) {
-        listener.onActivityResumed(activity)
+        AppEventHub.instance.onActivityResumed(activity)
     }
 
     override fun onActivityPaused(activity: Activity) {

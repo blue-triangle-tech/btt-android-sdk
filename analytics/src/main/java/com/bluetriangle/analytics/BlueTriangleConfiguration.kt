@@ -20,6 +20,8 @@ class BlueTriangleConfiguration {
      * Session ID
      */
     var sessionId: String? = null
+        @Synchronized get
+        @Synchronized set
 
     /**
      * the application's name
@@ -150,6 +152,8 @@ class BlueTriangleConfiguration {
             field = value.coerceAtLeast(MIN_MEMORY_LIMIT).coerceAtMost(MAX_MEMORY_LIMIT)
         }
 
+    var sessionExpiryDuration:Long = SESSION_EXPIRATION_IN_MILLIS
+        private set
 
     /**
      * Track the network state during Timer, Network request and errors. States include wifi, cellular, ethernet and offline.
@@ -168,12 +172,14 @@ class BlueTriangleConfiguration {
         private const val MB = 1024 * 1024L
         private const val MIN = 60 * 1000L
         private const val HOUR = 60 * MIN
-        private const val MIN_MEMORY_LIMIT = 5 * KB
+        private const val MIN_MEMORY_LIMIT = 10 * MB
         private const val MAX_MEMORY_LIMIT = 300 * MB
         private const val MEMORY_LIMIT = 30 * MB
         private val MIN_EXPIRY_DURATION = 1 * MIN
         private val EXPIRATION_IN_MILLIS = 48 * HOUR
         private val MAX_EXPIRY_DURATION = 240 * HOUR
+
+        private val SESSION_EXPIRATION_IN_MILLIS = 30 * MIN
     }
 
     override fun toString(): String {

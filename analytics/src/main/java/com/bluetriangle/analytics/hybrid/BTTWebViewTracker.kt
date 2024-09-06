@@ -4,14 +4,20 @@ import android.os.Build
 import android.webkit.WebView
 import com.bluetriangle.analytics.BuildConfig
 import com.bluetriangle.analytics.Tracker
+import com.bluetriangle.analytics.utility.WebViewHelper
+import java.lang.ref.WeakReference
 
 object BTTWebViewTracker {
+
+    private var webViews = arrayListOf<WeakReference<WebView>>()
 
     @JvmStatic
     public fun onLoadResource(view: WebView?, url: String?) {
         if (view == null || url == null) return
         val fileName = url.split("/").lastOrNull { segment -> segment.isNotEmpty() }
         if (fileName != "btt.js") return
+
+        addWebView(view)
 
         Tracker.instance?.configuration?.let {
             val expiration = (System.currentTimeMillis() + (30 * 60 * 1000)).toString()
@@ -26,6 +32,38 @@ object BTTWebViewTracker {
             view.setLocalStorage("BTT_WCD_Collect", wcdCollect)
             Tracker.instance?.configuration?.logger?.info("Injected session ID and SDK version in WebView: BTT_X0siD: $sessionID, BTT_SDK_VER: $sdkVersion with expiration $expiration")
         }
+    }
+
+    @JvmStatic
+    private fun WebView.hasBTTJs(task: () -> Unit) = WebViewHelper(this).let {
+        it.evaluateJavascript("_bttTagInit") { hasBttTag, error ->
+            if(error == null && hasBttTag == "true") {
+                it.evaluateJavascript("_bttUtil.prefix") { siteId, err ->
+                    if(err == null && siteId == "\"${Tracker.instance?.configuration?.siteId}\"") {
+                        task()
+                    }
+                }
+            }
+        }
+    }
+
+    @JvmStatic
+    internal fun updateSession(sessionId: String) {
+        webViews.forEach { webView ->
+
+            webView.get()?.let {
+
+                it.hasBTTJs {
+                    val siteId = Tracker.instance?.configuration?.siteId
+                    onLoadResource(it, "https://${siteId}.btttag.com/btt.js")
+                }
+            }
+        }
+    }
+
+    private fun addWebView(view: WebView) {
+        webViews = ArrayList(webViews.filter { webView -> webView.get() != null && webView.get() != view })
+        webViews.add(WeakReference(view))
     }
 
     private fun WebView.setLocalStorage(key:String, value:String) {
