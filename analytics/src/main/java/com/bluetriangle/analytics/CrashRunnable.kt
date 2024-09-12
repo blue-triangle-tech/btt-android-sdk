@@ -1,6 +1,11 @@
 package com.bluetriangle.analytics
 
 import android.net.Uri
+import android.os.Build
+import com.bluetriangle.analytics.Constants.TIMER_MIN_PGTM
+import com.bluetriangle.analytics.networkcapture.CapturedRequest
+import com.bluetriangle.analytics.utility.value
+import com.bluetriangle.analytics.caching.classifier.CacheType
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -33,53 +38,89 @@ internal class CrashRunnable(
     /**
      * Timer to track crash reporting
      */
-    private val crashHitsTimer: Timer
+    private val crashHitsTimer: Timer,
+
+    private val errorType: Tracker.BTErrorType = Tracker.BTErrorType.NativeAppCrash,
+
+    private val mostRecentTimer: Timer? = null,
+    private val errorCount:Int = 1
 ) : Runnable {
     override fun run() {
-        submitTimer()
-        submitCrashReport()
+        try {
+            submitTimer()
+            submitCrashReport()
+        } catch (e: Exception) {
+            configuration.logger?.error("Error while submitting crash report: ${e.message}")
+        }
     }
 
     private fun submitTimer() {
         val tracker = Tracker.instance
+        crashHitsTimer.pageTimeCalculator = {
+            TIMER_MIN_PGTM
+        }
         crashHitsTimer.end()
         crashHitsTimer.setField(Timer.FIELD_EXCLUDED, "20")
-        crashHitsTimer.setPageName(Constants.CRASH_PAGE_NAME)
+        if (errorType == Tracker.BTErrorType.NativeAppCrash) {
+            crashHitsTimer.setPageName(
+                mostRecentTimer?.getField(Timer.FIELD_PAGE_NAME) ?: Constants.CRASH_PAGE_NAME
+            )
+        }
         crashHitsTimer.setFields(tracker?.globalFields?.toMap() ?: emptyMap())
-        val timerRunnable = TimerRunnable(configuration, crashHitsTimer)
+        val timerRunnable = TimerRunnable(configuration, crashHitsTimer, false)
         timerRunnable.run()
     }
 
     private fun buildCrashReportUrl(): String {
         val deviceName = Utils.deviceName
+        val pageName = mostRecentTimer?.getField(Timer.FIELD_PAGE_NAME)
+            ?: Constants.CRASH_PAGE_NAME
         return Uri.parse(configuration.errorReportingUrl)
             .buildUpon()
             .appendQueryParameter(Timer.FIELD_SITE_ID, configuration.siteId)
-            .appendQueryParameter(Timer.FIELD_NAVIGATION_START, crashHitsTimer.getField(Timer.FIELD_NST))
+            .appendQueryParameter(
+                Timer.FIELD_NAVIGATION_START,
+                crashHitsTimer.getField(Timer.FIELD_NST)
+            )
             .appendQueryParameter(
                 Timer.FIELD_PAGE_NAME,
-                crashHitsTimer.getField(Timer.FIELD_PAGE_NAME, Constants.CRASH_PAGE_NAME)
+                crashHitsTimer.getField(Timer.FIELD_PAGE_NAME, pageName)
             )
             .appendQueryParameter(
                 Timer.FIELD_TRAFFIC_SEGMENT_NAME,
-                crashHitsTimer.getField(Timer.FIELD_TRAFFIC_SEGMENT_NAME, Constants.CRASH_PAGE_NAME)
+                crashHitsTimer.getField(Timer.FIELD_TRAFFIC_SEGMENT_NAME, pageName)
             )
-            .appendQueryParameter(Timer.FIELD_NATIVE_OS, crashHitsTimer.getField(Timer.FIELD_NATIVE_OS, Constants.OS))
+            .appendQueryParameter(
+                Timer.FIELD_NATIVE_OS,
+                crashHitsTimer.getField(Timer.FIELD_NATIVE_OS, Constants.OS)
+            )
             .appendQueryParameter(
                 Timer.FIELD_DEVICE,
                 crashHitsTimer.getField(Timer.FIELD_DEVICE, Constants.DEVICE_MOBILE)
             )
             .appendQueryParameter(Timer.FIELD_BROWSER, Constants.BROWSER)
-            .appendQueryParameter(Timer.FIELD_BROWSER_VERSION, crashHitsTimer.getField(Timer.FIELD_BROWSER_VERSION))
+            .appendQueryParameter(
+                Timer.FIELD_BROWSER_VERSION,
+                crashHitsTimer.getField(Timer.FIELD_BROWSER_VERSION)
+            )
             .appendQueryParameter(Timer.FIELD_LONG_SESSION_ID, configuration.sessionId)
             .appendQueryParameter(Timer.FIELD_PAGE_TIME, crashHitsTimer.getField("pgTm"))
             .appendQueryParameter(
                 Timer.FIELD_CONTENT_GROUP_NAME,
                 crashHitsTimer.getField(Timer.FIELD_CONTENT_GROUP_NAME, deviceName)
             )
-            .appendQueryParameter(Timer.FIELD_AB_TEST_ID, crashHitsTimer.getField(Timer.FIELD_AB_TEST_ID, "Default"))
-            .appendQueryParameter(Timer.FIELD_DATACENTER, crashHitsTimer.getField(Timer.FIELD_DATACENTER, "Default"))
-            .appendQueryParameter(Timer.FIELD_CAMPAIGN_NAME, crashHitsTimer.getField(Timer.FIELD_CAMPAIGN_NAME, ""))
+            .appendQueryParameter(
+                Timer.FIELD_AB_TEST_ID,
+                crashHitsTimer.getField(Timer.FIELD_AB_TEST_ID, "Default")
+            )
+            .appendQueryParameter(
+                Timer.FIELD_DATACENTER,
+                crashHitsTimer.getField(Timer.FIELD_DATACENTER, "Default")
+            )
+            .appendQueryParameter(
+                Timer.FIELD_CAMPAIGN_NAME,
+                crashHitsTimer.getField(Timer.FIELD_CAMPAIGN_NAME, "")
+            )
             .appendQueryParameter(
                 Timer.FIELD_CAMPAIGN_MEDIUM,
                 crashHitsTimer.getField(Timer.FIELD_CAMPAIGN_MEDIUM, Constants.OS)
@@ -100,14 +141,18 @@ internal class CrashRunnable(
             val url = URL(crashReportUrl)
             connection = url.openConnection() as HttpsURLConnection
             connection.requestMethod = Constants.METHOD_POST
-            connection.setRequestProperty(Constants.HEADER_CONTENT_TYPE, Constants.CONTENT_TYPE_JSON)
+            connection.setRequestProperty(
+                Constants.HEADER_CONTENT_TYPE,
+                Constants.CONTENT_TYPE_JSON
+            )
             connection.setRequestProperty(Constants.HEADER_USER_AGENT, configuration.userAgent)
             connection.doOutput = true
             connection.doInput = false
             DataOutputStream(connection.outputStream).use { it.write(Utils.b64encode(payloadData)) }
             val statusCode = connection.responseCode
             if (statusCode >= 300) {
-                val responseBody = BufferedReader(InputStreamReader(connection.errorStream)).use { it.readText() }
+                val responseBody =
+                    BufferedReader(InputStreamReader(connection.errorStream)).use { it.readText() }
                 configuration.logger?.error("Error submitting crash report: $statusCode - $responseBody")
             }
             // If server error, cache the payload and try again later
@@ -130,7 +175,14 @@ internal class CrashRunnable(
      */
     private fun cachePayload(url: String, payloadData: String) {
         configuration.logger?.info("Caching crash report")
-        configuration.payloadCache?.cachePayload(Payload(url = url, data = payloadData))
+        configuration.payloadCache?.save(
+            Payload(
+                url = url,
+                data = payloadData,
+                type = CacheType.Error,
+                createdAt = System.currentTimeMillis()
+            )
+        )
     }
 
     /**
@@ -139,17 +191,24 @@ internal class CrashRunnable(
      * @return base 64 encoded JSON payload
      */
     private fun buildCrashReportData(): String {
-        val crashReport = mapOf(
+        val crashReport = mutableMapOf<String, Any?>(
             "msg" to stackTrace,
-            "eTp" to "NativeAppCrash",
-            "eCnt" to "1",
+            "eTp" to errorType.value,
+            "eCnt" to errorCount.toString(),
             "url" to configuration.applicationName,
             "line" to "1",
             "col" to "1",
             "time" to timeStamp,
         )
 
-        val crashDataArray = JSONArray(listOf(JSONObject(crashReport)))
+        val netStateMonitor = Tracker.instance?.networkStateMonitor
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && netStateMonitor != null) {
+            crashReport[Timer.FIELD_NATIVE_APP] = mapOf(
+                CapturedRequest.FIELD_NETWORK_STATE to netStateMonitor.state.value.value
+            )
+        }
+
+        val crashDataArray = JSONArray(listOf(JSONObject(crashReport.toMap())))
         val jsonData = crashDataArray.toString(if (configuration.isDebug) 2 else 0)
         configuration.logger?.debug("Crash Report Data: $jsonData")
         return jsonData

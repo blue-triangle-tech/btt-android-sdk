@@ -1,4 +1,72 @@
 <resources>
     <string name="app_name">Blue Triangle Android Demo</string>
     <string name="btt_site_id" translatable="false">testsite1</string>
+    <string name="run">Run</string>
+    <string name="main_title">BlueTriangle Tests</string>
+    <string name="anr_tests">ANR Tests</string>
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
+    <string name="bttimer">BTTimer:</string>
+
+    <string name="lbl_sleep_main_thread_test">Sleep Main Thread Test</string>
+    <string name="lbl_heavy_loop_test">Heavy Loop Test</string>
+    <string name="lbl_download_test">Download Test</string>
+    <string name="lbl_dead_lock_main_thread_test">DeadLock Main Thread Test</string>
+    <string name="lbl_application_create">On Application Create</string>
+    <string name="lbl_activity_create">On Activity Create</string>
+    <string name="lbl_activity_start">On Activity Start</string>
+    <string name="lbl_activity_resume">On Activity Resume</string>
+    <string name="lbl_broadcast_received">On BroadCast Received</string>
+
+    <array name="anr_test_scenarios">
+        <item>@string/lbl_activity_create</item>
+        <item>@string/lbl_activity_resume</item>
+        <item>@string/lbl_broadcast_received</item>
+        <item>@string/lbl_application_create</item>
+    </array>
+
+    <array name="launch_scenarios">
+        <item>@string/lbl_application_create</item>
+        <item>@string/lbl_activity_create</item>
+        <item>@string/lbl_activity_start</item>
+        <item>@string/lbl_activity_resume</item>
+    </array>
+
+    <array name="anr_tests">
+        <item>@string/lbl_sleep_main_thread_test</item>
+        <item>@string/lbl_heavy_loop_test</item>
+        <item>@string/lbl_download_test</item>
+        <item>@string/lbl_dead_lock_main_thread_test</item>
+    </array>
+
+    <string name="task_infinite_loop">Infinite Loop</string>
+    <string name="task_infinite_loop_with_delay">Infinite Loop With Delay</string>
+    <string name="task_word_generator">Word Generator</string>
+    <string name="task_io_operations">IO Operations</string>
+    <string name="task_ui_operation">UI Operations</string>
+
+    <array name="task">
+        <item>@string/task_infinite_loop</item>
+        <item>@string/task_infinite_loop_with_delay</item>
+        <item>@string/task_word_generator</item>
+        <item>@string/task_io_operations</item>
+        <item>@string/task_ui_operation</item>
+    </array>
+
+    <string name="main_thread">Main Thread</string>
+    <string name="background_thread">Background Thread</string>
+
+    <array name="thread">
+        <item>@string/main_thread</item>
+        <item>@string/background_thread</item>
+    </array>
+
+    <string name="tab_text_1">Tab 1</string>
+    <string name="tab_text_2">Tab 2</string>
+    <string name="cpu_test">CPU Test</string>
+    <string name="memory_test">Memory Test</string>
+    <string name="start_timer">Start Timer</string>
+    <string name="stop_timer">Stop Timer</string>
+
+    <string name="hybrid_demo">Hybrid Demo</string>
 </resources>

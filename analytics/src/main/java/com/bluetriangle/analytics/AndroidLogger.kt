@@ -1,7 +1,6 @@
 package com.bluetriangle.analytics
 
 import android.util.Log
-import com.bluetriangle.analytics.AndroidLogger
 
 internal class AndroidLogger(private val logLevel: Int) : Logger() {
     override fun log(logLevel: Int, message: String) {
@@ -11,6 +10,7 @@ internal class AndroidLogger(private val logLevel: Int) : Logger() {
     override fun log(logLevel: Int, throwable: Throwable?, message: String) {
         if (logLevel >= this.logLevel) {
             when (logLevel) {
+                Log.VERBOSE -> Log.v(tag, message, throwable)
                 Log.INFO -> Log.i(tag, message, throwable)
                 Log.WARN -> Log.w(tag, message, throwable)
                 Log.ERROR -> Log.e(tag, message, throwable)

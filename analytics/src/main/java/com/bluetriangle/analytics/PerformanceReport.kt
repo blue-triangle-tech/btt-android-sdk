@@ -6,7 +6,8 @@ data class PerformanceReport(
     private val averageMemory: Long,
     private val minCpu: Double,
     private val maxCpu: Double,
-    private val averageCpu: Double
+    private val averageCpu: Double,
+    private val maxMainThreadBlock: Long
 ) {
     val timerFields: Map<String, String>
         get() {
@@ -29,7 +30,9 @@ data class PerformanceReport(
         const val FIELD_MAX_CPU = "maxCPU"
         const val FIELD_AVG_CPU = "avgCPU"
         const val FIELD_MIN_MEMORY = "minMemory"
+        const val FIELD_TOTAL_MEMORY = "totalMemory"
         const val FIELD_MAX_MEMORY = "maxMemory"
         const val FIELD_AVG_MEMORY = "avgMemory"
+        const val FIELD_MAX_MAIN_THREAD_BLOCK = "maxMainThreadBlock"
     }
 }

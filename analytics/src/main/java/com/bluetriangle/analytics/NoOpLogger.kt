@@ -1,7 +1,5 @@
 package com.bluetriangle.analytics
 
-import com.bluetriangle.analytics.NoOpLogger
-
 /**
  * A logger that does not actually log anything
  */

@@ -19,6 +19,7 @@ class CapturedRequestCollection(
 ) {
     private val capturedRequests: MutableList<CapturedRequest> = mutableListOf(capturedRequest)
 
+    @Synchronized
     fun add(capturedRequest: CapturedRequest) {
         capturedRequests.add(capturedRequest)
     }
@@ -39,8 +40,9 @@ class CapturedRequestCollection(
             .build().toString()
     }
 
+    @Synchronized
     fun buildCapturedRequestData(indentSpaces: Int): String {
-        val requests = JSONArray(capturedRequests.map { JSONObject(it.payload) })
+        val requests = JSONArray(capturedRequests.map { it.payload })
         return requests.toString(indentSpaces)
     }
 

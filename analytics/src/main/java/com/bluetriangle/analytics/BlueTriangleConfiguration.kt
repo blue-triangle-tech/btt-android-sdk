@@ -1,6 +1,8 @@
 package com.bluetriangle.analytics
 
+import android.Manifest
 import android.util.Log
+import androidx.annotation.RequiresPermission
 import java.util.concurrent.TimeUnit
 
 class BlueTriangleConfiguration {
@@ -18,6 +20,8 @@ class BlueTriangleConfiguration {
      * Session ID
      */
     var sessionId: String? = null
+        @Synchronized get
+        @Synchronized set
 
     /**
      * the application's name
@@ -48,7 +52,7 @@ class BlueTriangleConfiguration {
     var debugLevel = Log.DEBUG
     var logger: Logger? = null
         get() {
-            if (field == null) {
+            if (field == null && isDebug) {
                 field = AndroidLogger(debugLevel)
             }
             return field
@@ -68,6 +72,7 @@ class BlueTriangleConfiguration {
     /**
      * Max items in the cache
      */
+    @Deprecated(message = "Max cache items has been replaced in favor of cacheMemoryLimit", replaceWith = ReplaceWith("cacheMemoryLimit"))
     var maxCacheItems = 100
 
     /**
@@ -79,21 +84,125 @@ class BlueTriangleConfiguration {
      * the instance to cache payloads
      */
     var payloadCache: PayloadCache? = null
-            get() {
-                if (field == null) {
-                    field = PayloadCache(this)
-                }
-                return field
+        get() {
+            if (field == null) {
+                field = PayloadCache(this)
             }
+            return field
+        }
 
-    var isTrackCrashesEnabled = false
+    /**
+     * Enable or Disable automatic crash detection and reporting
+     */
+    var isTrackCrashesEnabled = true
 
-    var isPerformanceMonitorEnabled = false
+    /**
+     * Enable or disable monitoring and reporting performance metrics
+     */
+    var isPerformanceMonitorEnabled = true
+
+    /**
+     * Enable or disable memory warning detection and reporting
+     */
+    var isMemoryWarningEnabled = true
+
+    /**
+     * Set the sampling interval for performance monitoring in milliseconds
+     */
     var performanceMonitorIntervalMs = TimeUnit.SECONDS.toMillis(1)
+        set(value) {
+            field = value.coerceAtLeast(500L)
+        }
+
+    /**
+     * Enable or disable ANR detection and sending reports to the server.
+     */
+    var isTrackAnrEnabled: Boolean = true
+
+    /**
+     * time interval for ANR warning based on track ANR is enabled or disabled, default to 5 seconds, minimum is 3 second, if set less then minimum allowed set value is ignored
+     */
+    var trackAnrIntervalSec = Constants.ANR_DEFAULT_INTERVAL
+
+    /**
+     * Enable or disable automatic tracking and reporting of page views for Activity and Fragments.
+     * For Jetpack compose use BttTimerEffect
+     */
+    var isScreenTrackingEnabled: Boolean = true
+
+    /**
+     * Enable or disable tracking and reporting launch time.
+     * Supported on API Level 29 and above
+     */
+    var isLaunchTimeEnabled: Boolean = true
+
+    /**
+     * sets the duration after which a payload item in cache gets expired.
+     */
+    var cacheExpiryDuration = EXPIRATION_IN_MILLIS
+        set(value) {
+            field = value.coerceAtLeast(MIN_EXPIRY_DURATION).coerceAtMost(MAX_EXPIRY_DURATION)
+        }
+
+    /**
+     * sets the amounts of bytes the SDK can utilize for caching.
+     */
+    var cacheMemoryLimit = MEMORY_LIMIT
+        set(value) {
+            field = value.coerceAtLeast(MIN_MEMORY_LIMIT).coerceAtMost(MAX_MEMORY_LIMIT)
+        }
+
+    var sessionExpiryDuration:Long = SESSION_EXPIRATION_IN_MILLIS
+        private set
+
+    /**
+     * Track the network state during Timer, Network request and errors. States include wifi, cellular, ethernet and offline.
+     * Default value is false.
+     * Requires host app to have ACCESS_NETWORK_STATE permission.
+     */
+    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
+    var isTrackNetworkStateEnabled: Boolean = true
 
     companion object {
         const val DEFAULT_TRACKER_URL = "https://d.btttag.com/analytics.rcv"
         const val DEFAULT_ERROR_REPORTING_URL = "https://d.btttag.com/err.rcv"
         const val DEFAULT_NETWORK_CAPTURE_URL = "https://d.btttag.com/wcdv02.rcv"
+
+        private const val KB = 1024L
+        private const val MB = 1024 * 1024L
+        private const val MIN = 60 * 1000L
+        private const val HOUR = 60 * MIN
+        private const val MIN_MEMORY_LIMIT = 10 * MB
+        private const val MAX_MEMORY_LIMIT = 300 * MB
+        private const val MEMORY_LIMIT = 30 * MB
+        private val MIN_EXPIRY_DURATION = 1 * MIN
+        private val EXPIRATION_IN_MILLIS = 48 * HOUR
+        private val MAX_EXPIRY_DURATION = 240 * HOUR
+
+        private val SESSION_EXPIRATION_IN_MILLIS = 30 * MIN
+    }
+
+    override fun toString(): String {
+        return """configurations = {
+            siteId : "$siteId"
+            sessionId : "$sessionId"
+            applicationName : "$applicationName"
+            networkSampleRate : $networkSampleRate
+            shouldSampleNetwork : $shouldSampleNetwork
+            isDebug : $isDebug
+            debugLevel : $debugLevel
+            isTrackCrashesEnabled : $isTrackCrashesEnabled
+            isPerformanceMonitorEnabled : $isPerformanceMonitorEnabled
+            isMemoryWarningEnabled : $isMemoryWarningEnabled
+            performanceMonitorIntervalMs : $performanceMonitorIntervalMs
+            isTrackAnrEnabled : $isTrackAnrEnabled
+            trackAnrIntervalSec : $trackAnrIntervalSec
+            isScreenTrackingEnabled : $isScreenTrackingEnabled
+            isLaunchTimeEnabled : $isLaunchTimeEnabled
+            cacheExpiryDuration : $cacheExpiryDuration
+            cacheMemoryLimit : $cacheMemoryLimit
+            isTrackNetworkStateEnabled : $isTrackNetworkStateEnabled
+        }
+        """.trimIndent()
     }
 }

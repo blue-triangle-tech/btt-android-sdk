@@ -2,6 +2,11 @@ package com.bluetriangle.analytics
 
 import android.os.Parcel
 import android.os.Parcelable
+import android.util.Log
+import com.bluetriangle.analytics.model.NativeAppProperties
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
+import com.bluetriangle.analytics.utility.getNumberOfCPUCores
 
 /**
  * A timer instance that can be started, marked interactive, and ended.
@@ -21,6 +26,7 @@ class Timer : Parcelable {
         const val FIELD_NAVIGATION_START = "nStart"
         const val FIELD_UNLOAD_EVENT_START = "unloadEventStart"
         const val FIELD_CONTENT_GROUP_NAME = "pageType"
+        @Deprecated("Page value is deprecated in 2.12.0 and will be removed in upcoming major releases")
         const val FIELD_PAGE_VALUE = "pageValue"
         const val FIELD_PAGE_TIME = "pgTm"
         const val FIELD_DOM_INTERACTIVE = "domInteractive"
@@ -53,9 +59,14 @@ class Timer : Parcelable {
         const val FIELD_NATIVE_OS = "os"
         const val FIELD_DEVICE = "device"
         const val FIELD_BROWSER_VERSION = "browserVersion"
-        const val FIELD_SDK_VERSION = "btV"
+        const val FIELD_SDK_VERSION = "VER"
         const val FIELD_WCDTT = "WCDtt"
         const val FIELD_EXCLUDED = "excluded"
+        const val FIELD_NATIVE_APP = "NATIVEAPP"
+        const val FIELD_ERR = "ERR"
+        const val FIELD_NA_FLG = "NAflg"
+        internal const val FIELD_CART_COUNT = "c_count"
+        internal const val FIELD_CART_COUNT_CHECKOUT = "co_count"
         const val FIELD_EXTENDED_CUSTOM_VARIABLES = "ECV"
 
         /**
@@ -81,9 +92,7 @@ class Timer : Parcelable {
             FIELD_REFERRER_URL to "",
             FIELD_URL to "",
             FIELD_CART_VALUE to "0",
-            FIELD_ORDER_TIME to "0",
             FIELD_ORDER_NUMBER to "",
-            FIELD_PAGE_VALUE to "0",
             FIELD_CONTENT_GROUP_NAME to "",
         )
 
@@ -136,6 +145,33 @@ class Timer : Parcelable {
      * Performance monitor thread
      */
     private var performanceMonitor: PerformanceMonitor? = null
+
+    internal var nativeAppProperties = NativeAppProperties(
+        null,
+        null,
+        performanceMonitor?.maxMainThreadUsage,
+        null
+    )
+
+    fun generateNativeAppProperties() {
+        nativeAppProperties = NativeAppProperties(
+            null,
+            null,
+            performanceMonitor?.maxMainThreadUsage,
+            null,
+            getNumberOfCPUCores()
+        )
+        Tracker.instance?.networkTimelineTracker?.let {
+            val networkSlice = it.sliceStats(
+                start,
+                if (end == 0L) System.currentTimeMillis() else end
+            )
+            nativeAppProperties.cellular = networkSlice.cellular
+            nativeAppProperties.wifi = networkSlice.wifi
+            nativeAppProperties.ethernet = networkSlice.ethernet
+            nativeAppProperties.offline = networkSlice.offline
+        }
+    }
 
     /**
      * Create a timer instance with no page name or traffic segment name. These will need to be set later before
@@ -237,6 +273,10 @@ class Timer : Parcelable {
         return this
     }
 
+    var pageTimeCalculator: () -> Long = {
+        end - start
+    }
+
     /**
      * End this timer.
      *
@@ -246,13 +286,16 @@ class Timer : Parcelable {
     fun end(): Timer {
         if (start > 0 && end == 0L) {
             end = System.currentTimeMillis()
-            setField(FIELD_PAGE_TIME, end - start)
+            setField(FIELD_PAGE_TIME, pageTimeCalculator())
         } else {
             if (start == 0L) {
                 logger?.error("Timer never started")
             } else if (end != 0L) {
                 logger?.error("Timer already ended")
             }
+        }
+        if(!fields.containsKey(FIELD_ORDER_TIME)) {
+            setOrderTime(end)
         }
         if (performanceMonitor != null) {
             performanceMonitor!!.stopRunning()
@@ -286,15 +329,21 @@ class Timer : Parcelable {
      */
     fun isInteractive(): Boolean = start > 0 && interactive > 0
 
+    fun onSubmit() {
+        performanceMonitor?.onTimerSubmit(this)
+    }
     /**
      * Convenience method to submit this timer to the global tracker
      */
     fun submit() {
         val tracker = Tracker.instance
         if (tracker != null) {
+            if (nativeAppProperties.loadTime == null) {
+                generateNativeAppProperties()
+            }
             tracker.submitTimer(this)
         } else {
-            logger?.error("Tracker not initialized")
+            Log.e("BlueTriangle", "Tracker not initialized")
         }
     }
 
@@ -353,6 +402,7 @@ class Timer : Parcelable {
      * @param pageValue value of page
      * @return this timer
      */
+    @Deprecated("Page value is deprecated in 2.12.0 and will be removed in upcoming major releases")
     fun setPageValue(pageValue: Double): Timer {
         return setField(FIELD_PAGE_VALUE, pageValue)
     }
@@ -395,6 +445,26 @@ class Timer : Parcelable {
      */
     fun setOrderTime(orderTime: Long): Timer {
         return setField(FIELD_ORDER_TIME, orderTime)
+    }
+
+    /**
+     * Set the cart count for this timer
+     *
+     * @param cartCount the cart count for this timer
+     * @return this timer
+     */
+    fun setCartCount(cartCount: Int): Timer {
+        return setField(FIELD_CART_COUNT, cartCount)
+    }
+
+    /**
+     * Set the checkout cart count for this timer
+     *
+     * @param cartCountCheckout the checkout cart count for this timer
+     * @return this timer
+     */
+    fun setCartCountCheckout(cartCountCheckout: Int):Timer {
+        return setField(FIELD_CART_COUNT_CHECKOUT, cartCountCheckout)
     }
 
     /**
@@ -491,12 +561,12 @@ class Timer : Parcelable {
      * @return this timer
      */
     fun setField(fieldName: String, value: String): Timer {
-        synchronized(fields) { fields.put(fieldName, value) }
+        synchronized(fields) { fields[fieldName] = value }
         return this
     }
 
-    fun setPerformanceReportFields(performanceReport: PerformanceReport): Timer {
-        synchronized(fields) { fields.putAll(performanceReport.timerFields) }
+    fun setPerformanceReportFields(performanceReport: Map<String, String>): Timer {
+        synchronized(fields) { fields.putAll(performanceReport) }
         return this
     }
 
@@ -562,7 +632,7 @@ class Timer : Parcelable {
      * @return the current value for the given field or null if not set
      */
     fun getField(fieldName: String): String? {
-        return fields[fieldName]
+        return fields[fieldName].toString()
     }
 
     /**
@@ -574,7 +644,7 @@ class Timer : Parcelable {
      */
     fun getField(fieldName: String, defaultValue: String): String {
         val fieldValue = fields[fieldName]
-        return if (fieldValue == null || fieldValue.isEmpty()) {
+        return if (fieldValue.isNullOrEmpty()) {
             defaultValue
         } else fieldValue
     }
@@ -632,6 +702,20 @@ class Timer : Parcelable {
     }
 
     override fun toString(): String {
-        return "BTT Timer: ${getField(FIELD_PAGE_NAME)}"
+        return String.format("BTT Timer: %s", getField(FIELD_PAGE_NAME))
     }
+
+    fun setError(err: Boolean) {
+        fields[FIELD_ERR] = if (err) "1" else "0"
+    }
+
+//    companion object CREATOR : Parcelable.Creator<Timer> {
+//        override fun createFromParcel(parcel: Parcel): Timer {
+//            return Timer(parcel)
+//        }
+//
+//        override fun newArray(size: Int): Array<Timer?> {
+//            return arrayOfNulls(size)
+//        }
+//    }
 }
