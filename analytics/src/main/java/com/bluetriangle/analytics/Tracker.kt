@@ -10,6 +10,13 @@ import android.text.TextUtils
 import androidx.core.content.ContextCompat
 import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
+import com.bluetriangle.analytics.dynamicconfig.BTTDynamicConfigurationConnector
+import com.bluetriangle.analytics.dynamicconfig.Configurationhandler
+import com.bluetriangle.analytics.dynamicconfig.fetcher.BTTConfigurationFetcher
+import com.bluetriangle.analytics.dynamicconfig.repository.BTTConfigurationRepository
+import com.bluetriangle.analytics.dynamicconfig.repository.IBTTConfigurationRepository
+import com.bluetriangle.analytics.dynamicconfig.updater.BTTConfigurationUpdater
+import com.bluetriangle.analytics.dynamicconfig.updater.IBTTConfigurationUpdater
 import com.bluetriangle.analytics.hybrid.BTTWebViewTracker
 import com.bluetriangle.analytics.launchtime.LaunchMonitor
 import com.bluetriangle.analytics.launchtime.LaunchReporter
@@ -32,7 +39,7 @@ import java.util.concurrent.ConcurrentHashMap
 class Tracker private constructor(
     application: Application,
     configuration: BlueTriangleConfiguration
-) {
+) : Configurationhandler {
     private var anrManager: AnrManager
 
     /**
@@ -76,14 +83,32 @@ class Tracker private constructor(
     internal var networkTimelineTracker: NetworkTimelineTracker? = null
     internal var networkStateMonitor: NetworkStateMonitor? = null
     private var sessionManager: SessionManager
+    private val configUpdater: IBTTConfigurationUpdater
+    private val configurationRepository: IBTTConfigurationRepository
 
     init {
         this.context = WeakReference(application.applicationContext)
         this.sessionManager = SessionManager(application.applicationContext, configuration.sessionExpiryDuration)
 
+        this.configurationRepository = BTTConfigurationRepository(application.applicationContext)
+
+        this.configUpdater = BTTConfigurationUpdater(
+            repository = this.configurationRepository,
+            fetcher = BTTConfigurationFetcher("https://3.221.132.81/config.js?siteID=${configuration.siteId}"),
+            configurationhandler = this,
+            10 * 1000
+        )
+        AppEventHub.instance.addConsumer(BTTDynamicConfigurationConnector(
+            this.configUpdater
+        ))
         AppEventHub.instance.addConsumer(this.sessionManager)
 
         this.configuration = configuration
+
+        configurationRepository.get()?.let {
+            this.configuration.networkSampleRate = it.networkSampleRate
+        }
+
         globalFields = HashMap(8)
         configuration.siteId?.let { globalFields[Timer.FIELD_SITE_ID] = it }
         globalFields[Timer.FIELD_BROWSER] = Constants.BROWSER
@@ -646,4 +671,10 @@ class Tracker private constructor(
             return instance
         }
     }
+
+    override fun updateNetworkSampleRate(networkSampleRate: Double) {
+        configuration.logger?.debug("updating Network sample rate from ${configuration.networkSampleRate} to $networkSampleRate")
+        configuration.networkSampleRate = networkSampleRate
+    }
+
 }
