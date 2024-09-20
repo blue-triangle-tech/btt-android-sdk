@@ -13,7 +13,7 @@ android {
         minSdk 21
         targetSdk 33
         versionCode 5
-        versionName "2.14.0"
+        versionName "2.13.1"
         externalNativeBuild {
             cmake {
                 cppFlags "-frtti -fexceptions"
