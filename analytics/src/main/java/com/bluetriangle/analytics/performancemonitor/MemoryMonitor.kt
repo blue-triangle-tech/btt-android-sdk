@@ -7,9 +7,12 @@ import com.bluetriangle.analytics.PerformanceReport
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Timer.Companion.FIELD_PAGE_NAME
 import com.bluetriangle.analytics.Tracker
-import java.lang.RuntimeException
+import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 
-internal class MemoryMonitor(val configuration: BlueTriangleConfiguration) : MetricMonitor {
+internal class MemoryMonitor(
+    val configuration: BlueTriangleConfiguration,
+    private val deviceInfoProvider: IDeviceInfoProvider
+) : MetricMonitor {
 
     private val totalMemory = Runtime.getRuntime().maxMemory()
 
@@ -91,7 +94,8 @@ internal class MemoryMonitor(val configuration: BlueTriangleConfiguration) : Met
                     timeStamp,
                     crashHitsTimer,
                     Tracker.BTErrorType.MemoryWarning,
-                    errorCount = memoryWarningException.count
+                    errorCount = memoryWarningException.count,
+                    deviceInfoProvider = deviceInfoProvider
                 )
             )
             thread.start()

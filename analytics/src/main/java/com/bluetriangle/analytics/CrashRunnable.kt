@@ -3,9 +3,11 @@ package com.bluetriangle.analytics
 import android.net.Uri
 import android.os.Build
 import com.bluetriangle.analytics.Constants.TIMER_MIN_PGTM
+import com.bluetriangle.analytics.Timer.Companion.FIELD_NATIVE_APP
 import com.bluetriangle.analytics.networkcapture.CapturedRequest
 import com.bluetriangle.analytics.utility.value
 import com.bluetriangle.analytics.caching.classifier.CacheType
+import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -43,7 +45,8 @@ internal class CrashRunnable(
     private val errorType: Tracker.BTErrorType = Tracker.BTErrorType.NativeAppCrash,
 
     private val mostRecentTimer: Timer? = null,
-    private val errorCount:Int = 1
+    private val errorCount: Int = 1,
+    private val deviceInfoProvider: IDeviceInfoProvider
 ) : Runnable {
     override fun run() {
         try {
@@ -202,11 +205,16 @@ internal class CrashRunnable(
         )
 
         val netStateMonitor = Tracker.instance?.networkStateMonitor
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && netStateMonitor != null) {
-            crashReport[Timer.FIELD_NATIVE_APP] = mapOf(
-                CapturedRequest.FIELD_NETWORK_STATE to netStateMonitor.state.value.value
-            )
-        }
+
+        val netState =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && netStateMonitor != null) {
+                netStateMonitor.state.value.value
+            } else null
+
+        val nativeAppProperties = ErrorNativeAppProperties(netState = netState)
+        nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
+
+        crashReport[FIELD_NATIVE_APP] = nativeAppProperties.toMap()
 
         val crashDataArray = JSONArray(listOf(JSONObject(crashReport.toMap())))
         val jsonData = crashDataArray.toString(if (configuration.isDebug) 2 else 0)

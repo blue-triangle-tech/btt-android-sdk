@@ -10,6 +10,8 @@ import android.text.TextUtils
 import androidx.core.content.ContextCompat
 import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
+import com.bluetriangle.analytics.deviceinfo.DeviceInfoProvider
+import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 import com.bluetriangle.analytics.hybrid.BTTWebViewTracker
 import com.bluetriangle.analytics.launchtime.LaunchMonitor
 import com.bluetriangle.analytics.launchtime.LaunchReporter
@@ -76,10 +78,12 @@ class Tracker private constructor(
     internal var networkTimelineTracker: NetworkTimelineTracker? = null
     internal var networkStateMonitor: NetworkStateMonitor? = null
     private var sessionManager: SessionManager
+    private var deviceInfoProvider: IDeviceInfoProvider
 
     init {
         this.context = WeakReference(application.applicationContext)
         this.sessionManager = SessionManager(application.applicationContext, configuration.sessionExpiryDuration)
+        this.deviceInfoProvider = DeviceInfoProvider()
 
         AppEventHub.instance.addConsumer(this.sessionManager)
 
@@ -112,7 +116,7 @@ class Tracker private constructor(
         )
         application.registerActivityLifecycleCallbacks(activityLifecycleTracker)
 
-        anrManager = AnrManager(configuration)
+        anrManager = AnrManager(configuration, deviceInfoProvider)
 
         if (configuration.isTrackAnrEnabled) {
             anrManager.start()
@@ -208,7 +212,7 @@ class Tracker private constructor(
         }
 
     fun createPerformanceMonitor(): PerformanceMonitor {
-        val performanceMonitor = PerformanceMonitor(configuration)
+        val performanceMonitor = PerformanceMonitor(configuration, deviceInfoProvider)
         performanceMonitors[performanceMonitor.id] = performanceMonitor
         return performanceMonitor
     }
@@ -235,6 +239,7 @@ class Tracker private constructor(
         }
         timer.setFields(globalFields.toMap())
         timer.setField(FIELD_SESSION_ID, sessionManager.sessionId)
+        timer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
         trackerExecutor.submit(TimerRunnable(configuration, timer))
     }
 
@@ -262,6 +267,7 @@ class Tracker private constructor(
                         configuration.sessionId.toString(),
                         globalFields[Timer.FIELD_BROWSER_VERSION]!!,
                         globalFields[Timer.FIELD_DEVICE]!!,
+                        deviceInfoProvider = deviceInfoProvider,
                         capturedRequest
                     )
                     capturedRequests[timer.start] = capturedRequestCollection
@@ -469,7 +475,7 @@ class Tracker private constructor(
 
     fun trackCrashes() {
         if (Thread.getDefaultUncaughtExceptionHandler() !is BtCrashHandler) {
-            Thread.setDefaultUncaughtExceptionHandler(BtCrashHandler(configuration))
+            Thread.setDefaultUncaughtExceptionHandler(BtCrashHandler(configuration, deviceInfoProvider))
         }
     }
 
@@ -510,7 +516,8 @@ class Tracker private constructor(
                 timeStamp,
                 crashHitsTimer,
                 errorType,
-                mostRecentTimer
+                mostRecentTimer,
+                deviceInfoProvider = deviceInfoProvider
             )
         )
     }

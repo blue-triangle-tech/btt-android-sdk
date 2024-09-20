@@ -3,9 +3,12 @@ package com.bluetriangle.analytics
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.bluetriangle.analytics.Utils.exceptionToStacktrace
-import com.bluetriangle.analytics.utility.logD
+import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 
-internal class BtCrashHandler(private val configuration: BlueTriangleConfiguration) : Thread.UncaughtExceptionHandler {
+internal class BtCrashHandler(
+    private val configuration: BlueTriangleConfiguration,
+    private val deviceInfoProvider: IDeviceInfoProvider
+) : Thread.UncaughtExceptionHandler {
     private val defaultUEH: Thread.UncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler()
 
     @RequiresApi(api = Build.VERSION_CODES.N)
@@ -31,8 +34,11 @@ internal class BtCrashHandler(private val configuration: BlueTriangleConfigurati
 
     @Throws(InterruptedException::class)
     private fun sendToServer(crashHitsTimer:Timer, mostRecentTimer:Timer?, stacktrace: String, timeStamp: String) {
-        val thread = Thread(CrashRunnable(configuration, stacktrace, timeStamp,
-            crashHitsTimer, mostRecentTimer = mostRecentTimer))
+        val thread = Thread(CrashRunnable(
+            configuration, stacktrace, timeStamp,
+            crashHitsTimer, mostRecentTimer = mostRecentTimer,
+            deviceInfoProvider = deviceInfoProvider
+        ))
         thread.start()
         thread.join()
     }
