@@ -1,12 +1,13 @@
 package com.bluetriangle.analytics
 
 import android.os.Process
+import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 import com.bluetriangle.analytics.performancemonitor.CpuMonitor
 import com.bluetriangle.analytics.performancemonitor.MainThreadMonitor
 import com.bluetriangle.analytics.performancemonitor.MemoryMonitor
 import com.bluetriangle.analytics.performancemonitor.MetricMonitor
 
-class PerformanceMonitor(configuration: BlueTriangleConfiguration) : Thread(THREAD_NAME) {
+class PerformanceMonitor(configuration: BlueTriangleConfiguration, deviceInfoProvider: IDeviceInfoProvider) : Thread(THREAD_NAME) {
     private val logger = configuration.logger
     private var isRunning = true
     private val interval = configuration.performanceMonitorIntervalMs
@@ -15,7 +16,7 @@ class PerformanceMonitor(configuration: BlueTriangleConfiguration) : Thread(THRE
 
     init {
         metricMonitors.add(CpuMonitor(configuration))
-        metricMonitors.add(MemoryMonitor(configuration))
+        metricMonitors.add(MemoryMonitor(configuration, deviceInfoProvider))
         metricMonitors.add(MainThreadMonitor(configuration))
     }
 

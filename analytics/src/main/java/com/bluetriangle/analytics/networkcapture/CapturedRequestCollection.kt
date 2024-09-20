@@ -3,6 +3,8 @@ package com.bluetriangle.analytics.networkcapture
 import android.net.Uri
 import com.bluetriangle.analytics.Constants
 import com.bluetriangle.analytics.Timer
+import com.bluetriangle.analytics.deviceinfo.DeviceInfoProvider
+import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -15,6 +17,7 @@ class CapturedRequestCollection(
     private var sessionId: String,
     private var browserVersion: String,
     private var device: String,
+    private var deviceInfoProvider: IDeviceInfoProvider,
     capturedRequest: CapturedRequest
 ) {
     private val capturedRequests: MutableList<CapturedRequest> = mutableListOf(capturedRequest)
@@ -42,7 +45,10 @@ class CapturedRequestCollection(
 
     @Synchronized
     fun buildCapturedRequestData(indentSpaces: Int): String {
-        val requests = JSONArray(capturedRequests.map { it.payload })
+        val requests = JSONArray(capturedRequests.map {
+            it.nativeAppProperties?.add(deviceInfoProvider.getDeviceInfo())
+            it.payload
+        })
         return requests.toString(indentSpaces)
     }
 
