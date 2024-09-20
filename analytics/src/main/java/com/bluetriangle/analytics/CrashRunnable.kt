@@ -69,6 +69,7 @@ internal class CrashRunnable(
                 mostRecentTimer?.getField(Timer.FIELD_PAGE_NAME) ?: Constants.CRASH_PAGE_NAME
             )
         }
+        crashHitsTimer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
         crashHitsTimer.setFields(tracker?.globalFields?.toMap() ?: emptyMap())
         val timerRunnable = TimerRunnable(configuration, crashHitsTimer, false)
         timerRunnable.run()
