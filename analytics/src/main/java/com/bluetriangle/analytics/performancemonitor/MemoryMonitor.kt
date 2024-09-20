@@ -84,6 +84,7 @@ internal class MemoryMonitor(
         val crashHitsTimer: Timer = Timer().startWithoutPerformanceMonitor()
         crashHitsTimer.setPageName(timer.getField(FIELD_PAGE_NAME)?: Tracker.BTErrorType.MemoryWarning.value)
         crashHitsTimer.nativeAppProperties = timer.nativeAppProperties
+        crashHitsTimer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
         crashHitsTimer.setError(true)
 
         try {

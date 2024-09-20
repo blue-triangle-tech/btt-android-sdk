@@ -42,6 +42,7 @@ internal class AnrManager(
             mostRecentTimer.generateNativeAppProperties()
             crashHitsTimer.nativeAppProperties = mostRecentTimer.nativeAppProperties
         }
+        crashHitsTimer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
         crashHitsTimer.setError(true)
         val stacktrace = Utils.exceptionToStacktrace(null, error)
 
