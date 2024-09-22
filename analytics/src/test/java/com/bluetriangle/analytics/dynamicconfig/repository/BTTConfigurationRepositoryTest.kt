@@ -62,7 +62,7 @@ class BTTConfigurationRepositoryTest {
     }
 
     @Test
-    fun whenConfigIsSaved_shouldReturnTheSameConfiguration() {
+    fun `When configuration is present in cache should return cached configuration`() {
         val testSampleRate = Math.random()
         val config = BTTRemoteConfiguration(testSampleRate)
         val repository = BTTConfigurationRepository(mockContext)
@@ -77,7 +77,7 @@ class BTTConfigurationRepositoryTest {
     }
 
     @Test
-    fun whenConfigIsNotPresent_shouldReturnNull() {
+    fun `When cache is empty should return null`() {
         val repository = BTTConfigurationRepository(mockContext)
 
         assertEquals(
@@ -88,7 +88,7 @@ class BTTConfigurationRepositoryTest {
     }
 
     @Test
-    fun whenConfigIsSaved_shouldSaveCorrectSavedDate() {
+    fun `Configuration should be saved with correct timestamp`() {
         val repository = BTTConfigurationRepository(mockContext)
 
         val config = BTTRemoteConfiguration(Math.random())

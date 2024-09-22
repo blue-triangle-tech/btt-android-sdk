@@ -47,7 +47,7 @@ class SampleRateTest {
     public lateinit var sampleRateExpectation: SampleRateExpectation
 
     @Test
-    fun test_sample_rate() {
+    fun `Test sample rate `() {
         var countMidRangeTrues = 0
         for (i in 0 until 100) {
             if (Utils.shouldSample(sampleRateExpectation.sampleRate)) {
