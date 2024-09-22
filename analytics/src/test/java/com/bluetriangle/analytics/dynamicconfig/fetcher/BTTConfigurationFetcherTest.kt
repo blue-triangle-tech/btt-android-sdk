@@ -1,20 +1,16 @@
 package com.bluetriangle.analytics.dynamicconfig.fetcher
 
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.tls.HandshakeCertificates
 import okhttp3.tls.HeldCertificate
-import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import java.net.URL
 import java.util.Locale
 import javax.net.ssl.HttpsURLConnection
 
@@ -76,15 +72,9 @@ class BTTConfigurationFetcherTest {
         mockWebServer.shutdown()
     }
 
-    class Config(
-        val wcdSamplePercent: Int = 0,
-        val errorSamplePercent: Int = 0,
-        val sessionDuration: Int? = null
-    )
-
     @Test(timeout = 5000)
     @Throws
-    fun whenCalledFetch_shouldReturnConfigurationObject() {
+    fun `Should return configuration object`() {
         runBlocking {
             mockWebServer.enqueue(MockResponse().setBody(String.format(Locale.ENGLISH, MOCK_RESPONSE, 70)))
 
@@ -94,23 +84,6 @@ class BTTConfigurationFetcherTest {
                 config.networkSampleRate == 0.7
             )
         }
-    }
-
-    private suspend fun setConfig(config: Config) = withContext(Dispatchers.IO){
-        val connection = (URL(HOST + "updateConfig").openConnection() as HttpsURLConnection).apply {
-            setHostnameVerifier { _, _ -> true }
-            requestMethod = "POST"
-            connectTimeout = 5000
-            readTimeout = 5000
-            connect()
-        }
-        val jsonObject = JSONObject()
-        jsonObject.put("wcdSamplePercent", config.wcdSamplePercent)
-        jsonObject.put("errorSamplePercent", config.errorSamplePercent)
-        jsonObject.put("sessionDuration", config.sessionDuration)
-        connection.outputStream.write(jsonObject.toString().toByteArray())
-        connection.outputStream.flush()
-        connection.disconnect()
     }
 
 }

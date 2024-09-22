@@ -38,7 +38,7 @@ class BTTConfigurationUpdaterTest {
     }
 
     @Test
-    fun whenUpdateCalledBeforeStoringAnything_shouldFetchNewConfig() {
+    fun `When update is called before anything is stored in cache should fetch configuration from API`() {
         runBlocking {
             whenever(repository.get()).thenAnswer {
                 BTTSavedRemoteConfiguration(0.05, 0)
@@ -52,7 +52,7 @@ class BTTConfigurationUpdaterTest {
     }
 
     @Test
-    fun whenUpdateCalledAfterRefreshDuration_shouldFetchNewConfig() {
+    fun `When update is called after cache refresh duration should fetch new configuration from API`() {
         runBlocking {
             val sampleRatePercent = Math.random()
             whenever(fetcher.fetch()).thenReturn(BTTRemoteConfiguration(sampleRatePercent))
@@ -64,7 +64,7 @@ class BTTConfigurationUpdaterTest {
     }
 
     @Test
-    fun whenNewDataReceivedFromFetcher_shouldUpdateNetworkSampleRateHandler() {
+    fun `when new data is received from API should update NetworkSampleRateHandler`() {
         runBlocking {
             val apiSampleRate = 0.75
             val savedSampleRate = 0.25
