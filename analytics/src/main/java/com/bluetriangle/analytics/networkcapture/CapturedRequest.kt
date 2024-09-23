@@ -177,5 +177,6 @@ class CapturedRequest {
         const val FIELD_ENCODED_BODY_SIZE = "ez"
         const val FIELD_RESPONSE_CODE = "rCd"
         const val FIELD_NETWORK_STATE = "netState"
+        const val FIELD_DEVICE_MODEL = "deviceModel"
     }
 }
