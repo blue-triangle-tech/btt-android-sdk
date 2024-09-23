@@ -6,8 +6,12 @@ import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Timer.Companion.FIELD_PAGE_NAME
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.Utils
+import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 
-internal class AnrManager(private val configuration: BlueTriangleConfiguration) :
+internal class AnrManager(
+    private val configuration: BlueTriangleConfiguration,
+    private val deviceInfoProvider: IDeviceInfoProvider
+) :
     AnrListener {
 
     private val detector: AnrDetector = RunnableAnrDetector(configuration.trackAnrIntervalSec)
@@ -38,6 +42,7 @@ internal class AnrManager(private val configuration: BlueTriangleConfiguration) 
             mostRecentTimer.generateNativeAppProperties()
             crashHitsTimer.nativeAppProperties = mostRecentTimer.nativeAppProperties
         }
+        crashHitsTimer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
         crashHitsTimer.setError(true)
         val stacktrace = Utils.exceptionToStacktrace(null, error)
 
@@ -48,7 +53,8 @@ internal class AnrManager(private val configuration: BlueTriangleConfiguration) 
                     stacktrace,
                     timeStamp,
                     crashHitsTimer,
-                    Tracker.BTErrorType.ANRWarning
+                    Tracker.BTErrorType.ANRWarning,
+                    deviceInfoProvider = deviceInfoProvider
                 )
             )
             thread.start()

@@ -1,7 +1,9 @@
 package com.bluetriangle.analytics.model
 
 import android.os.Parcelable
+import com.bluetriangle.analytics.deviceinfo.DeviceInfo
 import com.bluetriangle.analytics.networkcapture.CapturedRequest
+import com.bluetriangle.analytics.networkcapture.CapturedRequest.Companion.FIELD_DEVICE_MODEL
 import kotlinx.parcelize.Parcelize
 import org.json.JSONObject
 
@@ -16,7 +18,8 @@ internal data class NativeAppProperties(
     var cellular: Long? = null,
     var ethernet: Long? = null,
     var offline: Long? = null,
-    var launchScreenName:String?=null
+    var launchScreenName: String? = null,
+    var deviceModel: String? = null
 ) : Parcelable {
     fun toJSONObject(): JSONObject {
         val obj = JSONObject()
@@ -29,7 +32,7 @@ internal data class NativeAppProperties(
         var max = Long.MIN_VALUE
         var maxField = ""
 
-        val putAndCalculateMax:(Long?, String) -> Unit = { field, name ->
+        val putAndCalculateMax: (Long?, String) -> Unit = { field, name ->
             if (field != null && field != 0L) {
                 obj.put(name, field)
                 if (field > max) {
@@ -48,7 +51,12 @@ internal data class NativeAppProperties(
             obj.put(CapturedRequest.FIELD_NETWORK_STATE, maxField)
         }
         obj.put("launchScreenName", launchScreenName)
+        obj.put(FIELD_DEVICE_MODEL, deviceModel)
 
         return obj
+    }
+
+    fun add(deviceInfo: DeviceInfo) {
+        deviceModel = deviceInfo.deviceModel
     }
 }
