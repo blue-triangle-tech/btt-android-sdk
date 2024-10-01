@@ -17,6 +17,7 @@ import androidx.fragment.app.FragmentManager.FragmentLifecycleCallbacks
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.model.Screen
 import com.bluetriangle.analytics.model.ScreenType
+import com.bluetriangle.analytics.networkstate.BTTNetworkProtocol
 import java.io.File
 import com.bluetriangle.analytics.networkstate.BTTNetworkState
 import kotlin.reflect.full.memberProperties
@@ -82,7 +83,7 @@ internal val BTTNetworkState.value:String
     get() {
         return when(this) {
             BTTNetworkState.Wifi -> "wifi"
-            BTTNetworkState.Cellular -> "cellular"
+            is BTTNetworkState.Cellular -> "cellular ${protocol.description}".trim()
             BTTNetworkState.Ethernet -> "ethernet"
             BTTNetworkState.Offline -> "offline"
             else -> ""

@@ -67,6 +67,7 @@ class Timer : Parcelable {
         const val FIELD_NA_FLG = "NAflg"
         internal const val FIELD_CART_COUNT = "c_count"
         internal const val FIELD_CART_COUNT_CHECKOUT = "co_count"
+        internal const val FIELD_NET_STATE_SOURCE = "netStateSource"
 
         /**
          * A map of fields and their associated default values
@@ -169,6 +170,7 @@ class Timer : Parcelable {
             nativeAppProperties.wifi = networkSlice.wifi
             nativeAppProperties.ethernet = networkSlice.ethernet
             nativeAppProperties.offline = networkSlice.offline
+            nativeAppProperties.netStateSource = networkSlice.sources.joinToString("|")
         }
     }
 

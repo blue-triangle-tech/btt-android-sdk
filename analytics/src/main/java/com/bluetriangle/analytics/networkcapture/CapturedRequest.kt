@@ -124,12 +124,17 @@ class CapturedRequest {
     }
 
     private fun initNativeAppProperties() {
-        val netState = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            Tracker.instance?.networkStateMonitor?.state?.value?.value
-        } else {
-            null
+        val netStateMonitor = Tracker.instance?.networkStateMonitor
+
+        nativeAppProperties = NetworkNativeAppProperties(null)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && netStateMonitor != null) {
+            netStateMonitor.state.value.let {
+                nativeAppProperties?.netState = it.value
+                if(it is BTTNetworkState.Cellular) {
+                    nativeAppProperties?.netStateSource = it.source
+                }
+            }
         }
-        nativeAppProperties = NetworkNativeAppProperties(null, netState)
     }
 
     /**
