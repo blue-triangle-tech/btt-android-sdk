@@ -61,6 +61,10 @@ internal class NetworkProtocolProvider(val context: Context) {
                 val permissionState = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE)
                 if (permissionState == PackageManager.PERMISSION_GRANTED) {
                     listenPhoneStateListener(telephonyManager)
+                } else {
+                    awaitClose {
+
+                    }
                 }
             }
         }.stateIn(GlobalScope, SharingStarted.WhileSubscribed(), null)
