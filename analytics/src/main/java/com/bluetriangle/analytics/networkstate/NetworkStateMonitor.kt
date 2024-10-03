@@ -39,7 +39,7 @@ internal class NetworkStateMonitor(logger: Logger?, context: Context) : INetwork
     private val connectivityManager =
         context.getSystemService(CONNECTIVITY_SERVICE) as? ConnectivityManager
 
-    private val networkProtocolProvider = NetworkProtocolProvider(context)
+    private var networkProtocolProvider = NetworkProtocolProvider(context)
 
     private val wifiTransportHandler = NetworkTransportHandler(
         wifiTransports, logger, BTTNetworkState.Wifi

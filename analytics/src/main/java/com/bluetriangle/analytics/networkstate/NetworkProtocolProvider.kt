@@ -1,7 +1,9 @@
 package com.bluetriangle.analytics.networkstate
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import android.telephony.PhoneStateListener
 import android.telephony.TelephonyCallback
@@ -24,6 +26,7 @@ import android.telephony.TelephonyManager.NETWORK_TYPE_LTE
 import android.telephony.TelephonyManager.NETWORK_TYPE_NR
 import android.telephony.TelephonyManager.NETWORK_TYPE_UMTS
 import androidx.annotation.RequiresPermission
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
@@ -45,13 +48,20 @@ internal enum class BTTNetworkProtocol(val description: String) {
 
 internal class NetworkProtocolProvider(val context: Context) {
 
+    @SuppressLint("MissingPermission")
     private val telephonyDisplayInfo: Flow<TelephonyDisplayInfo?> =
         callbackFlow {
-            val telephonyManager = context.getSystemService(TelephonyManager::class.java)
+            val telephonyManager =
+                ContextCompat.getSystemService(context, TelephonyManager::class.java)
+                    ?: return@callbackFlow
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 listenTelephonyCallback(telephonyManager)
             } else @Suppress("DEPRECATION") {
-                listenPhoneStateListener(telephonyManager)
+                val permissionState = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE)
+                if (permissionState == PackageManager.PERMISSION_GRANTED) {
+                    listenPhoneStateListener(telephonyManager)
+                }
             }
         }.stateIn(GlobalScope, SharingStarted.WhileSubscribed(), null)
 
@@ -60,7 +70,7 @@ internal class NetworkProtocolProvider(val context: Context) {
     }
 
     val networkProtocol = networkType.map {
-        it to (it?.networkProtocol?:BTTNetworkProtocol.Unknown)
+        it to (it?.networkProtocol ?: BTTNetworkProtocol.Unknown)
     }
 
     private suspend fun ProducerScope<TelephonyDisplayInfo>.listenTelephonyCallback(telephonyManager: TelephonyManager) {
@@ -82,8 +92,10 @@ internal class NetworkProtocolProvider(val context: Context) {
     }
 
     @RequiresPermission(Manifest.permission.READ_PHONE_STATE)
-    private suspend fun ProducerScope<TelephonyDisplayInfo>.listenPhoneStateListener(telephonyManager: TelephonyManager?) {
-        val listener = object: PhoneStateListener() {
+    private suspend fun ProducerScope<TelephonyDisplayInfo>.listenPhoneStateListener(
+        telephonyManager: TelephonyManager?
+    ) {
+        val listener = object : PhoneStateListener() {
             override fun onDisplayInfoChanged(telephonyDisplayInfo: TelephonyDisplayInfo) {
                 trySend(telephonyDisplayInfo)
             }
