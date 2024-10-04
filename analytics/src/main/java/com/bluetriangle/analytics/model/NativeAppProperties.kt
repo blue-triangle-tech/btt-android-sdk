@@ -28,7 +28,9 @@ internal data class NativeAppProperties(
 ) : Parcelable {
 
     private val cellularTotal
-        get() = cellular?.entries?.map { it.value }?.reduce(Long::plus)
+        get() = cellular?.entries?.map { it.value }?.let {
+            if(it.isEmpty()) 0L else it.reduce(Long::plus)
+        }
 
     fun toJSONObject(): JSONObject {
         val obj = JSONObject()
