@@ -89,7 +89,7 @@ internal data class NativeAppProperties(
                     )
                 }
             } else {
-                put(CapturedRequest.FIELD_NETWORK_STATE, maxField)
+                put(CapturedRequest.FIELD_NETWORK_STATE, maxField.first)
             }
         }
     }
