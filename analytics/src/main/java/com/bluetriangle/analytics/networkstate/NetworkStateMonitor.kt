@@ -7,17 +7,17 @@ import android.net.ConnectivityManager
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.bluetriangle.analytics.Logger
+import com.bluetriangle.analytics.networkstate.data.BTTNetworkProtocol
+import com.bluetriangle.analytics.networkstate.networkprotocol.NetworkProtocolProvider
+import com.bluetriangle.analytics.networkstate.networkprotocol.NetworkProtocolProviderFactory
 import com.bluetriangle.analytics.utility.cellularTransports
 import com.bluetriangle.analytics.utility.ethernetTransports
-import com.bluetriangle.analytics.utility.value
 import com.bluetriangle.analytics.utility.wifiTransports
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 
 
 internal sealed class BTTNetworkState {
@@ -39,7 +39,7 @@ internal class NetworkStateMonitor(logger: Logger?, context: Context) : INetwork
     private val connectivityManager =
         context.getSystemService(CONNECTIVITY_SERVICE) as? ConnectivityManager
 
-    private var networkProtocolProvider = NetworkProtocolProvider(context)
+    private var networkProtocolProvider: NetworkProtocolProvider = NetworkProtocolProviderFactory.getNetworkProtocolProvider(context)
 
     private val wifiTransportHandler = NetworkTransportHandler(
         wifiTransports, logger, BTTNetworkState.Wifi
@@ -67,7 +67,7 @@ internal class NetworkStateMonitor(logger: Logger?, context: Context) : INetwork
         when {
             wifi -> BTTNetworkState.Wifi
             ethernet -> BTTNetworkState.Ethernet
-            cellular -> BTTNetworkState.Cellular(protocol.first.toString(), protocol.second)
+            cellular -> BTTNetworkState.Cellular(protocol.source?.toString()?:"", protocol.protocol)
             else -> BTTNetworkState.Offline
         }
     }.stateIn(GlobalScope, SharingStarted.WhileSubscribed(), BTTNetworkState.Offline)
@@ -80,5 +80,4 @@ internal class NetworkStateMonitor(logger: Logger?, context: Context) : INetwork
         }
         logger?.debug("-------------------Network Monitoring Started!-----------------")
     }
-
 }

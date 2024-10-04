@@ -1,8 +1,11 @@
 package com.bluetriangle.android.demo
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.multidex.MultiDex
+import androidx.multidex.MultiDexApplication
 import com.bluetriangle.analytics.BlueTriangleConfiguration
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.Tracker.Companion.init
@@ -12,7 +15,7 @@ import com.bluetriangle.android.demo.tests.ANRTestScenario
 import com.bluetriangle.android.demo.tests.HeavyLoopTest
 import com.bluetriangle.android.demo.tests.LaunchTestScenario
 
-class DemoApplication : Application() {
+class DemoApplication : MultiDexApplication() {
     private var tracker: Tracker? = null
 
     companion object {

@@ -1,6 +1,5 @@
 package com.bluetriangle.analytics.networkstate.data
 
-import com.bluetriangle.analytics.networkstate.BTTNetworkProtocol
 import com.bluetriangle.analytics.networkstate.BTTNetworkState
 
 internal data class NetworkSliceStats(
