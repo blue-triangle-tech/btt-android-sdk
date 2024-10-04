@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
-internal class NetworkProtocolProviderAPI30Impl(
+internal class NetworkProtocolProviderAPI31Impl(
     networkTypeProvider: NetworkTypeProvider
 ):NetworkProtocolProvider {
 
