@@ -15,8 +15,6 @@ android {
         versionCode 5
         versionName "2.13.2"
 
-        multiDexEnabled true
-
         externalNativeBuild {
             cmake {
                 cppFlags "-frtti -fexceptions"
@@ -52,8 +50,6 @@ android {
 }
 
 dependencies {
-    implementation "androidx.multidex:multidex:2.0.1"
-
     implementation project(':analytics')
     implementation project(':analytics-okhttp')
 
