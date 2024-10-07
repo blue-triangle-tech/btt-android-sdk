@@ -11,10 +11,6 @@ import kotlinx.coroutines.flow.stateIn
 
 internal class NetworkProtocolProviderLegacy : NetworkProtocolProvider {
 
-    init {
-        Log.d("BlueTriangle", "Build Version: ${Build.VERSION.SDK_INT}")
-    }
-
     override val networkProtocol: StateFlow<NetworkProtocolInfo>
         get() = flowOf(NetworkProtocolInfo(BTTNetworkProtocol.Unknown)).stateIn(
             GlobalScope,
