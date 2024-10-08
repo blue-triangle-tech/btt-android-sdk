@@ -6,6 +6,7 @@ import android.net.NetworkCapabilities
 import android.os.Build.VERSION_CODES.LOLLIPOP
 import androidx.annotation.RequiresApi
 import com.bluetriangle.analytics.Logger
+import com.bluetriangle.analytics.utility.value
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -16,7 +17,7 @@ internal class NetworkChangeListener(
 ) :
     NetworkCallback() {
 
-    private val networkType:String = state.name.uppercase()
+    private val networkType:String = state.value.uppercase()
 
     override fun onAvailable(network: Network) {
         super.onAvailable(network)

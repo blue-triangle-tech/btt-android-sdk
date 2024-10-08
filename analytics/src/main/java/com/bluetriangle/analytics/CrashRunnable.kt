@@ -4,10 +4,10 @@ import android.net.Uri
 import android.os.Build
 import com.bluetriangle.analytics.Constants.TIMER_MIN_PGTM
 import com.bluetriangle.analytics.Timer.Companion.FIELD_NATIVE_APP
-import com.bluetriangle.analytics.networkcapture.CapturedRequest
-import com.bluetriangle.analytics.utility.value
 import com.bluetriangle.analytics.caching.classifier.CacheType
 import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
+import com.bluetriangle.analytics.networkstate.BTTNetworkState
+import com.bluetriangle.analytics.utility.value
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -206,12 +206,16 @@ internal class CrashRunnable(
 
         val netStateMonitor = Tracker.instance?.networkStateMonitor
 
-        val netState =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && netStateMonitor != null) {
-                netStateMonitor.state.value.value
-            } else null
+        val nativeAppProperties = ErrorNativeAppProperties()
 
-        val nativeAppProperties = ErrorNativeAppProperties(netState = netState)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && netStateMonitor != null) {
+            netStateMonitor.state.value.let {
+                nativeAppProperties.netState = it.value
+                if(it is BTTNetworkState.Cellular) {
+                    nativeAppProperties.netStateSource = it.source
+                }
+            }
+        }
         nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
 
         crashReport[FIELD_NATIVE_APP] = nativeAppProperties.toMap()
