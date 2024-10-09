@@ -1,14 +1,9 @@
 package com.bluetriangle.analytics.utility
 
-import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Activity
-import android.net.ConnectivityManager
-import android.net.Network
 import android.net.NetworkCapabilities
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.annotation.RequiresPermission
 import android.system.Os
 import android.system.OsConstants
 import androidx.fragment.app.Fragment
@@ -19,8 +14,6 @@ import com.bluetriangle.analytics.model.Screen
 import com.bluetriangle.analytics.model.ScreenType
 import java.io.File
 import com.bluetriangle.analytics.networkstate.BTTNetworkState
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.jvm.isAccessible
 
 fun logD(tag: String, message: String) {
     Tracker.instance?.configuration?.logger?.debug("$tag: $message")
@@ -82,7 +75,7 @@ internal val BTTNetworkState.value:String
     get() {
         return when(this) {
             BTTNetworkState.Wifi -> "wifi"
-            BTTNetworkState.Cellular -> "cellular"
+            is BTTNetworkState.Cellular -> "cellular ${protocol.description}".trim()
             BTTNetworkState.Ethernet -> "ethernet"
             BTTNetworkState.Offline -> "offline"
             else -> ""

@@ -7,14 +7,19 @@ internal data class NetworkSliceStats(
     val to: Long
 ) {
     var wifi: Long = 0
-    var cellular: Long = 0
+    var cellular = hashMapOf<BTTNetworkProtocol, Long>()
     var ethernet: Long = 0
     var offline: Long = 0
+
+    val sources = hashSetOf<String>()
 
     fun add(state: BTTNetworkState, milliseconds: Long) {
         when (state) {
             BTTNetworkState.Wifi -> wifi += milliseconds
-            BTTNetworkState.Cellular -> cellular += milliseconds
+            is BTTNetworkState.Cellular -> {
+                cellular.merge(state.protocol, milliseconds, Long::plus)
+                sources.add(state.source)
+            }
             BTTNetworkState.Offline -> offline += milliseconds
             BTTNetworkState.Ethernet -> ethernet += milliseconds
             else -> {}
