@@ -8,9 +8,6 @@ import android.os.Build
 import android.util.Base64
 import org.json.JSONArray
 import org.json.JSONObject
-import com.bluetriangle.analytics.BuildConfig
-import org.json.JSONArray
-import org.json.JSONObject
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.io.UnsupportedEncodingException
