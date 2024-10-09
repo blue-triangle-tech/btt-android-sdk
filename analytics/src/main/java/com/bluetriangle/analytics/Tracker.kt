@@ -24,6 +24,7 @@ import com.bluetriangle.analytics.screenTracking.ActivityLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.BTTScreenLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.FragmentLifecycleTracker
 import com.bluetriangle.analytics.sessionmanager.SessionManager
+import org.json.JSONObject
 import java.io.File
 import java.lang.ref.WeakReference
 import java.util.*
@@ -258,6 +259,16 @@ class Tracker private constructor(
             }
         }
         timer.setField(FIELD_SESSION_ID, sessionManager.sessionId)
+        if (customVariables.isNotEmpty()) {
+            kotlin.runCatching {
+                val extendedCustomVariables = JSONObject(customVariables as Map<*, *>?).toString()
+                if (extendedCustomVariables.length > Constants.EXTENDED_CUSTOM_VARIABLE_MAX_PAYLOAD) {
+                    configuration.logger?.warn("Dropping extended custom variables for $timer. Payload ${extendedCustomVariables.length} exceeds max size of ${Constants.EXTENDED_CUSTOM_VARIABLE_MAX_PAYLOAD}")
+                } else {
+                    timer.setField(Timer.FIELD_EXTENDED_CUSTOM_VARIABLES, extendedCustomVariables)
+                }
+            }
+        }
         timer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
         trackerExecutor.submit(TimerRunnable(configuration, timer))
     }

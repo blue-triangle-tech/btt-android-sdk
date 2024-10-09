@@ -6,6 +6,8 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Base64
+import org.json.JSONArray
+import org.json.JSONObject
 import com.bluetriangle.analytics.BuildConfig
 import org.json.JSONArray
 import org.json.JSONObject
