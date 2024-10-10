@@ -507,7 +507,11 @@ class Tracker private constructor(
      * @param name name of the custom variable to set
      * @param value value of the custom variable to set
      */
-    fun setCustomVariable(name: String, value: String) {
+    fun setCustomVariable(name: String, value: String?) {
+        if(value == null) {
+            clearCustomVariable(name)
+            return
+        }
         if (value.length > Constants.EXTENDED_CUSTOM_VARIABLE_MAX_LENGTH) {
             configuration.logger?.warn("Extended Custom Variable \"$name\" exceeds max length of ${Constants.EXTENDED_CUSTOM_VARIABLE_MAX_LENGTH}")
         }
@@ -521,8 +525,8 @@ class Tracker private constructor(
      * @param name name of the custom variable to set
      * @param value value of the custom variable to set
      */
-    fun setCustomVariable(name: String, value: Number) {
-        setCustomVariable(name, "$value")
+    fun setCustomVariable(name: String, value: Number?) {
+        setCustomVariable(name, value?.toString())
     }
 
     /**
@@ -530,8 +534,8 @@ class Tracker private constructor(
      * @param name name of the custom variable to set
      * @param value value of the custom variable to set
      */
-    fun setCustomVariable(name: String, value: Boolean) {
-        setCustomVariable(name, "$value")
+    fun setCustomVariable(name: String, value: Boolean?) {
+        setCustomVariable(name, value?.toString())
     }
 
     /**
@@ -571,7 +575,7 @@ class Tracker private constructor(
      * Clears the given custom variable, if set
      * @param name key of the custom variable to remove
      */
-    fun clearCustomVariable(name: String) {
+    private fun clearCustomVariable(name: String) {
         synchronized(customVariables) {
             customVariables.remove(name)
         }
