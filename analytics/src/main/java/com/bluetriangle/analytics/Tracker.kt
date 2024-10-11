@@ -1,7 +1,6 @@
 package com.bluetriangle.analytics
 
 import android.Manifest.permission.ACCESS_NETWORK_STATE
-import android.app.ActivityManager
 import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
@@ -26,9 +25,7 @@ import com.bluetriangle.analytics.sessionmanager.SessionManager
 import org.json.JSONObject
 import java.io.File
 import java.lang.ref.WeakReference
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.collections.HashMap
 
 /**
  * The tracker is a global object responsible for taking submitted timers and reporting them to the cloud server via a
@@ -179,14 +176,6 @@ class Tracker private constructor(
 
         configuration.logger?.debug("Network state monitoring started.")
     }
-
-    val activityManager: ActivityManager?
-        get() {
-            val ctx = context.get()
-            return if (ctx != null) {
-                ctx.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-            } else null
-        }
 
     @Synchronized
     fun setMostRecentTimer(timer: Timer) {
@@ -430,7 +419,7 @@ class Tracker private constructor(
      * @param value     the value to set for the given field
      */
     fun setGlobalField(fieldName: String, value: Int) {
-        setGlobalField(fieldName, Integer.toString(value))
+        setGlobalField(fieldName, value.toString())
     }
 
     /**
@@ -440,7 +429,7 @@ class Tracker private constructor(
      * @param value     the value to set for the given field
      */
     fun setGlobalField(fieldName: String, value: Double) {
-        setGlobalField(fieldName, java.lang.Double.toString(value))
+        setGlobalField(fieldName, value.toString())
     }
 
     /**
@@ -450,7 +439,7 @@ class Tracker private constructor(
      * @param value     the value to set for the given field
      */
     fun setGlobalField(fieldName: String, value: Float) {
-        setGlobalField(fieldName, java.lang.Float.toString(value))
+        setGlobalField(fieldName, value.toString())
     }
 
     /**
@@ -460,7 +449,7 @@ class Tracker private constructor(
      * @param value     the value to set for the given field
      */
     fun setGlobalField(fieldName: String, value: Boolean) {
-        setGlobalField(fieldName, java.lang.Boolean.toString(value))
+        setGlobalField(fieldName, value.toString())
     }
 
     /**
@@ -470,7 +459,7 @@ class Tracker private constructor(
      * @param value     the value to set for the given field
      */
     fun setGlobalField(fieldName: String, value: Long) {
-        setGlobalField(fieldName, java.lang.Long.toString(value))
+        setGlobalField(fieldName, value.toString())
     }
 
     /**
@@ -507,11 +496,7 @@ class Tracker private constructor(
      * @param name name of the custom variable to set
      * @param value value of the custom variable to set
      */
-    fun setCustomVariable(name: String, value: String?) {
-        if(value == null) {
-            clearCustomVariable(name)
-            return
-        }
+    fun setCustomVariable(name: String, value: String) {
         if (value.length > Constants.EXTENDED_CUSTOM_VARIABLE_MAX_LENGTH) {
             configuration.logger?.warn("Extended Custom Variable \"$name\" exceeds max length of ${Constants.EXTENDED_CUSTOM_VARIABLE_MAX_LENGTH}")
         }
@@ -525,8 +510,8 @@ class Tracker private constructor(
      * @param name name of the custom variable to set
      * @param value value of the custom variable to set
      */
-    fun setCustomVariable(name: String, value: Number?) {
-        setCustomVariable(name, value?.toString())
+    fun setCustomVariable(name: String, value: Number) {
+        setCustomVariable(name, value.toString())
     }
 
     /**
@@ -534,8 +519,8 @@ class Tracker private constructor(
      * @param name name of the custom variable to set
      * @param value value of the custom variable to set
      */
-    fun setCustomVariable(name: String, value: Boolean?) {
-        setCustomVariable(name, value?.toString())
+    fun setCustomVariable(name: String, value: Boolean) {
+        setCustomVariable(name, value.toString())
     }
 
     /**
@@ -575,7 +560,7 @@ class Tracker private constructor(
      * Clears the given custom variable, if set
      * @param name key of the custom variable to remove
      */
-    private fun clearCustomVariable(name: String) {
+    fun clearCustomVariable(name: String) {
         synchronized(customVariables) {
             customVariables.remove(name)
         }
