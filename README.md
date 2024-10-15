@@ -596,25 +596,26 @@ It is a developer-defined property introduced into the BTT SDK payload that deve
 
 To introduce a custom variable, the developer first needs to create it on the BlueTriangle portal by following the instructions on the [**Custom Variables Page.**](https://help.bluetriangle.com/hc/en-us/articles/15629245281171-RUM-Custom-Variables-Page)
 
-Then developer need to add custom variable code to native app like this:
-
-**To set/update value to custom variable use below function.**
+Then developer need to set custom variable using the below function:
 ```kotlin
 Tracker.instance?.setCustomVariable(<VARIABLE NAME>, <VALUE>)
 ```
-**To get the value of a custom variable, use below function**
+
+In order to get the custom variable value, call the following with the variable name:
 ```kotlin
 val value = Tracker.instance?.getCustomVariable(<VARIABLE NAME>)
 ```
-**To remove a custom variable, use below function**
+
+To remove a custom variable value, call the following function with the variable name:
 ```kotlin
 Tracker.instance?.clearCustomVariable(<VARIABLE NAME>)
 ```
-**To clear all custom variables, use below function**
+
+To remove all custom variable values, call the following function:
 ```kotlin
 Tracker.instance?.clearAllCustomVariables()
 ```
-where &lt;VARIABLE NAME&gt; is the name of the custom variable that the user added to the portal while creating the custom variable, and <VALUE> is whatever the developer wants to set in these fields.
+where &lt;VARIABLE NAME&gt; is the variable name of the custom variable that the user added to the portal while creating the custom variable e.g. CV1, CV2, etc, and <VALUE> is whatever the developer wants to set in these fields.
 Once the value is set, it will be sent with each page view until it is cleared by calling any of the above clear methods.
 
 To view one of the values on the portal, navigate to the path 'Menu > Native App Monitoring > Native App Performance Detail' or go to the Session Lookup Page. Then, search by session ID and see the Performance Measurement Details for the specific page.
