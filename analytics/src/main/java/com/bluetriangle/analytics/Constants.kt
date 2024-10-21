@@ -17,4 +17,5 @@ object Constants {
     const val CHECK_INTERVAL: Long = 1000
     const val ANR_DEFAULT_INTERVAL: Int = 5 // in seconds
     const val TIMER_MIN_PGTM = 15L
+    const val BUFFER_REPOSITORY = "Buffer"
 }

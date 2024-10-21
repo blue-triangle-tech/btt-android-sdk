@@ -6,7 +6,7 @@ import com.bluetriangle.analytics.dynamicconfig.model.BTTRemoteConfiguration
 import com.bluetriangle.analytics.dynamicconfig.model.BTTSavedRemoteConfiguration
 import org.json.JSONObject
 
-internal class BTTConfigurationRepository(context: Context):
+internal class BTTConfigurationRepository(val context: Context, tag: String = "Default"):
     IBTTConfigurationRepository {
 
     companion object {
@@ -15,7 +15,7 @@ internal class BTTConfigurationRepository(context: Context):
     }
 
     private val sharedPreferences: SharedPreferences = context.getSharedPreferences(
-        SAVED_CONFIG_PREFS, Context.MODE_PRIVATE)
+        "${SAVED_CONFIG_PREFS}_$tag", Context.MODE_PRIVATE)
 
     override fun save(config: BTTRemoteConfiguration) {
         val savedConfig = BTTSavedRemoteConfiguration(
@@ -29,6 +29,9 @@ internal class BTTConfigurationRepository(context: Context):
     }
 
     override fun get(): BTTSavedRemoteConfiguration? {
+        if(System.getProperty("debug.btt.app.networksamplerate") == context.packageName) {
+            return null
+        }
         val savedConfigJson = sharedPreferences.getString(REMOTE_CONFIG, null)?:return null
 
         return BTTSavedRemoteConfiguration.fromJson(JSONObject(savedConfigJson))

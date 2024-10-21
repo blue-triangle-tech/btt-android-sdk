@@ -39,7 +39,7 @@ import java.util.concurrent.ConcurrentHashMap
 class Tracker private constructor(
     application: Application,
     configuration: BlueTriangleConfiguration
-) : Configurationhandler {
+) {
     private var anrManager: AnrManager
 
     /**
@@ -85,17 +85,18 @@ class Tracker private constructor(
     private var sessionManager: SessionManager
     private val configUpdater: IBTTConfigurationUpdater
     private val configurationRepository: IBTTConfigurationRepository
+    private val bufferConfigurationRepository: IBTTConfigurationRepository
 
     init {
         this.context = WeakReference(application.applicationContext)
         this.sessionManager = SessionManager(application.applicationContext, configuration.sessionExpiryDuration)
 
         this.configurationRepository = BTTConfigurationRepository(application.applicationContext)
+        this.bufferConfigurationRepository = BTTConfigurationRepository(application.applicationContext, Constants.BUFFER_REPOSITORY)
 
         this.configUpdater = BTTConfigurationUpdater(
-            repository = this.configurationRepository,
+            repository = this.bufferConfigurationRepository,
             fetcher = BTTConfigurationFetcher("https://3.221.132.81/config.js?siteID=${configuration.siteId}"),
-            configurationhandler = this,
             10 * 1000
         )
         AppEventHub.instance.addConsumer(BTTDynamicConfigurationConnector(
@@ -490,6 +491,10 @@ class Tracker private constructor(
         configuration.sessionId = sessionId
         setSessionId(sessionId)
         BTTWebViewTracker.updateSession(sessionId)
+        bufferConfigurationRepository.get()?.let {
+            configurationRepository.save(it)
+            configuration.networkSampleRate = it.networkSampleRate
+        }
     }
 
     fun trackCrashes() {
@@ -670,11 +675,6 @@ class Tracker private constructor(
             instance = Tracker(application, configuration)
             return instance
         }
-    }
-
-    override fun updateNetworkSampleRate(networkSampleRate: Double) {
-        configuration.logger?.debug("updating Network sample rate from ${configuration.networkSampleRate} to $networkSampleRate")
-        configuration.networkSampleRate = networkSampleRate
     }
 
 }

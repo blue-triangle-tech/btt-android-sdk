@@ -34,7 +34,7 @@ class BTTConfigurationUpdaterTest {
     fun setUp() {
         MockitoAnnotations.openMocks(this)
 
-        updater = BTTConfigurationUpdater(repository, fetcher, sampleRateHandler, 200)
+        updater = BTTConfigurationUpdater(repository, fetcher, 200)
     }
 
     @Test
