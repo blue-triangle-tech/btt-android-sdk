@@ -1,7 +1,6 @@
 package com.bluetriangle.analytics
 
 import android.Manifest.permission.ACCESS_NETWORK_STATE
-import android.app.ActivityManager
 import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
@@ -23,6 +22,7 @@ import com.bluetriangle.analytics.screenTracking.ActivityLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.BTTScreenLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.FragmentLifecycleTracker
 import com.bluetriangle.analytics.sessionmanager.SessionManager
+import org.json.JSONObject
 import java.io.File
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
@@ -58,6 +58,11 @@ class Tracker private constructor(
     val globalFields: MutableMap<String, String>
 
     /**
+     * A map of extended custom variables
+     */
+    private val customVariables: MutableMap<String, String>
+
+    /**
      * Executor service to queue and submit timers
      */
     private val trackerExecutor: TrackerExecutor
@@ -89,6 +94,7 @@ class Tracker private constructor(
 
         this.configuration = configuration
         globalFields = HashMap(8)
+        customVariables = mutableMapOf()
         configuration.siteId?.let { globalFields[Timer.FIELD_SITE_ID] = it }
         globalFields[Timer.FIELD_BROWSER] = Constants.BROWSER
         globalFields[Timer.FIELD_NA_FLG] = "1"
@@ -171,14 +177,6 @@ class Tracker private constructor(
         configuration.logger?.debug("Network state monitoring started.")
     }
 
-    val activityManager: ActivityManager?
-        get() {
-            val ctx = context.get()
-            return if (ctx != null) {
-                ctx.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-            } else null
-        }
-
     @Synchronized
     fun setMostRecentTimer(timer: Timer) {
         mostRecentTimer = WeakReference(timer)
@@ -238,7 +236,27 @@ class Tracker private constructor(
             timer.end()
         }
         timer.setFields(globalFields.toMap())
+        if (customVariables.isNotEmpty()) {
+            kotlin.runCatching {
+                val extendedCustomVariables = JSONObject(customVariables as Map<*, *>?).toString()
+                if (extendedCustomVariables.length > Constants.EXTENDED_CUSTOM_VARIABLE_MAX_PAYLOAD) {
+                    configuration.logger?.warn("Dropping extended custom variables for $timer. Payload ${extendedCustomVariables.length} exceeds max size of ${Constants.EXTENDED_CUSTOM_VARIABLE_MAX_PAYLOAD}")
+                } else {
+                    timer.setField(Timer.FIELD_EXTENDED_CUSTOM_VARIABLES, extendedCustomVariables)
+                }
+            }
+        }
         timer.setField(FIELD_SESSION_ID, sessionManager.sessionId)
+        if (customVariables.isNotEmpty()) {
+            kotlin.runCatching {
+                val extendedCustomVariables = JSONObject(customVariables as Map<*, *>?).toString()
+                if (extendedCustomVariables.length > Constants.EXTENDED_CUSTOM_VARIABLE_MAX_PAYLOAD) {
+                    configuration.logger?.warn("Dropping extended custom variables for $timer. Payload ${extendedCustomVariables.length} exceeds max size of ${Constants.EXTENDED_CUSTOM_VARIABLE_MAX_PAYLOAD}")
+                } else {
+                    timer.setField(Timer.FIELD_EXTENDED_CUSTOM_VARIABLES, extendedCustomVariables)
+                }
+            }
+        }
         timer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
         trackerExecutor.submit(TimerRunnable(configuration, timer))
     }
@@ -401,7 +419,7 @@ class Tracker private constructor(
      * @param value     the value to set for the given field
      */
     fun setGlobalField(fieldName: String, value: Int) {
-        setGlobalField(fieldName, Integer.toString(value))
+        setGlobalField(fieldName, value.toString())
     }
 
     /**
@@ -411,7 +429,7 @@ class Tracker private constructor(
      * @param value     the value to set for the given field
      */
     fun setGlobalField(fieldName: String, value: Double) {
-        setGlobalField(fieldName, java.lang.Double.toString(value))
+        setGlobalField(fieldName, value.toString())
     }
 
     /**
@@ -421,7 +439,7 @@ class Tracker private constructor(
      * @param value     the value to set for the given field
      */
     fun setGlobalField(fieldName: String, value: Float) {
-        setGlobalField(fieldName, java.lang.Float.toString(value))
+        setGlobalField(fieldName, value.toString())
     }
 
     /**
@@ -431,7 +449,7 @@ class Tracker private constructor(
      * @param value     the value to set for the given field
      */
     fun setGlobalField(fieldName: String, value: Boolean) {
-        setGlobalField(fieldName, java.lang.Boolean.toString(value))
+        setGlobalField(fieldName, value.toString())
     }
 
     /**
@@ -441,7 +459,7 @@ class Tracker private constructor(
      * @param value     the value to set for the given field
      */
     fun setGlobalField(fieldName: String, value: Long) {
-        setGlobalField(fieldName, java.lang.Long.toString(value))
+        setGlobalField(fieldName, value.toString())
     }
 
     /**
@@ -471,6 +489,90 @@ class Tracker private constructor(
         configuration.sessionId = sessionId
         setSessionId(sessionId)
         BTTWebViewTracker.updateSession(sessionId)
+    }
+
+    /**
+     * Set custom variable for the given name to the given value
+     * @param name name of the custom variable to set
+     * @param value value of the custom variable to set
+     */
+    fun setCustomVariable(name: String, value: String) {
+        if (value.length > Constants.EXTENDED_CUSTOM_VARIABLE_MAX_LENGTH) {
+            configuration.logger?.warn("Extended Custom Variable \"$name\" exceeds max length of ${Constants.EXTENDED_CUSTOM_VARIABLE_MAX_LENGTH}")
+        }
+        synchronized(customVariables) {
+            customVariables.put(name, value)
+        }
+    }
+
+    /**
+     * Set custom variable for the given name to the given value
+     * @param name name of the custom variable to set
+     * @param value value of the custom variable to set
+     */
+    fun setCustomVariable(name: String, value: Number) {
+        setCustomVariable(name, value.toString())
+    }
+
+    /**
+     * Set custom variable for the given name to the given value
+     * @param name name of the custom variable to set
+     * @param value value of the custom variable to set
+     */
+    fun setCustomVariable(name: String, value: Boolean) {
+        setCustomVariable(name, value.toString())
+    }
+
+    /**
+     * Set all of the variables in the given flat map.  Values must be a String, Number, or Boolean.
+     * Does not clear any existing variables.
+     */
+    fun setCustomVariables(variables: Map<String, String>) {
+        for (entry in variables.entries.iterator()) {
+            if (entry.value.length > Constants.EXTENDED_CUSTOM_VARIABLE_MAX_LENGTH) {
+                configuration.logger?.warn("Extended Custom Variable \"${entry.key}\" exceeds max length of ${Constants.EXTENDED_CUSTOM_VARIABLE_MAX_LENGTH}")
+            }
+        }
+        synchronized(customVariables) {
+            customVariables.putAll(variables)
+        }
+    }
+
+    /**
+     * Return the named custom variable, or null
+     *
+     * @param name of the custom variable to return
+     * @return the value of the custom variable or null
+     */
+    fun getCustomVariable(name: String): String? {
+        return kotlin.runCatching { customVariables[name] }.getOrNull()
+    }
+
+    /**
+     * Get the current custom variables
+     * @return a copy of the current custom variables
+     */
+    fun getCustomVariables(): Map<String, String> {
+        return customVariables.toMap()
+    }
+
+    /**
+     * Clears the given custom variable, if set
+     * @param name key of the custom variable to remove
+     */
+    fun clearCustomVariable(name: String) {
+        synchronized(customVariables) {
+            customVariables.remove(name)
+        }
+    }
+
+    /**
+     * Removes all custom variables
+     */
+    fun clearAllCustomVariables() {
+        synchronized(customVariables) {
+            customVariables.clear()
+        }
     }
 
     fun trackCrashes() {

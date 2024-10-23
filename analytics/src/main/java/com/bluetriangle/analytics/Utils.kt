@@ -6,7 +6,8 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Base64
-import com.bluetriangle.analytics.BuildConfig
+import org.json.JSONArray
+import org.json.JSONObject
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.io.UnsupportedEncodingException
@@ -185,4 +186,21 @@ internal object Utils {
         val random = SecureRandom()
         return sampleRate >= random.nextDouble()
     }
+}
+
+
+/**
+ * Extension to JSONObject to add a method to convert a JSON object to a Map<String, String>
+ */
+fun JSONObject.toMap(): Map<String, Any> {
+    return keys().asSequence().associateWith { key ->
+        kotlin.runCatching {
+            when (val value = this[key]) {
+                is JSONArray -> (0 until value.length()).map { value[it] }
+                is JSONObject -> value.toMap()
+                JSONObject.NULL -> null
+                else -> value
+            }
+        }.getOrNull()
+    }.filterValues { it != null }.mapValues { it.value as Any }
 }
