@@ -17,4 +17,14 @@ object Constants {
     const val CHECK_INTERVAL: Long = 1000
     const val ANR_DEFAULT_INTERVAL: Int = 5 // in seconds
     const val TIMER_MIN_PGTM = 15L
+
+    /**
+     * Max length of extended custom variable strings
+     */
+    const val EXTENDED_CUSTOM_VARIABLE_MAX_LENGTH = 1024
+
+    /**
+     * The max size of the extended custom variable JSON payload
+     */
+    const val EXTENDED_CUSTOM_VARIABLE_MAX_PAYLOAD = 1024 * 1024 * 3  // 3 MB
 }

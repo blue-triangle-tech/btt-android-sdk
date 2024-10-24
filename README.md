@@ -60,7 +60,7 @@ Add the package dependency to your application's `build.gradle` file:
 ```groovy
 dependencies {
     //...
-    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.14.0'
+    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.15.0'
 }
 ```
 
@@ -69,7 +69,7 @@ dependencies {
 If project uses gradle plugin version 8.2.0 and above, use exclude with dependency like below.
 
 ```groovy
-implementation("com.github.blue-triangle-tech:btt-android-sdk:2.14.0") {
+implementation("com.github.blue-triangle-tech:btt-android-sdk:2.15.0") {
     exclude("com.squareup.okhttp3", "okhttp-bom")
 }
 ```
@@ -589,7 +589,37 @@ You can disable Launch Time feature by adding the following meta-data in your `A
 
 > Note:
 > This feature is only available on API Level 29 and above
+>
 
+### Custom Variables
+It is a developer-defined property introduced into the BTT SDK payload that developers can include to collect and track extra information specific to their application needs.
+
+To introduce a custom variable, the developer first needs to create it on the BlueTriangle portal by following the instructions on the [**Custom Variables Page.**](https://help.bluetriangle.com/hc/en-us/articles/15629245281171-RUM-Custom-Variables-Page)
+
+Then developer need to set custom variable using the below function:
+```kotlin
+Tracker.instance?.setCustomVariable(<VARIABLE NAME>, <VALUE>)
+```
+
+In order to get the custom variable value, call the following with the variable name:
+```kotlin
+val value = Tracker.instance?.getCustomVariable(<VARIABLE NAME>)
+```
+
+To remove a custom variable value, call the following function with the variable name:
+```kotlin
+Tracker.instance?.clearCustomVariable(<VARIABLE NAME>)
+```
+
+To remove all custom variable values, call the following function:
+```kotlin
+Tracker.instance?.clearAllCustomVariables()
+```
+where &lt;VARIABLE NAME&gt; is the variable name of the custom variable that the user added to the portal while creating the custom variable e.g. CV1, CV2, etc, and <VALUE> is whatever the developer wants to set in these fields.
+Once the value is set, it will be sent with each page view until it is cleared by calling any of the above clear methods.
+
+To view one of the values on the portal, navigate to the path 'Menu > Native App Monitoring > Native App Performance Detail' or go to the Session Lookup Page. Then, search by session ID and see the Performance Measurement Details for the specific page.
+[**for more detail**](https://help.bluetriangle.com/hc/en-us/articles/12299711775635-Where-can-I-see-Custom-Variables)
 
 ## How to Test the Android SDK Integration
 

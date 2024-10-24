@@ -68,6 +68,7 @@ class Timer : Parcelable {
         internal const val FIELD_CART_COUNT = "c_count"
         internal const val FIELD_CART_COUNT_CHECKOUT = "co_count"
         internal const val FIELD_NET_STATE_SOURCE = "netStateSource"
+        const val FIELD_EXTENDED_CUSTOM_VARIABLES = "ECV"
 
         /**
          * A map of fields and their associated default values
@@ -703,7 +704,7 @@ class Timer : Parcelable {
     }
 
     override fun toString(): String {
-        return String.format("BTT Timer: %s", getField(FIELD_PAGE_NAME))
+        return "BTT Timer: ${getField(FIELD_PAGE_NAME)}"
     }
 
     fun setError(err: Boolean) {
