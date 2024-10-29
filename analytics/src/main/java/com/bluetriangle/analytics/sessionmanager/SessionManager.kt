@@ -3,11 +3,17 @@ package com.bluetriangle.analytics.sessionmanager
 import android.app.Activity
 import android.app.Application
 import android.content.Context
+import com.bluetriangle.analytics.Constants
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.Utils
+import com.bluetriangle.analytics.dynamicconfig.repository.IBTTConfigurationRepository
 import com.bluetriangle.analytics.launchtime.AppEventConsumer
 
-internal class SessionManager(context: Context, private val expirationDurationInMillis:Long): AppEventConsumer {
+internal class SessionManager(
+    context: Context,
+    private val expirationDurationInMillis: Long,
+    private val configurationRepository: IBTTConfigurationRepository
+): AppEventConsumer {
 
     private var currentSession: SessionData? = null
         @Synchronized get
@@ -15,10 +21,10 @@ internal class SessionManager(context: Context, private val expirationDurationIn
 
     private var sessionStore:SessionStore = SharedPrefsSessionStore(context)
 
-    val sessionId: String
+    val sessionData: SessionData
         @Synchronized get() {
             invalidateSessionData()
-            return currentSession!!.sessionId
+            return currentSession!!
         }
 
     private fun isSessionExpired():Boolean {
@@ -34,21 +40,40 @@ internal class SessionManager(context: Context, private val expirationDurationIn
             Tracker.instance?.configuration?.logger?.debug("Session Expired! Updating session to ${currentSession?.sessionId}")
             return true
         }
-        currentSession = sessionStore.retrieveSessionData()
+        if(currentSession == null) {
+            sessionStore.retrieveSessionData()?.apply {
+                val oldSession = SessionData(
+                    sessionId,
+                    shouldSampleNetwork,
+                    false,
+                    expiration
+                ).apply {
+                    sessionStore.storeSessionData(this)
+                }
+                currentSession = oldSession
+            }
+        }
         return false
     }
 
     private fun generateNewSession(): SessionData {
         return SessionData(
             Utils.generateRandomId(),
+            Utils.shouldSample(getNetworkSampleRate()),
+            true,
             getNewExpiration()
         )
+    }
+
+    private fun getNetworkSampleRate(): Double {
+        val config = configurationRepository.get() ?: return Constants.DEFAULT_NETWORK_SAMPLE_RATE
+        return config.networkSampleRate
     }
 
     private fun getNewExpiration() = System.currentTimeMillis() + expirationDurationInMillis
 
     @Synchronized fun onLaunch() {
-        Tracker.instance?.updateSession(sessionId)
+        Tracker.instance?.updateSession(sessionData.sessionId)
     }
 
     @Synchronized fun onOffScreen() {
@@ -56,6 +81,8 @@ internal class SessionManager(context: Context, private val expirationDurationIn
             sessionStore.storeSessionData(
                 SessionData(
                     it.sessionId,
+                    it.shouldSampleNetwork,
+                    false,
                     getNewExpiration()
                 )
             )

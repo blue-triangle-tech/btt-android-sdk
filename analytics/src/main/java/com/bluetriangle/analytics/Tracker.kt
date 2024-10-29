@@ -11,7 +11,6 @@ import androidx.core.content.ContextCompat
 import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
 import com.bluetriangle.analytics.dynamicconfig.BTTDynamicConfigurationConnector
-import com.bluetriangle.analytics.dynamicconfig.Configurationhandler
 import com.bluetriangle.analytics.dynamicconfig.fetcher.BTTConfigurationFetcher
 import com.bluetriangle.analytics.dynamicconfig.repository.BTTConfigurationRepository
 import com.bluetriangle.analytics.dynamicconfig.repository.IBTTConfigurationRepository
@@ -89,10 +88,17 @@ class Tracker private constructor(
 
     init {
         this.context = WeakReference(application.applicationContext)
-        this.sessionManager = SessionManager(application.applicationContext, configuration.sessionExpiryDuration)
 
         this.configurationRepository = BTTConfigurationRepository(application.applicationContext)
         this.bufferConfigurationRepository = BTTConfigurationRepository(application.applicationContext, Constants.BUFFER_REPOSITORY)
+
+        this.configuration = configuration
+
+        this.sessionManager = SessionManager(
+            application.applicationContext,
+            this.configuration.sessionExpiryDuration,
+            this.configurationRepository
+        )
 
         this.configUpdater = BTTConfigurationUpdater(
             repository = this.bufferConfigurationRepository,
@@ -103,12 +109,6 @@ class Tracker private constructor(
             this.configUpdater
         ))
         AppEventHub.instance.addConsumer(this.sessionManager)
-
-        this.configuration = configuration
-
-        configurationRepository.get()?.let {
-            this.configuration.networkSampleRate = it.networkSampleRate
-        }
 
         globalFields = HashMap(8)
         configuration.siteId?.let { globalFields[Timer.FIELD_SITE_ID] = it }
@@ -124,9 +124,10 @@ class Tracker private constructor(
         setGlobalUserId(globalUserId)
         configuration.globalUserId = globalUserId
 
-        val sessionId = sessionManager.sessionId
-        setSessionId(sessionId)
-        configuration.sessionId = sessionId
+        val sessionData = sessionManager.sessionData
+        setSessionId(sessionData.sessionId)
+        configuration.sessionId = sessionData.sessionId
+        this.configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
 
         trackerExecutor = TrackerExecutor(configuration)
         screenTrackMonitor = BTTScreenLifecycleTracker(configuration.isScreenTrackingEnabled)
@@ -260,7 +261,7 @@ class Tracker private constructor(
             timer.end()
         }
         timer.setFields(globalFields.toMap())
-        timer.setField(FIELD_SESSION_ID, sessionManager.sessionId)
+        timer.setField(FIELD_SESSION_ID, sessionManager.sessionData.sessionId)
         trackerExecutor.submit(TimerRunnable(configuration, timer))
     }
 

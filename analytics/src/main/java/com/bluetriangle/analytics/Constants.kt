@@ -18,4 +18,5 @@ object Constants {
     const val ANR_DEFAULT_INTERVAL: Int = 5 // in seconds
     const val TIMER_MIN_PGTM = 15L
     const val BUFFER_REPOSITORY = "Buffer"
+    const val DEFAULT_NETWORK_SAMPLE_RATE = 0.05
 }
