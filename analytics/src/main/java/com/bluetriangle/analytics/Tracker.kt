@@ -15,6 +15,12 @@ import com.bluetriangle.analytics.dynamicconfig.repository.BTTConfigurationRepos
 import com.bluetriangle.analytics.dynamicconfig.repository.IBTTConfigurationRepository
 import com.bluetriangle.analytics.dynamicconfig.updater.BTTConfigurationUpdater
 import com.bluetriangle.analytics.dynamicconfig.updater.IBTTConfigurationUpdater
+import com.bluetriangle.analytics.dynamicconfig.BTTDynamicConfigurationConnector
+import com.bluetriangle.analytics.dynamicconfig.fetcher.BTTConfigurationFetcher
+import com.bluetriangle.analytics.dynamicconfig.repository.BTTConfigurationRepository
+import com.bluetriangle.analytics.dynamicconfig.repository.IBTTConfigurationRepository
+import com.bluetriangle.analytics.dynamicconfig.updater.BTTConfigurationUpdater
+import com.bluetriangle.analytics.dynamicconfig.updater.IBTTConfigurationUpdater
 import com.bluetriangle.analytics.deviceinfo.DeviceInfoProvider
 import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 import com.bluetriangle.analytics.hybrid.BTTWebViewTracker
@@ -96,7 +102,6 @@ class Tracker private constructor(
 
     init {
         this.context = WeakReference(application.applicationContext)
-        this.sessionManager = SessionManager(application.applicationContext, configuration.sessionExpiryDuration)
         this.deviceInfoProvider = DeviceInfoProvider()
 
         this.configurationRepository = BTTConfigurationRepository(application.applicationContext)
@@ -594,6 +599,10 @@ class Tracker private constructor(
     fun clearAllCustomVariables() {
         synchronized(customVariables) {
             customVariables.clear()
+        }
+        bufferConfigurationRepository.get()?.let {
+            configurationRepository.save(it)
+            configuration.networkSampleRate = it.networkSampleRate
         }
     }
 
