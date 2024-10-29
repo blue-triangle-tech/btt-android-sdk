@@ -2,8 +2,15 @@ package com.bluetriangle.analytics.dynamicconfig.repository
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import com.bluetriangle.analytics.dynamicconfig.model.BTTRemoteConfiguration
 import com.bluetriangle.analytics.dynamicconfig.model.BTTSavedRemoteConfiguration
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.update
 import org.json.JSONObject
 
 internal class BTTConfigurationRepository(val context: Context, tag: String = "Default"):
@@ -35,6 +42,19 @@ internal class BTTConfigurationRepository(val context: Context, tag: String = "D
         val savedConfigJson = sharedPreferences.getString(REMOTE_CONFIG, null)?:return null
 
         return BTTSavedRemoteConfiguration.fromJson(JSONObject(savedConfigJson))
+    }
+
+    override fun getLiveUpdates(): Flow<BTTSavedRemoteConfiguration?> = callbackFlow {
+        val prefsChangeListener = OnSharedPreferenceChangeListener { prefs, s ->
+            if(s == REMOTE_CONFIG) {
+                trySend(get())
+            }
+        }
+        sharedPreferences.registerOnSharedPreferenceChangeListener(prefsChangeListener)
+
+        awaitClose {
+            sharedPreferences.unregisterOnSharedPreferenceChangeListener(prefsChangeListener)
+        }
     }
 
 }

@@ -10,7 +10,6 @@ import androidx.core.content.ContextCompat
 import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
 import com.bluetriangle.analytics.dynamicconfig.BTTDynamicConfigurationConnector
-import com.bluetriangle.analytics.dynamicconfig.Configurationhandler
 import com.bluetriangle.analytics.dynamicconfig.fetcher.BTTConfigurationFetcher
 import com.bluetriangle.analytics.dynamicconfig.repository.BTTConfigurationRepository
 import com.bluetriangle.analytics.dynamicconfig.repository.IBTTConfigurationRepository
@@ -103,6 +102,14 @@ class Tracker private constructor(
         this.configurationRepository = BTTConfigurationRepository(application.applicationContext)
         this.bufferConfigurationRepository = BTTConfigurationRepository(application.applicationContext, Constants.BUFFER_REPOSITORY)
 
+        this.configuration = configuration
+
+        this.sessionManager = SessionManager(
+            application.applicationContext,
+            this.configuration.sessionExpiryDuration,
+            this.configurationRepository
+        )
+
         this.configUpdater = BTTConfigurationUpdater(
             repository = this.bufferConfigurationRepository,
             fetcher = BTTConfigurationFetcher("https://3.221.132.81/config.js?siteID=${configuration.siteId}"),
@@ -112,12 +119,6 @@ class Tracker private constructor(
             this.configUpdater
         ))
         AppEventHub.instance.addConsumer(this.sessionManager)
-
-        this.configuration = configuration
-
-        configurationRepository.get()?.let {
-            this.configuration.networkSampleRate = it.networkSampleRate
-        }
 
         globalFields = HashMap(8)
         customVariables = mutableMapOf()
@@ -134,9 +135,10 @@ class Tracker private constructor(
         setGlobalUserId(globalUserId)
         configuration.globalUserId = globalUserId
 
-        val sessionId = sessionManager.sessionId
-        setSessionId(sessionId)
-        configuration.sessionId = sessionId
+        val sessionData = sessionManager.sessionData
+        setSessionId(sessionData.sessionId)
+        configuration.sessionId = sessionData.sessionId
+        this.configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
 
         trackerExecutor = TrackerExecutor(configuration)
         screenTrackMonitor = BTTScreenLifecycleTracker(configuration.isScreenTrackingEnabled)
@@ -272,18 +274,8 @@ class Tracker private constructor(
                 }
             }
         }
-        timer.setField(FIELD_SESSION_ID, sessionManager.sessionId)
-        if (customVariables.isNotEmpty()) {
-            kotlin.runCatching {
-                val extendedCustomVariables = JSONObject(customVariables as Map<*, *>?).toString()
-                if (extendedCustomVariables.length > Constants.EXTENDED_CUSTOM_VARIABLE_MAX_PAYLOAD) {
-                    configuration.logger?.warn("Dropping extended custom variables for $timer. Payload ${extendedCustomVariables.length} exceeds max size of ${Constants.EXTENDED_CUSTOM_VARIABLE_MAX_PAYLOAD}")
-                } else {
-                    timer.setField(Timer.FIELD_EXTENDED_CUSTOM_VARIABLES, extendedCustomVariables)
-                }
-            }
-        }
         timer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
+        timer.setField(FIELD_SESSION_ID, sessionManager.sessionData.sessionId)
         trackerExecutor.submit(TimerRunnable(configuration, timer))
     }
 
