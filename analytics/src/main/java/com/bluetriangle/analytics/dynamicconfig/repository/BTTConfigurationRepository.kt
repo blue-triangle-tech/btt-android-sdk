@@ -1,19 +1,24 @@
+/*
+ * Copyright (c) 2024, Blue Triangle
+ * All rights reserved.
+ *
+ */
 package com.bluetriangle.analytics.dynamicconfig.repository
 
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
+import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.dynamicconfig.model.BTTRemoteConfiguration
 import com.bluetriangle.analytics.dynamicconfig.model.BTTSavedRemoteConfiguration
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.update
 import org.json.JSONObject
 
-internal class BTTConfigurationRepository(val context: Context, tag: String = "Default"):
+internal class BTTConfigurationRepository(context: Context,
+                                          private val defaultConfig: BTTSavedRemoteConfiguration):
     IBTTConfigurationRepository {
 
     companion object {
@@ -22,7 +27,7 @@ internal class BTTConfigurationRepository(val context: Context, tag: String = "D
     }
 
     private val sharedPreferences: SharedPreferences = context.getSharedPreferences(
-        "${SAVED_CONFIG_PREFS}_$tag", Context.MODE_PRIVATE)
+        SAVED_CONFIG_PREFS, Context.MODE_PRIVATE)
 
     override fun save(config: BTTRemoteConfiguration) {
         val savedConfig = BTTSavedRemoteConfiguration(
@@ -35,19 +40,23 @@ internal class BTTConfigurationRepository(val context: Context, tag: String = "D
             .apply()
     }
 
-    override fun get(): BTTSavedRemoteConfiguration? {
-        if(System.getProperty("debug.btt.app.networksamplerate") == context.packageName) {
-            return null
-        }
-        val savedConfigJson = sharedPreferences.getString(REMOTE_CONFIG, null)?:return null
+    override fun get(): BTTSavedRemoteConfiguration {
+        val savedConfigJson = sharedPreferences.getString(REMOTE_CONFIG, null)?:return defaultConfig
 
-        return BTTSavedRemoteConfiguration.fromJson(JSONObject(savedConfigJson))
+        return try {
+            BTTSavedRemoteConfiguration.fromJson(JSONObject(savedConfigJson))
+        } catch (e: Exception) {
+            Tracker.instance?.configuration?.logger?.error("Error while parsing config JSON: ${e.message}")
+            defaultConfig
+        }
     }
 
-    override fun getLiveUpdates(): Flow<BTTSavedRemoteConfiguration?> = callbackFlow {
+    override fun getLiveUpdates(): Flow<BTTSavedRemoteConfiguration> = callbackFlow {
+        trySendBlocking(get())
+
         val prefsChangeListener = OnSharedPreferenceChangeListener { prefs, s ->
             if(s == REMOTE_CONFIG) {
-                trySend(get())
+                trySendBlocking(get())
             }
         }
         sharedPreferences.registerOnSharedPreferenceChangeListener(prefsChangeListener)

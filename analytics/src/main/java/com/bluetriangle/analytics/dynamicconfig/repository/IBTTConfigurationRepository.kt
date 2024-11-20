@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2024, Blue Triangle
+ * All rights reserved.
+ *
+ */
 package com.bluetriangle.analytics.dynamicconfig.repository
 
 import com.bluetriangle.analytics.dynamicconfig.model.BTTRemoteConfiguration

@@ -1,6 +1,12 @@
+/*
+ * Copyright (c) 2024, Blue Triangle
+ * All rights reserved.
+ *
+ */
 package com.bluetriangle.analytics.dynamicconfig.fetcher
 
-import android.util.Log
+import android.annotation.SuppressLint
+import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.dynamicconfig.model.BTTRemoteConfiguration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -23,15 +29,15 @@ internal class BTTConfigurationFetcher(private val remoteConfigUrl:String):IBTTC
     @Throws
     override suspend fun fetch(): BTTRemoteConfiguration {
         val remoteConfigJSON = URL(remoteConfigUrl).fetchJSON()
+        Tracker.instance?.configuration?.logger?.debug("Fetched remote config: $remoteConfigJSON")
         return BTTRemoteConfiguration.fromJson(JSONObject(remoteConfigJSON))
     }
 
     private suspend fun URL.fetchJSON():String = withContext(Dispatchers.IO) {
         var connection: HttpURLConnection? = null
         try {
+            trustAllCertificates()
             connection = (openConnection() as HttpsURLConnection).apply {
-                trustAllHosts()
-                hostnameVerifier = DO_NOT_VERIFY
                 requestMethod = "GET"
                 connectTimeout = 5000
                 readTimeout = 5000
@@ -51,40 +57,27 @@ internal class BTTConfigurationFetcher(private val remoteConfigUrl:String):IBTTC
         }
     }
 
-
-    private val DO_NOT_VERIFY: HostnameVerifier =
-        HostnameVerifier { _, _ -> true }
-
-    private fun trustAllHosts() {
-        // Create a trust manager that does not validate certificate chains
-        val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
-            override fun getAcceptedIssuers(): Array<X509Certificate> {
-                return arrayOf()
-            }
-
-            @Throws(CertificateException::class)
-            override fun checkClientTrusted(
-                chain: Array<X509Certificate?>?,
-                authType: String?
-            ) {
-            }
-
-            @Throws(CertificateException::class)
-            override fun checkServerTrusted(
-                chain: Array<X509Certificate?>?,
-                authType: String?
-            ) {
-            }
-        })
-
-        // Install the all-trusting trust manager
+    private fun trustAllCertificates() {
         try {
-            val sc = SSLContext.getInstance("SSL")
-            sc.init(null, trustAllCerts, SecureRandom())
-            HttpsURLConnection
-                .setDefaultSSLSocketFactory(sc.socketFactory)
+            val trustAllCerts = arrayOf<TrustManager>(
+                @SuppressLint("CustomX509TrustManager")
+                object : X509TrustManager {
+                    @SuppressLint("TrustAllX509TrustManager")
+                    override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
+                    @SuppressLint("TrustAllX509TrustManager")
+                    override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
+                    override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+                }
+            )
+
+            val sslContext = SSLContext.getInstance("SSL")
+            sslContext.init(null, trustAllCerts, SecureRandom())
+            HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.socketFactory)
+
+            HttpsURLConnection.setDefaultHostnameVerifier { _, _ -> true }
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
+
 }

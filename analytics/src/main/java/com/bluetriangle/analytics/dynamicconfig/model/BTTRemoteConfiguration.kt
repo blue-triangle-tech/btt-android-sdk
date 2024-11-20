@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2024, Blue Triangle
+ * All rights reserved.
+ *
+ */
 package com.bluetriangle.analytics.dynamicconfig.model
 
 import org.json.JSONObject
@@ -7,7 +12,7 @@ internal open class BTTRemoteConfiguration(
 ) {
     companion object {
         fun fromJson(remoteConfigJson:JSONObject) = BTTRemoteConfiguration(
-            remoteConfigJson.getInt("wcdSamplePercent")/100.0
+            remoteConfigJson.getInt("networkSampleRateSDK")/100.0
         )
     }
 }

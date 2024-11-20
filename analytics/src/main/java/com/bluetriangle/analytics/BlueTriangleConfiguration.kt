@@ -40,7 +40,6 @@ class BlueTriangleConfiguration {
     var networkSampleRate = Constants.DEFAULT_NETWORK_SAMPLE_RATE
         set(networkSampleRate) {
             field = Math.min(Math.max(networkSampleRate, 0.0), 1.0)
-            shouldSampleNetwork = Utils.shouldSample(this.networkSampleRate)
         }
 
     /**

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2024, Blue Triangle
+ * All rights reserved.
+ *
+ */
 package com.bluetriangle.analytics.sessionmanager
 
 import android.app.Activity
@@ -6,13 +11,23 @@ import android.content.Context
 import com.bluetriangle.analytics.Constants
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.Utils
+import com.bluetriangle.analytics.dynamicconfig.model.BTTSavedRemoteConfiguration
 import com.bluetriangle.analytics.dynamicconfig.repository.IBTTConfigurationRepository
+import com.bluetriangle.analytics.dynamicconfig.updater.IBTTConfigurationUpdater
 import com.bluetriangle.analytics.launchtime.AppEventConsumer
+import com.bluetriangle.analytics.utility.DebugConfig
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 internal class SessionManager(
     context: Context,
     private val expirationDurationInMillis: Long,
-    private val configurationRepository: IBTTConfigurationRepository
+    private val configurationRepository: IBTTConfigurationRepository,
+    private val updater: IBTTConfigurationUpdater
 ): AppEventConsumer {
 
     private var currentSession: SessionData? = null
@@ -20,6 +35,8 @@ internal class SessionManager(
         @Synchronized set
 
     private var sessionStore:SessionStore = SharedPrefsSessionStore(context)
+    private var debugConfig = DebugConfig.current
+    private var scope: CoroutineScope? = null
 
     val sessionData: SessionData
         @Synchronized get() {
@@ -27,12 +44,22 @@ internal class SessionManager(
             return currentSession!!
         }
 
+    init {
+        initScope()
+    }
+
     private fun isSessionExpired():Boolean {
         val sessionData = sessionStore.retrieveSessionData()
         return sessionData == null || System.currentTimeMillis() > sessionData.expiration
     }
 
     private fun invalidateSessionData():Boolean {
+        if(debugConfig.newSessionOnLaunch) {
+            if(currentSession == null) {
+                currentSession = generateNewSession()
+            }
+            return false
+        }
         if(isSessionExpired()) {
             currentSession = generateNewSession().apply {
                 sessionStore.storeSessionData(this)
@@ -41,39 +68,30 @@ internal class SessionManager(
             return true
         }
         if(currentSession == null) {
-            sessionStore.retrieveSessionData()?.apply {
-                val oldSession = SessionData(
-                    sessionId,
-                    shouldSampleNetwork,
-                    false,
-                    expiration
-                ).apply {
-                    sessionStore.storeSessionData(this)
-                }
-                currentSession = oldSession
-            }
+            currentSession = sessionStore.retrieveSessionData()
         }
         return false
     }
 
     private fun generateNewSession(): SessionData {
+        val config = configurationRepository.get()?: BTTSavedRemoteConfiguration(Constants.DEFAULT_NETWORK_SAMPLE_RATE, 0)
+
         return SessionData(
             Utils.generateRandomId(),
-            Utils.shouldSample(getNetworkSampleRate()),
-            true,
+            debugConfig.fullSampleRate || Utils.shouldSample(config.networkSampleRate),
+            false,
+            config.networkSampleRate,
             getNewExpiration()
         )
-    }
-
-    private fun getNetworkSampleRate(): Double {
-        val config = configurationRepository.get() ?: return Constants.DEFAULT_NETWORK_SAMPLE_RATE
-        return config.networkSampleRate
     }
 
     private fun getNewExpiration() = System.currentTimeMillis() + expirationDurationInMillis
 
     @Synchronized fun onLaunch() {
-        Tracker.instance?.updateSession(sessionData.sessionId)
+        Tracker.instance?.updateSession(sessionData)
+        scope?.launch {
+            updater.update()
+        }
     }
 
     @Synchronized fun onOffScreen() {
@@ -82,7 +100,8 @@ internal class SessionManager(
                 SessionData(
                     it.sessionId,
                     it.shouldSampleNetwork,
-                    false,
+                    it.isConfigApplied,
+                    it.networkSampleRate,
                     getNewExpiration()
                 )
             )
@@ -90,10 +109,48 @@ internal class SessionManager(
     }
 
     override fun onActivityResumed(activity: Activity) {
+        initScope()
         onLaunch()
     }
 
     override fun onAppMovedToBackground(application: Application) {
         onOffScreen()
+        destroyScope()
+    }
+
+    private fun initScope() {
+        destroyScope()
+        scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+        observeAndUpdateSession()
+    }
+
+    private fun observeAndUpdateSession() {
+        scope?.launch {
+            configurationRepository.getLiveUpdates().collectLatest { savedConfig ->
+                savedConfig?.let { config ->
+                    currentSession?.let { session ->
+                        if(!session.isConfigApplied) {
+                            val sessionData = SessionData(
+                                session.sessionId,
+                                Utils.shouldSample(config.networkSampleRate),
+                                true,
+                                config.networkSampleRate,
+                                session.expiration
+                            )
+                            Tracker.instance?.updateSession(sessionData)
+                            sessionStore.storeSessionData(
+                                sessionData
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun destroyScope() {
+        scope?.cancel()
+        scope = null
     }
 }

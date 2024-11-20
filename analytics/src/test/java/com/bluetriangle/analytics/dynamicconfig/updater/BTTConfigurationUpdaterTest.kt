@@ -1,6 +1,5 @@
 package com.bluetriangle.analytics.dynamicconfig.updater
 
-import com.bluetriangle.analytics.dynamicconfig.Configurationhandler
 import com.bluetriangle.analytics.dynamicconfig.fetcher.IBTTConfigurationFetcher
 import com.bluetriangle.analytics.dynamicconfig.model.BTTRemoteConfiguration
 import com.bluetriangle.analytics.dynamicconfig.model.BTTSavedRemoteConfiguration
@@ -24,9 +23,6 @@ class BTTConfigurationUpdaterTest {
 
     @Mock
     private lateinit var repository: IBTTConfigurationRepository
-
-    @Mock
-    private lateinit var sampleRateHandler: Configurationhandler
 
     private lateinit var updater: BTTConfigurationUpdater
 
