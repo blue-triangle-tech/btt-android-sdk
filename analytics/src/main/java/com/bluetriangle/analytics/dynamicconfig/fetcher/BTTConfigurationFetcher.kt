@@ -28,6 +28,7 @@ internal class BTTConfigurationFetcher(private val remoteConfigUrl:String):IBTTC
 
     @Throws
     override suspend fun fetch(): BTTRemoteConfiguration {
+        Tracker.instance?.configuration?.logger?.debug("Fetching remote config from $remoteConfigUrl")
         val remoteConfigJSON = URL(remoteConfigUrl).fetchJSON()
         Tracker.instance?.configuration?.logger?.debug("Fetched remote config: $remoteConfigJSON")
         return BTTRemoteConfiguration.fromJson(JSONObject(remoteConfigJSON))
