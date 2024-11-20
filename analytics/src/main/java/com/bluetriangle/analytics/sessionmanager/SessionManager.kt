@@ -46,6 +46,11 @@ internal class SessionManager(
 
     init {
         initScope()
+        scope?.launch {
+            if(!sessionData.isConfigApplied) {
+                updater.forceUpdate()
+            }
+        }
     }
 
     private fun isSessionExpired():Boolean {
@@ -90,7 +95,11 @@ internal class SessionManager(
     @Synchronized fun onLaunch() {
         Tracker.instance?.updateSession(sessionData)
         scope?.launch {
-            updater.update()
+            if(!sessionData.isConfigApplied) {
+                updater.forceUpdate()
+            } else {
+                updater.update()
+            }
         }
     }
 
@@ -131,6 +140,7 @@ internal class SessionManager(
                 savedConfig?.let { config ->
                     currentSession?.let { session ->
                         if(!session.isConfigApplied) {
+                            Tracker.instance?.configuration?.logger?.debug("Applied new configuration $savedConfig to session $session")
                             val sessionData = SessionData(
                                 session.sessionId,
                                 Utils.shouldSample(config.networkSampleRate),

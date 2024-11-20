@@ -29,6 +29,7 @@ internal class BTTConfigurationUpdater(
     override suspend fun forceUpdate() {
         try {
             val remoteConfig = fetcher.fetch()
+            Tracker.instance?.configuration?.logger?.debug("Fetched remote config: $remoteConfig")
             repository.save(
                 BTTSavedRemoteConfiguration(
                     remoteConfig.networkSampleRate,
