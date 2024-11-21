@@ -35,7 +35,7 @@ internal class SessionManager(
         @Synchronized set
 
     private var sessionStore:SessionStore = SharedPrefsSessionStore(context)
-    private var debugConfig = DebugConfig.current
+    private var debugConfig = DebugConfig.getCurrent(context)
     private var scope: CoroutineScope? = null
 
     val sessionData: SessionData

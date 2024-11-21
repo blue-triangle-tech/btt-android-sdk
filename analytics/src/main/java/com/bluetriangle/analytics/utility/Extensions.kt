@@ -1,6 +1,7 @@
 package com.bluetriangle.analytics.utility
 
 import android.app.Activity
+import android.content.Context
 import android.net.NetworkCapabilities
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -41,13 +42,13 @@ fun FragmentActivity.unregisterFragmentLifecycleCallback(callback: FragmentLifec
     supportFragmentManager.unregisterFragmentLifecycleCallbacks(callback)
 }
 
-val Long.mb:Long
-    get() = this/1024 * 1024
+val Long.mb: Long
+    get() = this / 1024 * 1024
 
-fun <V> any(vararg operations:()->V?):V? {
+fun <V> any(vararg operations: () -> V?): V? {
     operations.forEach {
         val value = it()
-        if(value != null) {
+        if (value != null) {
             return@any value
         }
     }
@@ -71,9 +72,9 @@ val cellularTransports = intArrayOf(NetworkCapabilities.TRANSPORT_CELLULAR)
 val ethernetTransports = intArrayOf(NetworkCapabilities.TRANSPORT_ETHERNET)
 
 
-internal val BTTNetworkState.value:String
+internal val BTTNetworkState.value: String
     get() {
-        return when(this) {
+        return when (this) {
             BTTNetworkState.Wifi -> "wifi"
             is BTTNetworkState.Cellular -> "cellular ${protocol.description}".trim()
             BTTNetworkState.Ethernet -> "ethernet"
@@ -87,3 +88,17 @@ fun getNumberOfCPUCores() = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLL
 } else {
     null
 }
+
+val Context.isDebugBuild: Boolean
+    get() {
+        return try {
+            val appPackageName = applicationContext.packageName
+            // Get the BuildConfig class of the app
+            val buildConfigClass = Class.forName("$appPackageName.BuildConfig")
+            val debugField = buildConfigClass.getField("DEBUG")
+            debugField.getBoolean(null)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }

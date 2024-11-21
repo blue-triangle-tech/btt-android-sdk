@@ -5,6 +5,7 @@
  */
 package com.bluetriangle.analytics.utility
 
+import android.content.Context
 import android.util.Log
 import com.bluetriangle.analytics.BuildConfig
 import com.bluetriangle.analytics.Tracker
@@ -17,27 +18,24 @@ class DebugConfig private constructor(
     val configUrl: String?
 ) {
     companion object {
-        private val isDebugMode: Boolean
-            get() = System.getProperty("android.debug.process") == "true"
 
-        val current: DebugConfig
-            get() = if (isDebugMode) {
-                DebugConfig(
-                    getShellProperty("debug.full.sample.rate") == "on",
-                    getShellProperty("debug.new.session.on.launch") == "on",
-                    getShellProperty("debug.config.url")
-                ).also {
-                    Log.d("BlueTriangle","In Debug Mode, DebugConfig $it")
-                }
-            } else {
-                DebugConfig(
-                    fullSampleRate = false,
-                    newSessionOnLaunch = false,
-                    null
-                ).also {
-                    Log.d("BlueTriangle","Not in Debug Mode, DebugConfig $it")
-                }
+        fun getCurrent(context: Context): DebugConfig = if (context.isDebugBuild) {
+            DebugConfig(
+                getShellProperty("debug.full.sample.rate") == "on",
+                getShellProperty("debug.new.session.on.launch") == "on",
+                getShellProperty("debug.config.url")
+            ).also {
+                Log.d("BlueTriangle", "In Debug Mode, DebugConfig $it")
             }
+        } else {
+            DebugConfig(
+                fullSampleRate = false,
+                newSessionOnLaunch = false,
+                null
+            ).also {
+                Log.d("BlueTriangle", "Not in Debug Mode, DebugConfig $it")
+            }
+        }
 
         private fun getShellProperty(propertyName: String): String? {
             return try {
