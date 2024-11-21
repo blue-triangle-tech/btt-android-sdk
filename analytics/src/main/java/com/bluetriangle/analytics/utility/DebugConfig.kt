@@ -15,8 +15,11 @@ class DebugConfig private constructor(
     val configUrl: String?
 ) {
     companion object {
+        private val isDebugMode: Boolean
+            get() = System.getProperty("android.debug.process") == "true"
+
         val current: DebugConfig
-            get() = if (BuildConfig.DEBUG) {
+            get() = if (isDebugMode) {
                 DebugConfig(
                     getShellProperty("debug.full.sample.rate") == "on",
                     getShellProperty("debug.new.session.on.launch") == "on",
@@ -26,7 +29,7 @@ class DebugConfig private constructor(
                 DebugConfig(
                     fullSampleRate = false,
                     newSessionOnLaunch = false,
-                    ""
+                    null
                 )
             }
 
