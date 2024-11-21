@@ -25,16 +25,17 @@ import kotlinx.coroutines.launch
 
 internal class SessionManager(
     context: Context,
+    siteId: String,
     private val expirationDurationInMillis: Long,
     private val configurationRepository: IBTTConfigurationRepository,
     private val updater: IBTTConfigurationUpdater
-): AppEventConsumer {
+) : AppEventConsumer {
 
     private var currentSession: SessionData? = null
         @Synchronized get
         @Synchronized set
 
-    private var sessionStore:SessionStore = SharedPrefsSessionStore(context)
+    private var sessionStore: SessionStore = SharedPrefsSessionStore(context, siteId)
     private var debugConfig = DebugConfig.getCurrent(context)
     private var scope: CoroutineScope? = null
 
@@ -47,39 +48,40 @@ internal class SessionManager(
     init {
         initScope()
         scope?.launch {
-            if(!sessionData.isConfigApplied) {
+            if (!sessionData.isConfigApplied) {
                 updater.forceUpdate()
             }
         }
     }
 
-    private fun isSessionExpired():Boolean {
+    private fun isSessionExpired(): Boolean {
         val sessionData = sessionStore.retrieveSessionData()
         return sessionData == null || System.currentTimeMillis() > sessionData.expiration
     }
 
-    private fun invalidateSessionData():Boolean {
-        if(debugConfig.newSessionOnLaunch) {
-            if(currentSession == null) {
+    private fun invalidateSessionData(): Boolean {
+        if (debugConfig.newSessionOnLaunch) {
+            if (currentSession == null) {
                 currentSession = generateNewSession()
             }
             return false
         }
-        if(isSessionExpired()) {
+        if (isSessionExpired()) {
             currentSession = generateNewSession().apply {
                 sessionStore.storeSessionData(this)
             }
             Tracker.instance?.configuration?.logger?.debug("Session Expired! Updating session to ${currentSession?.sessionId}")
             return true
         }
-        if(currentSession == null) {
+        if (currentSession == null) {
             currentSession = sessionStore.retrieveSessionData()
         }
         return false
     }
 
     private fun generateNewSession(): SessionData {
-        val config = configurationRepository.get()?: BTTSavedRemoteConfiguration(Constants.DEFAULT_NETWORK_SAMPLE_RATE, 0)
+        val config = configurationRepository.get()
+            ?: BTTSavedRemoteConfiguration(Constants.DEFAULT_NETWORK_SAMPLE_RATE, 0)
 
         return SessionData(
             Utils.generateRandomId(),
@@ -92,10 +94,11 @@ internal class SessionManager(
 
     private fun getNewExpiration() = System.currentTimeMillis() + expirationDurationInMillis
 
-    @Synchronized fun onLaunch() {
+    @Synchronized
+    fun onLaunch() {
         Tracker.instance?.updateSession(sessionData)
         scope?.launch {
-            if(!sessionData.isConfigApplied) {
+            if (!sessionData.isConfigApplied) {
                 updater.forceUpdate()
             } else {
                 updater.update()
@@ -103,7 +106,8 @@ internal class SessionManager(
         }
     }
 
-    @Synchronized fun onOffScreen() {
+    @Synchronized
+    fun onOffScreen() {
         currentSession?.let {
             sessionStore.storeSessionData(
                 SessionData(
@@ -139,7 +143,7 @@ internal class SessionManager(
             configurationRepository.getLiveUpdates().collectLatest { savedConfig ->
                 savedConfig?.let { config ->
                     currentSession?.let { session ->
-                        if(!session.isConfigApplied) {
+                        if (!session.isConfigApplied) {
                             Tracker.instance?.configuration?.logger?.debug("Applied new configuration $savedConfig to session $session")
                             val sessionData = SessionData(
                                 session.sessionId,

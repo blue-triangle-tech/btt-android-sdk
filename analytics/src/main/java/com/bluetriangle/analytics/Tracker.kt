@@ -104,6 +104,7 @@ class Tracker private constructor(
 
         this.configurationRepository = BTTConfigurationRepository(
             application.applicationContext,
+            configuration.siteId?:"",
             BTTSavedRemoteConfiguration(configuration.networkSampleRate, 0L)
         )
         this.configuration = configuration
@@ -117,6 +118,7 @@ class Tracker private constructor(
         )
         this.sessionManager = SessionManager(
             application.applicationContext,
+            this.configuration.siteId?:"",
             this.configuration.sessionExpiryDuration,
             this.configurationRepository,
             configUpdater

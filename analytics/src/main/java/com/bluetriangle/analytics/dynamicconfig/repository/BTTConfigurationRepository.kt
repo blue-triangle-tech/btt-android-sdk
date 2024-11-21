@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import org.json.JSONObject
 
 internal class BTTConfigurationRepository(context: Context,
+                                          siteId: String,
                                           private val defaultConfig: BTTSavedRemoteConfiguration):
     IBTTConfigurationRepository {
 
@@ -36,12 +37,14 @@ internal class BTTConfigurationRepository(context: Context,
         )
 
         sharedPreferences.edit()
-            .putString(REMOTE_CONFIG, savedConfig.toJSONObject().toString())
+            .putString(configKey, savedConfig.toJSONObject().toString())
             .apply()
     }
 
+    private val configKey: String = "${REMOTE_CONFIG}_$siteId"
+
     override fun get(): BTTSavedRemoteConfiguration {
-        val savedConfigJson = sharedPreferences.getString(REMOTE_CONFIG, null)?:return defaultConfig
+        val savedConfigJson = sharedPreferences.getString(configKey, null)?:return defaultConfig
 
         return try {
             BTTSavedRemoteConfiguration.fromJson(JSONObject(savedConfigJson))
@@ -54,7 +57,7 @@ internal class BTTConfigurationRepository(context: Context,
     override fun getLiveUpdates(): Flow<BTTSavedRemoteConfiguration> = callbackFlow {
         trySendBlocking(get())
 
-        val prefsChangeListener = OnSharedPreferenceChangeListener { prefs, s ->
+        val prefsChangeListener = OnSharedPreferenceChangeListener { _, s ->
             if(s == REMOTE_CONFIG) {
                 trySendBlocking(get())
             }
