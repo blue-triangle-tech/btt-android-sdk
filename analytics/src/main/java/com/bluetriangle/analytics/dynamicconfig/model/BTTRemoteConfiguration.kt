@@ -15,4 +15,8 @@ internal open class BTTRemoteConfiguration(
             remoteConfigJson.getInt("networkSampleRateSDK")/100.0
         )
     }
+
+    override fun toString(): String {
+        return "RemoteConfig { networkSampleRate: $networkSampleRate }"
+    }
 }

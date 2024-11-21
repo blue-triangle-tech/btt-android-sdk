@@ -5,6 +5,7 @@
  */
 package com.bluetriangle.analytics.utility
 
+import android.util.Log
 import com.bluetriangle.analytics.BuildConfig
 import com.bluetriangle.analytics.Tracker
 import java.io.BufferedReader
@@ -26,7 +27,7 @@ class DebugConfig private constructor(
                     getShellProperty("debug.new.session.on.launch") == "on",
                     getShellProperty("debug.config.url")
                 ).also {
-                    Tracker.instance?.configuration?.logger?.debug("In Debug Mode, DebugConfig $it")
+                    Log.d("BlueTriangle","In Debug Mode, DebugConfig $it")
                 }
             } else {
                 DebugConfig(
@@ -34,7 +35,7 @@ class DebugConfig private constructor(
                     newSessionOnLaunch = false,
                     null
                 ).also {
-                    Tracker.instance?.configuration?.logger?.debug("Not in Debug Mode, DebugConfig $it")
+                    Log.d("BlueTriangle","Not in Debug Mode, DebugConfig $it")
                 }
             }
 
