@@ -1,5 +1,6 @@
 package com.bluetriangle.analytics.dynamicconfig.model
 
+import com.bluetriangle.analytics.utility.getBooleanOrNull
 import org.json.JSONObject
 
 internal object BTTRemoteConfigurationMapper {
@@ -13,11 +14,7 @@ internal object BTTRemoteConfigurationMapper {
         }
         val networkSampleRate = remoteConfigJson.getInt(NETWORK_SAMPLE_RATE) / 100.0
 
-        val enableRemoteConfig = if(!remoteConfigJson.has(ENABLE_REMOTE_CONFIG)) {
-            remoteConfigJson.getBoolean(ENABLE_REMOTE_CONFIG)
-        } else {
-            false
-        }
+        val enableRemoteConfig = remoteConfigJson.getBooleanOrNull(ENABLE_REMOTE_CONFIG)?:false
 
         return BTTRemoteConfiguration(
             networkSampleRate,
