@@ -3,6 +3,7 @@ package com.bluetriangle.analytics.dynamicconfig.updater
 import com.bluetriangle.analytics.dynamicconfig.fetcher.IBTTConfigurationFetcher
 import com.bluetriangle.analytics.dynamicconfig.model.BTTRemoteConfiguration
 import com.bluetriangle.analytics.dynamicconfig.model.BTTSavedRemoteConfiguration
+import com.bluetriangle.analytics.dynamicconfig.reporter.BTTConfigUpdateReporter
 import com.bluetriangle.analytics.dynamicconfig.repository.IBTTConfigurationRepository
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -30,7 +31,12 @@ class BTTConfigurationUpdaterTest {
     fun setUp() {
         MockitoAnnotations.openMocks(this)
 
-        updater = BTTConfigurationUpdater(repository, fetcher, 200)
+        updater = BTTConfigurationUpdater(
+            repository, fetcher, 200, BTTConfigUpdateReporter(
+                this.configuration,
+                this.deviceInfoProvider
+            )
+        )
     }
 
     @Test

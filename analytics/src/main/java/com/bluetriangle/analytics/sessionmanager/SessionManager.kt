@@ -11,6 +11,7 @@ import android.content.Context
 import com.bluetriangle.analytics.Constants
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.Utils
+import com.bluetriangle.analytics.dynamicconfig.model.BTTRemoteConfiguration
 import com.bluetriangle.analytics.dynamicconfig.model.BTTSavedRemoteConfiguration
 import com.bluetriangle.analytics.dynamicconfig.repository.IBTTConfigurationRepository
 import com.bluetriangle.analytics.dynamicconfig.updater.IBTTConfigurationUpdater
@@ -28,7 +29,8 @@ internal class SessionManager(
     siteId: String,
     private val expirationDurationInMillis: Long,
     private val configurationRepository: IBTTConfigurationRepository,
-    private val updater: IBTTConfigurationUpdater
+    private val updater: IBTTConfigurationUpdater,
+    private val defaultConfig: BTTRemoteConfiguration
 ) : AppEventConsumer {
 
     private var currentSession: SessionData? = null
@@ -81,13 +83,12 @@ internal class SessionManager(
 
     private fun generateNewSession(): SessionData {
         val config = configurationRepository.get()
-            ?: BTTSavedRemoteConfiguration(Constants.DEFAULT_NETWORK_SAMPLE_RATE, 0)
 
         return SessionData(
             Utils.generateRandomId(),
-            debugConfig.fullSampleRate || Utils.shouldSample(config.networkSampleRate),
+            debugConfig.fullSampleRate || Utils.shouldSample(config.networkSampleRate?:defaultConfig.networkSampleRate!!),
             false,
-            config.networkSampleRate,
+            config.networkSampleRate?:defaultConfig.networkSampleRate!!,
             getNewExpiration()
         )
     }
@@ -147,9 +148,9 @@ internal class SessionManager(
                             Tracker.instance?.configuration?.logger?.debug("Applied new configuration $savedConfig to session $session")
                             val sessionData = SessionData(
                                 session.sessionId,
-                                Utils.shouldSample(config.networkSampleRate),
+                                Utils.shouldSample(config.networkSampleRate?:defaultConfig.networkSampleRate!!),
                                 true,
-                                config.networkSampleRate,
+                                config.networkSampleRate?:defaultConfig.networkSampleRate!!,
                                 session.expiration
                             )
                             Tracker.instance?.updateSession(sessionData)

@@ -11,6 +11,7 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.dynamicconfig.model.BTTRemoteConfiguration
 import com.bluetriangle.analytics.dynamicconfig.model.BTTSavedRemoteConfiguration
+import com.bluetriangle.analytics.dynamicconfig.model.BTTSavedRemoteConfigurationMapper
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
@@ -33,11 +34,12 @@ internal class BTTConfigurationRepository(context: Context,
     override fun save(config: BTTRemoteConfiguration) {
         val savedConfig = BTTSavedRemoteConfiguration(
             config.networkSampleRate,
+            config.enableRemoteConfigAck,
             System.currentTimeMillis()
         )
 
         sharedPreferences.edit()
-            .putString(configKey, savedConfig.toJSONObject().toString())
+            .putString(configKey, BTTSavedRemoteConfigurationMapper.toJSONObject(savedConfig).toString())
             .apply()
     }
 
@@ -47,7 +49,7 @@ internal class BTTConfigurationRepository(context: Context,
         val savedConfigJson = sharedPreferences.getString(configKey, null)?:return defaultConfig
 
         return try {
-            BTTSavedRemoteConfiguration.fromJson(JSONObject(savedConfigJson))
+            BTTSavedRemoteConfigurationMapper.fromJson(JSONObject(savedConfigJson))
         } catch (e: Exception) {
             Tracker.instance?.configuration?.logger?.error("Error while parsing config JSON: ${e.message}")
             defaultConfig

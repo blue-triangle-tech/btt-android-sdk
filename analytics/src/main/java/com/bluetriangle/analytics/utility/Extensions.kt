@@ -15,6 +15,7 @@ import com.bluetriangle.analytics.model.Screen
 import com.bluetriangle.analytics.model.ScreenType
 import java.io.File
 import com.bluetriangle.analytics.networkstate.BTTNetworkState
+import org.json.JSONObject
 
 fun logD(tag: String, message: String) {
     Tracker.instance?.configuration?.logger?.debug("$tag: $message")

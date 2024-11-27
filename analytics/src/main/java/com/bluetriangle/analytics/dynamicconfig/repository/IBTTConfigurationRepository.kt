@@ -11,6 +11,6 @@ import kotlinx.coroutines.flow.Flow
 
 internal interface IBTTConfigurationRepository {
     fun save(config: BTTRemoteConfiguration)
-    fun get(): BTTSavedRemoteConfiguration?
+    fun get(): BTTSavedRemoteConfiguration
     fun getLiveUpdates(): Flow<BTTSavedRemoteConfiguration?>
 }

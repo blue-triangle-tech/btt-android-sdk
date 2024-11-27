@@ -18,6 +18,7 @@ import com.bluetriangle.analytics.deviceinfo.DeviceInfoProvider
 import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 import com.bluetriangle.analytics.dynamicconfig.fetcher.BTTConfigurationFetcher
 import com.bluetriangle.analytics.dynamicconfig.model.BTTSavedRemoteConfiguration
+import com.bluetriangle.analytics.dynamicconfig.reporter.BTTConfigUpdateReporter
 import com.bluetriangle.analytics.dynamicconfig.repository.BTTConfigurationRepository
 import com.bluetriangle.analytics.dynamicconfig.repository.IBTTConfigurationRepository
 import com.bluetriangle.analytics.dynamicconfig.updater.BTTConfigurationUpdater
@@ -102,10 +103,11 @@ class Tracker private constructor(
         this.context = WeakReference(application.applicationContext)
         this.deviceInfoProvider = DeviceInfoProvider()
 
+        val defaultConfig = BTTSavedRemoteConfiguration(configuration.networkSampleRate, false, 0L)
         this.configurationRepository = BTTConfigurationRepository(
             application.applicationContext,
             configuration.siteId?:"",
-            BTTSavedRemoteConfiguration(configuration.networkSampleRate, 0L)
+            defaultConfig = defaultConfig
         )
         this.configuration = configuration
 
@@ -114,14 +116,19 @@ class Tracker private constructor(
         val configUpdater = BTTConfigurationUpdater(
             repository = this.configurationRepository,
             fetcher = BTTConfigurationFetcher(configUrl),
-            10 * 1000
+            10 * 1000,
+            reporter = BTTConfigUpdateReporter(
+                this.configuration,
+                this.deviceInfoProvider
+            )
         )
         this.sessionManager = SessionManager(
             application.applicationContext,
             this.configuration.siteId?:"",
             this.configuration.sessionExpiryDuration,
             this.configurationRepository,
-            configUpdater
+            configUpdater,
+            defaultConfig
         )
         AppEventHub.instance.addConsumer(this.sessionManager)
 
@@ -660,7 +667,8 @@ class Tracker private constructor(
     enum class BTErrorType(val value: String) {
         NativeAppCrash("NativeAppCrash"),
         ANRWarning("ANRWarning"),
-        MemoryWarning("MemoryWarning")
+        MemoryWarning("MemoryWarning"),
+        BTTConfigUpdateError("BTTConfigUpdateError")
     }
 
     fun raiseTestException() {

@@ -5,26 +5,26 @@
  */
 package com.bluetriangle.analytics.dynamicconfig.model
 
-import org.json.JSONObject
+internal class BTTSavedRemoteConfiguration(
+    networkSampleRate: Double?,
+    enableRemoteConfigAck: Boolean,
+    val savedDate: Long
+) : BTTRemoteConfiguration(networkSampleRate, enableRemoteConfigAck) {
 
-internal class BTTSavedRemoteConfiguration(networkSampleRate: Double, val savedDate: Long) :
-    BTTRemoteConfiguration(networkSampleRate) {
-
-    companion object {
-        fun fromJson(jsonObject: JSONObject): BTTSavedRemoteConfiguration {
-            return BTTSavedRemoteConfiguration(
-                jsonObject.getDouble(NETWORK_SAMPLE_RATE),
-                jsonObject.getLong(SAVED_DATE)
-            )
+    override fun equals(other: Any?): Boolean {
+        if(other is BTTSavedRemoteConfiguration) {
+            return super.equals(other) && this.savedDate == other.savedDate
         }
-
-        private const val NETWORK_SAMPLE_RATE = "networkSampleRate"
-        private const val SAVED_DATE = "savedDate"
+        if(other is BTTRemoteConfiguration) {
+            return super.equals(other)
+        }
+        return false
     }
 
-    fun toJSONObject() = JSONObject().apply {
-        put(NETWORK_SAMPLE_RATE, networkSampleRate)
-        put(SAVED_DATE, savedDate)
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + savedDate.hashCode()
+        return result
     }
 
 }
