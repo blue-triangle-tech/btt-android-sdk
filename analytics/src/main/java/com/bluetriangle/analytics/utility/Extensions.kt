@@ -99,7 +99,8 @@ val Context.isDebugBuild: Boolean
             val debugField = buildConfigClass.getField("DEBUG")
             debugField.getBoolean(null)
         } catch (e: Exception) {
-            e.printStackTrace()
-            false
+            throw e
+//            e.printStackTrace()
+//            false
         }
     }

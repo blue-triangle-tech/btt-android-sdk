@@ -44,9 +44,8 @@ class DebugConfig private constructor(
                     reader.readLine().ifBlank { null }
                 }
             } catch (e: Exception) {
-                throw e
-//                e.printStackTrace()
-//                null
+                e.printStackTrace()
+                null
             }
         }
     }
