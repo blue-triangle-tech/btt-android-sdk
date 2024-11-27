@@ -2,6 +2,7 @@ package com.bluetriangle.analytics.utility
 
 import android.app.Activity
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import android.net.NetworkCapabilities
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -93,14 +94,10 @@ fun getNumberOfCPUCores() = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLL
 val Context.isDebugBuild: Boolean
     get() {
         return try {
-            val appPackageName = applicationContext.packageName
-            // Get the BuildConfig class of the app
-            val buildConfigClass = Class.forName("$appPackageName.BuildConfig")
-            val debugField = buildConfigClass.getField("DEBUG")
-            debugField.getBoolean(null)
+            val appInfo = applicationInfo
+            (appInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
         } catch (e: Exception) {
-            throw e
-//            e.printStackTrace()
-//            false
+            e.printStackTrace()
+            false
         }
     }
