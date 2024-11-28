@@ -22,7 +22,10 @@ internal class BTTConfigUpdateReporter(
 
     override fun reportSuccess() {
         val timer = Timer()
+        timer.start()
         timer.setPageName(CONFIG_UPDATE_PAGE_NAME)
+        timer.setTrafficSegmentName(CONFIG_UPDATE_PAGE_NAME)
+        timer.setContentGroupName(CONFIG_UPDATE_PAGE_NAME)
         timer.startWithoutPerformanceMonitor()
         timer.submit()
     }
@@ -31,6 +34,8 @@ internal class BTTConfigUpdateReporter(
         val crashHitsTimer: Timer = Timer().startWithoutPerformanceMonitor()
 
         crashHitsTimer.setPageName(CONFIG_UPDATE_PAGE_NAME)
+        crashHitsTimer.setTrafficSegmentName(CONFIG_UPDATE_PAGE_NAME)
+        crashHitsTimer.setContentGroupName(CONFIG_UPDATE_PAGE_NAME)
         crashHitsTimer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
         crashHitsTimer.setError(true)
 
