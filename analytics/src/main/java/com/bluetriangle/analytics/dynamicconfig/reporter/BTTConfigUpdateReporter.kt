@@ -22,7 +22,6 @@ internal class BTTConfigUpdateReporter(
 
     override fun reportSuccess() {
         val timer = Timer()
-        timer.start()
         timer.setPageName(CONFIG_UPDATE_PAGE_NAME)
         timer.setTrafficSegmentName(CONFIG_UPDATE_PAGE_NAME)
         timer.setContentGroupName(CONFIG_UPDATE_PAGE_NAME)

@@ -18,7 +18,7 @@ internal class SharedPrefsSessionStore(val context: Context, val siteId: String)
     }
 
     private val storePrefs = context.getSharedPreferences(SESSION_STORE, Context.MODE_PRIVATE)
-    private val sessionDataKey:String = "${SESSION_DATA}_$this"
+    private val sessionDataKey:String = "${SESSION_DATA}_${siteId}"
 
     override fun storeSessionData(sessionData: SessionData) {
         storePrefs.edit()
