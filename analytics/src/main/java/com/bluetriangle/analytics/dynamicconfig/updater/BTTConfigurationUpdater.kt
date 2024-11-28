@@ -23,7 +23,7 @@ internal class BTTConfigurationUpdater(
     override suspend fun update() {
         val savedRemoteConfig = repository.get()
         val currentTime = System.currentTimeMillis()
-        if (savedRemoteConfig == null || currentTime - savedRemoteConfig.savedDate > configRefreshDuration) {
+        if (currentTime - savedRemoteConfig.savedDate > configRefreshDuration) {
             forceUpdate()
         }
     }
@@ -40,14 +40,19 @@ internal class BTTConfigurationUpdater(
                         System.currentTimeMillis()
                     )
                 )
-                if(result.config.enableRemoteConfigAck && result.config != savedRemoteConfig) {
-                    reporter.reportSuccess()
+                if(result.config.enableRemoteConfigAck) {
+                    if(result.config != savedRemoteConfig) {
+                        reporter.reportSuccess()
+                    }
                 }
             }
 
             is BTTConfigFetchResult.Failure -> {
+                val savedRemoteConfig = repository.get()
                 Tracker.instance?.configuration?.logger?.error("Error while fetching remote config, Reason: ${result.error.reason}")
-                reporter.reportError(result.error)
+                if(savedRemoteConfig.enableRemoteConfigAck) {
+                    reporter.reportError(result.error)
+                }
             }
         }
     }

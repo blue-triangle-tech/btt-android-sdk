@@ -12,7 +12,7 @@ import com.bluetriangle.analytics.Tracker
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
-class DebugConfig private constructor(
+internal class DebugConfig private constructor(
     val fullSampleRate: Boolean,
     val newSessionOnLaunch: Boolean,
     val configUrl: String?

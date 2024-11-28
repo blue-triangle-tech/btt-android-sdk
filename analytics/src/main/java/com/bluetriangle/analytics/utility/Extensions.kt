@@ -91,7 +91,7 @@ fun getNumberOfCPUCores() = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLL
     null
 }
 
-val Context.isDebugBuild: Boolean
+internal val Context.isDebugBuild: Boolean
     get() {
         return try {
             val appInfo = applicationInfo
