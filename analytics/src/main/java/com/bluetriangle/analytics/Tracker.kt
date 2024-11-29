@@ -116,7 +116,7 @@ class Tracker private constructor(
         val configUpdater = BTTConfigurationUpdater(
             repository = this.configurationRepository,
             fetcher = BTTConfigurationFetcher(configUrl),
-            10 * 1000,
+            10 * 60 * 1000,
             reporter = BTTConfigUpdateReporter(
                 this.configuration,
                 this.deviceInfoProvider
