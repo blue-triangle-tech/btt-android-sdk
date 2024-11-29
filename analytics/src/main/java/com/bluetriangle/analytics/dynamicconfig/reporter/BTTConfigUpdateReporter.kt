@@ -42,7 +42,7 @@ internal class BTTConfigUpdateReporter(
             val thread = Thread(
                 CrashRunnable(
                     configuration,
-                    error.reason,
+                    "Configuration update failed, reason: ${error.reason}",
                     System.currentTimeMillis().toString(),
                     crashHitsTimer,
                     Tracker.BTErrorType.BTTConfigUpdateError,

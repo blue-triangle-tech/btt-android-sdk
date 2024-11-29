@@ -30,15 +30,16 @@ internal class BTTConfigurationFetcher(private val remoteConfigUrl: String) :
     @Throws
     override suspend fun fetch(): BTTConfigFetchResult {
         Tracker.instance?.configuration?.logger?.debug("Fetching remote config from $remoteConfigUrl")
+        var remoteConfigJSONString = ""
         try {
-            val remoteConfigJSONString = URL(remoteConfigUrl).fetchJSON()
+            remoteConfigJSONString = URL(remoteConfigUrl).fetchJSON()
 
             val remoteConfigJSON = JSONObject(remoteConfigJSONString)
             val remoteConfig = BTTRemoteConfigurationMapper.fromJson(remoteConfigJSON)
 
             return BTTConfigFetchResult.Success(remoteConfig)
         } catch (e: JSONException) {
-            return BTTConfigFetchResult.Failure(BTTConfigFetchError.InvalidJSON(e.message ?: ""))
+            return BTTConfigFetchResult.Failure(BTTConfigFetchError.InvalidJSON("${e.message}, JSON: ${remoteConfigJSONString.substring(0, remoteConfigJSONString.length.coerceAtMost(300))}"))
         } catch (e: InvalidResponseCode) {
             return BTTConfigFetchResult.Failure(BTTConfigFetchError.ErrorResponse(e.responseCode))
         } catch (e: IOException) {
