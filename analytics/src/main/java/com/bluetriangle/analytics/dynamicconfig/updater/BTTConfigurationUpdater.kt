@@ -28,7 +28,11 @@ internal class BTTConfigurationUpdater(
         }
     }
 
+    private var isFetching = false
+
     override suspend fun forceUpdate() {
+        if(isFetching) return
+        isFetching = true
         when (val result = fetcher.fetch()) {
             is BTTConfigFetchResult.Success -> {
                 Tracker.instance?.configuration?.logger?.debug("Fetched remote config: ${result.config}")
@@ -55,6 +59,7 @@ internal class BTTConfigurationUpdater(
                 }
             }
         }
+        isFetching = false
     }
 
 }
