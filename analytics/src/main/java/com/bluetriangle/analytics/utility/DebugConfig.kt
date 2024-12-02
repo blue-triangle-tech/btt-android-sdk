@@ -14,27 +14,20 @@ import java.io.InputStreamReader
 
 internal class DebugConfig private constructor(
     val fullSampleRate: Boolean,
-    val newSessionOnLaunch: Boolean,
-    val configUrl: String?
+    val newSessionOnLaunch: Boolean
 ) {
     companion object {
 
         fun getCurrent(context: Context): DebugConfig = if (context.isDebugBuild) {
             DebugConfig(
                 getShellProperty("debug.full.sample.rate") == "on",
-                getShellProperty("debug.new.session.on.launch") == "on",
-                getShellProperty("debug.config.url")
-            ).also {
-                Log.d("BlueTriangle", "In Debug Mode, DebugConfig $it")
-            }
+                getShellProperty("debug.new.session.on.launch") == "on"
+            )
         } else {
             DebugConfig(
                 fullSampleRate = false,
-                newSessionOnLaunch = false,
-                null
-            ).also {
-                Log.d("BlueTriangle", "Not in Debug Mode, DebugConfig $it")
-            }
+                newSessionOnLaunch = false
+            )
         }
 
         private fun getShellProperty(propertyName: String): String? {

@@ -111,12 +111,11 @@ class Tracker private constructor(
         )
         this.configuration = configuration
 
-        val configUrlHost = (DebugConfig.getCurrent(application).configUrl?:"").ifBlank { "d.btttag.com" }
-        val configUrl = "https://${configUrlHost}/config.php?siteID=${configuration.siteId}"
+        val configUrl = "https://d.btttag.com/config.php?siteID=${configuration.siteId}"
         val configUpdater = BTTConfigurationUpdater(
             repository = this.configurationRepository,
             fetcher = BTTConfigurationFetcher(configUrl),
-            10 * 60 * 1000,
+            60 * 60 * 1000,
             reporter = BTTConfigUpdateReporter(
                 this.configuration,
                 this.deviceInfoProvider
