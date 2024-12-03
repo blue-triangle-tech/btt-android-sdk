@@ -110,15 +110,17 @@ internal class SessionManager(
     @Synchronized
     fun onOffScreen() {
         currentSession?.let {
-            sessionStore.storeSessionData(
-                SessionData(
-                    it.sessionId,
-                    it.shouldSampleNetwork,
-                    it.isConfigApplied,
-                    it.networkSampleRate,
-                    getNewExpiration()
-                )
+            val newExpirySession = SessionData(
+                it.sessionId,
+                it.shouldSampleNetwork,
+                it.isConfigApplied,
+                it.networkSampleRate,
+                getNewExpiration()
             )
+            sessionStore.storeSessionData(
+                newExpirySession
+            )
+            currentSession = newExpirySession
         }
     }
 
@@ -157,6 +159,7 @@ internal class SessionManager(
                             sessionStore.storeSessionData(
                                 sessionData
                             )
+                            currentSession = sessionData
                         }
                     }
                 }
