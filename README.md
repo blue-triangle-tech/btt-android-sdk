@@ -674,3 +674,26 @@ fun testCrashTracking() {
 The Blue Triangle SDK automatically sets up timers to measure the appearance of Native Views in the Mobile app:
 
 ![image](https://github.com/blue-triangle-tech/btt-android-sdk/assets/147184142/ec34a2bc-3a26-4c89-9f8f-5d1f8440fa02)
+
+
+## Troubleshooting
+
+To facilitate testing and debugging, the SDK includes optional system properties that can be set through adb shell commands to allow developers to simulate specific scenarios during development.
+
+1. Full Sample Rate Mode
+
+This property enables the SDK to operate with a 100% network sample rate, which is useful for testing scenarios where all network requests are captured and processed.
+
+```shell
+adb shell setprop debug.full.sample.rate "on"
+```
+
+2. New Session on Each Launch
+
+This property forces a new session to start on each app launch. It is helpful for testing session-based features, ensuring each run begins with a clean session state.
+
+```shell
+adb shell setprop debug.new.session.on.launch "on"
+```
+
+These properties once set will stay on that particular device until it is rebooted.
