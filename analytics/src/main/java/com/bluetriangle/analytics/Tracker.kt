@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2024, Blue Triangle
+ * All rights reserved.
+ *
+ */
 package com.bluetriangle.analytics
 
 import android.Manifest.permission.ACCESS_NETWORK_STATE
@@ -11,6 +16,12 @@ import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
 import com.bluetriangle.analytics.deviceinfo.DeviceInfoProvider
 import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
+import com.bluetriangle.analytics.dynamicconfig.fetcher.BTTConfigurationFetcher
+import com.bluetriangle.analytics.dynamicconfig.model.BTTSavedRemoteConfiguration
+import com.bluetriangle.analytics.dynamicconfig.reporter.BTTConfigUpdateReporter
+import com.bluetriangle.analytics.dynamicconfig.repository.BTTConfigurationRepository
+import com.bluetriangle.analytics.dynamicconfig.repository.IBTTConfigurationRepository
+import com.bluetriangle.analytics.dynamicconfig.updater.BTTConfigurationUpdater
 import com.bluetriangle.analytics.hybrid.BTTWebViewTracker
 import com.bluetriangle.analytics.launchtime.LaunchMonitor
 import com.bluetriangle.analytics.launchtime.LaunchReporter
@@ -21,7 +32,9 @@ import com.bluetriangle.analytics.networkstate.NetworkTimelineTracker
 import com.bluetriangle.analytics.screenTracking.ActivityLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.BTTScreenLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.FragmentLifecycleTracker
+import com.bluetriangle.analytics.sessionmanager.SessionData
 import com.bluetriangle.analytics.sessionmanager.SessionManager
+import com.bluetriangle.analytics.utility.DebugConfig
 import org.json.JSONObject
 import java.io.File
 import java.lang.ref.WeakReference
@@ -83,16 +96,41 @@ class Tracker private constructor(
     internal var networkTimelineTracker: NetworkTimelineTracker? = null
     internal var networkStateMonitor: NetworkStateMonitor? = null
     private var sessionManager: SessionManager
+    private val configurationRepository: IBTTConfigurationRepository
     private var deviceInfoProvider: IDeviceInfoProvider
 
     init {
         this.context = WeakReference(application.applicationContext)
-        this.sessionManager = SessionManager(application.applicationContext, configuration.sessionExpiryDuration)
         this.deviceInfoProvider = DeviceInfoProvider()
 
+        val defaultConfig = BTTSavedRemoteConfiguration(configuration.networkSampleRate, false, 0L)
+        this.configurationRepository = BTTConfigurationRepository(
+            application.applicationContext,
+            configuration.siteId?:"",
+            defaultConfig = defaultConfig
+        )
+        this.configuration = configuration
+
+        val configUrl = "https://d.btttag.com/config.php?siteID=${configuration.siteId}"
+        val configUpdater = BTTConfigurationUpdater(
+            repository = this.configurationRepository,
+            fetcher = BTTConfigurationFetcher(configUrl),
+            60 * 60 * 1000,
+            reporter = BTTConfigUpdateReporter(
+                this.configuration,
+                this.deviceInfoProvider
+            )
+        )
+        this.sessionManager = SessionManager(
+            application.applicationContext,
+            this.configuration.siteId?:"",
+            this.configuration.sessionExpiryDuration,
+            this.configurationRepository,
+            configUpdater,
+            defaultConfig
+        )
         AppEventHub.instance.addConsumer(this.sessionManager)
 
-        this.configuration = configuration
         globalFields = HashMap(8)
         customVariables = mutableMapOf()
         configuration.siteId?.let { globalFields[Timer.FIELD_SITE_ID] = it }
@@ -108,9 +146,10 @@ class Tracker private constructor(
         setGlobalUserId(globalUserId)
         configuration.globalUserId = globalUserId
 
-        val sessionId = sessionManager.sessionId
-        setSessionId(sessionId)
-        configuration.sessionId = sessionId
+        val sessionData = sessionManager.sessionData
+        setSessionId(sessionData.sessionId)
+        this.configuration.sessionId = sessionData.sessionId
+        this.configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
 
         trackerExecutor = TrackerExecutor(configuration)
         screenTrackMonitor = BTTScreenLifecycleTracker(configuration.isScreenTrackingEnabled)
@@ -141,17 +180,17 @@ class Tracker private constructor(
 
     private fun logLaunchMonitorErrors() {
         val logs = LaunchMonitor.instance.logs
-        for(log in logs) {
+        for (log in logs) {
             configuration.logger?.log(log.level, log.message)
         }
     }
 
     private fun initializeNetworkMonitoring() {
-        if(!configuration.isTrackNetworkStateEnabled) return
+        if (!configuration.isTrackNetworkStateEnabled) return
 
         val appContext = context.get()
 
-        if(appContext == null) {
+        if (appContext == null) {
             configuration.logger?.error("Unable to start network monitoring: Context is null")
             return
         }
@@ -161,12 +200,12 @@ class Tracker private constructor(
             ACCESS_NETWORK_STATE
         ) == PackageManager.PERMISSION_GRANTED
 
-        if(!hasNetworkStatePermission) {
+        if (!hasNetworkStatePermission) {
             configuration.logger?.error("Unable to start network monitoring: Missing permission (ACCESS_NETWORK_STATE)")
             return
         }
 
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             configuration.logger?.error("Unable to start network monitoring: Unsupported Android version.")
             return
         }
@@ -246,18 +285,8 @@ class Tracker private constructor(
                 }
             }
         }
-        timer.setField(FIELD_SESSION_ID, sessionManager.sessionId)
-        if (customVariables.isNotEmpty()) {
-            kotlin.runCatching {
-                val extendedCustomVariables = JSONObject(customVariables as Map<*, *>?).toString()
-                if (extendedCustomVariables.length > Constants.EXTENDED_CUSTOM_VARIABLE_MAX_PAYLOAD) {
-                    configuration.logger?.warn("Dropping extended custom variables for $timer. Payload ${extendedCustomVariables.length} exceeds max size of ${Constants.EXTENDED_CUSTOM_VARIABLE_MAX_PAYLOAD}")
-                } else {
-                    timer.setField(Timer.FIELD_EXTENDED_CUSTOM_VARIABLES, extendedCustomVariables)
-                }
-            }
-        }
         timer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
+        timer.setField(FIELD_SESSION_ID, sessionManager.sessionData.sessionId)
         trackerExecutor.submit(TimerRunnable(configuration, timer))
     }
 
@@ -268,7 +297,7 @@ class Tracker private constructor(
      */
     @Synchronized
     fun submitCapturedRequest(capturedRequest: CapturedRequest?) {
-        if(capturedRequest == null) return
+        if (capturedRequest == null) return
         if (configuration.shouldSampleNetwork) {
             getMostRecentTimer()?.let { timer ->
                 configuration.logger?.debug("Network Request Captured: $capturedRequest for $timer")
@@ -482,13 +511,17 @@ class Tracker private constructor(
     }
 
     @Synchronized
-    internal fun updateSession(sessionId: String) {
-        if(configuration.sessionId == sessionId) return
+    internal fun updateSession(sessionData: SessionData) {
+        if (configuration.sessionId == sessionData.sessionId &&
+            configuration.shouldSampleNetwork == sessionData.shouldSampleNetwork &&
+            configuration.networkSampleRate == sessionData.networkSampleRate) return
 
-        configuration.logger?.debug("Updating session ID from ${configuration.sessionId} to $sessionId")
-        configuration.sessionId = sessionId
-        setSessionId(sessionId)
-        BTTWebViewTracker.updateSession(sessionId)
+        configuration.logger?.debug("Updating session Data from ${configuration.sessionId}:${configuration.networkSampleRate}:${configuration.shouldSampleNetwork} to ${sessionData.sessionId}:${sessionData.networkSampleRate}:${sessionData.shouldSampleNetwork}")
+        configuration.sessionId = sessionData.sessionId
+        configuration.networkSampleRate = sessionData.networkSampleRate
+        configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
+        setSessionId(sessionData.sessionId)
+        BTTWebViewTracker.updateSession(sessionData.sessionId)
     }
 
     /**
@@ -577,12 +610,17 @@ class Tracker private constructor(
 
     fun trackCrashes() {
         if (Thread.getDefaultUncaughtExceptionHandler() !is BtCrashHandler) {
-            Thread.setDefaultUncaughtExceptionHandler(BtCrashHandler(configuration, deviceInfoProvider))
+            Thread.setDefaultUncaughtExceptionHandler(
+                BtCrashHandler(
+                    configuration,
+                    deviceInfoProvider
+                )
+            )
         }
     }
 
     fun trackError(message: String) {
-        trackException(message, object:Throwable() {
+        trackException(message, object : Throwable() {
             override fun fillInStackTrace(): Throwable {
                 stackTrace = arrayOf()
                 return this
@@ -628,7 +666,8 @@ class Tracker private constructor(
     enum class BTErrorType(val value: String) {
         NativeAppCrash("NativeAppCrash"),
         ANRWarning("ANRWarning"),
-        MemoryWarning("MemoryWarning")
+        MemoryWarning("MemoryWarning"),
+        BTTConfigUpdateError("BTTConfigUpdateError")
     }
 
     fun raiseTestException() {
@@ -756,4 +795,5 @@ class Tracker private constructor(
             return instance
         }
     }
+
 }
