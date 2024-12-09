@@ -37,10 +37,9 @@ class BlueTriangleConfiguration {
      * Percentage of sessions for which network calls will be captured. A value of `0.05` means that 5% of session's network requests will be tracked.
      * A value of `0.0` means that no network requests will be captured for the session, a value of `1.0` will track all network requests for a session.
      */
-    var networkSampleRate = 0.05
+    var networkSampleRate = Constants.DEFAULT_NETWORK_SAMPLE_RATE
         set(networkSampleRate) {
             field = Math.min(Math.max(networkSampleRate, 0.0), 1.0)
-            shouldSampleNetwork = Utils.shouldSample(this.networkSampleRate)
         }
 
     /**

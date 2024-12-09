@@ -1,6 +1,8 @@
 package com.bluetriangle.analytics.utility
 
 import android.app.Activity
+import android.content.Context
+import android.content.pm.ApplicationInfo
 import android.net.NetworkCapabilities
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -14,6 +16,7 @@ import com.bluetriangle.analytics.model.Screen
 import com.bluetriangle.analytics.model.ScreenType
 import java.io.File
 import com.bluetriangle.analytics.networkstate.BTTNetworkState
+import org.json.JSONObject
 
 fun logD(tag: String, message: String) {
     Tracker.instance?.configuration?.logger?.debug("$tag: $message")
@@ -41,13 +44,13 @@ fun FragmentActivity.unregisterFragmentLifecycleCallback(callback: FragmentLifec
     supportFragmentManager.unregisterFragmentLifecycleCallbacks(callback)
 }
 
-val Long.mb:Long
-    get() = this/1024 * 1024
+val Long.mb: Long
+    get() = this / 1024 * 1024
 
-fun <V> any(vararg operations:()->V?):V? {
+fun <V> any(vararg operations: () -> V?): V? {
     operations.forEach {
         val value = it()
-        if(value != null) {
+        if (value != null) {
             return@any value
         }
     }
@@ -71,9 +74,9 @@ val cellularTransports = intArrayOf(NetworkCapabilities.TRANSPORT_CELLULAR)
 val ethernetTransports = intArrayOf(NetworkCapabilities.TRANSPORT_ETHERNET)
 
 
-internal val BTTNetworkState.value:String
+internal val BTTNetworkState.value: String
     get() {
-        return when(this) {
+        return when (this) {
             BTTNetworkState.Wifi -> "wifi"
             is BTTNetworkState.Cellular -> "cellular ${protocol.description}".trim()
             BTTNetworkState.Ethernet -> "ethernet"
@@ -87,3 +90,14 @@ fun getNumberOfCPUCores() = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLL
 } else {
     null
 }
+
+internal val Context.isDebugBuild: Boolean
+    get() {
+        return try {
+            val appInfo = applicationInfo
+            (appInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
