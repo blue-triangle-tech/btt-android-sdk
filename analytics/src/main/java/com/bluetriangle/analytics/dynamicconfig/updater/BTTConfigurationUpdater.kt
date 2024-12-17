@@ -40,6 +40,7 @@ internal class BTTConfigurationUpdater(
                 repository.save(
                     BTTSavedRemoteConfiguration(
                         result.config.networkSampleRate,
+                        result.config.ignoreScreens,
                         result.config.enableRemoteConfigAck,
                         System.currentTimeMillis()
                     )

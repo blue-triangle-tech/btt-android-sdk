@@ -34,7 +34,6 @@ import com.bluetriangle.analytics.screenTracking.BTTScreenLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.FragmentLifecycleTracker
 import com.bluetriangle.analytics.sessionmanager.SessionData
 import com.bluetriangle.analytics.sessionmanager.SessionManager
-import com.bluetriangle.analytics.utility.DebugConfig
 import org.json.JSONObject
 import java.io.File
 import java.lang.ref.WeakReference
@@ -103,7 +102,7 @@ class Tracker private constructor(
         this.context = WeakReference(application.applicationContext)
         this.deviceInfoProvider = DeviceInfoProvider()
 
-        val defaultConfig = BTTSavedRemoteConfiguration(configuration.networkSampleRate, false, 0L)
+        val defaultConfig = BTTSavedRemoteConfiguration(configuration.networkSampleRate, listOf(), false, 0L)
         this.configurationRepository = BTTConfigurationRepository(
             application.applicationContext,
             configuration.siteId?:"",
@@ -152,7 +151,10 @@ class Tracker private constructor(
         this.configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
 
         trackerExecutor = TrackerExecutor(configuration)
-        screenTrackMonitor = BTTScreenLifecycleTracker(configuration.isScreenTrackingEnabled)
+        screenTrackMonitor = BTTScreenLifecycleTracker(
+            configuration.isScreenTrackingEnabled,
+            sessionData.ignoreScreens
+        )
 
         val fragmentLifecycleTracker = FragmentLifecycleTracker(screenTrackMonitor)
         activityLifecycleTracker = ActivityLifecycleTracker(
@@ -514,12 +516,14 @@ class Tracker private constructor(
     internal fun updateSession(sessionData: SessionData) {
         if (configuration.sessionId == sessionData.sessionId &&
             configuration.shouldSampleNetwork == sessionData.shouldSampleNetwork &&
-            configuration.networkSampleRate == sessionData.networkSampleRate) return
+            configuration.networkSampleRate == sessionData.networkSampleRate &&
+            screenTrackMonitor.ignoreScreens.joinToString(",") == sessionData.ignoreScreens.joinToString(",")) return
 
         configuration.logger?.debug("Updating session Data from ${configuration.sessionId}:${configuration.networkSampleRate}:${configuration.shouldSampleNetwork} to ${sessionData.sessionId}:${sessionData.networkSampleRate}:${sessionData.shouldSampleNetwork}")
         configuration.sessionId = sessionData.sessionId
         configuration.networkSampleRate = sessionData.networkSampleRate
         configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
+        screenTrackMonitor.ignoreScreens = sessionData.ignoreScreens
         setSessionId(sessionData.sessionId)
         BTTWebViewTracker.updateSession(sessionData.sessionId)
     }

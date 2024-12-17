@@ -5,7 +5,10 @@ import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.model.Screen
 import com.bluetriangle.analytics.utility.logD
 
-internal class BTTScreenLifecycleTracker(private val screenTrackingEnabled: Boolean) : ScreenLifecycleTracker {
+internal class BTTScreenLifecycleTracker(
+    private val screenTrackingEnabled: Boolean,
+    internal var ignoreScreens: List<String>
+) : ScreenLifecycleTracker {
 
     private var loadTime = hashMapOf<String, Long>()
     private var viewTime = hashMapOf<String, Long>()
@@ -14,6 +17,8 @@ internal class BTTScreenLifecycleTracker(private val screenTrackingEnabled: Bool
 
     override fun onLoadStarted(screen: Screen) {
         if (!screenTrackingEnabled) return
+        if (shouldIgnore(screen.name)) return
+
         logD(TAG, "onLoadStarted: $screen")
         timers[screen.toString()] = Timer(screen.name, "ScreenTracker").start()
         loadTime[screen.toString()] = System.currentTimeMillis()
@@ -21,6 +26,8 @@ internal class BTTScreenLifecycleTracker(private val screenTrackingEnabled: Bool
 
     override fun onLoadEnded(screen: Screen) {
         if (!screenTrackingEnabled) return
+        if (shouldIgnore(screen.name)) return
+
         logD(TAG, "onLoadEnded: $screen")
         if (timers[screen.toString()] == null) {
             timers[screen.toString()] = Timer(screen.name, "ScreenTracker").start()
@@ -30,12 +37,16 @@ internal class BTTScreenLifecycleTracker(private val screenTrackingEnabled: Bool
 
     override fun onViewStarted(screen: Screen) {
         if (!screenTrackingEnabled) return
+        if (shouldIgnore(screen.name)) return
+
         logD(TAG, "onViewStarted: $screen")
         viewTime[screen.toString()] = System.currentTimeMillis()
     }
 
     override fun onViewEnded(screen: Screen) {
         if (!screenTrackingEnabled) return
+        if (shouldIgnore(screen.name)) return
+
         logD(TAG, "onViewEnded: $screen")
         val scr = screen.toString()
         val timer = timers[scr] ?: return
@@ -53,5 +64,7 @@ internal class BTTScreenLifecycleTracker(private val screenTrackingEnabled: Bool
         timer.end().submit()
         timers.remove(scr)
     }
+
+    private fun shouldIgnore(name: String) = ignoreScreens.contains(name)
 
 }
