@@ -12,20 +12,9 @@ internal open class BTTRemoteConfiguration(
 ) {
     override fun equals(other: Any?): Boolean {
         if(other is BTTRemoteConfiguration) {
-            var isIgnoreListSame = ignoreScreens.size == other.ignoreScreens.size
-
-            if(isIgnoreListSame) {
-                for(i in ignoreScreens.indices) {
-                    if(ignoreScreens[i] != other.ignoreScreens[i]) {
-                        isIgnoreListSame = false
-                        break
-                    }
-                }
-            }
-
             return other.networkSampleRate == this.networkSampleRate &&
                     other.enableRemoteConfigAck == this.enableRemoteConfigAck &&
-                    isIgnoreListSame
+                    other.ignoreScreens.joinToString() == ignoreScreens.joinToString()
         }
         return false
     }
