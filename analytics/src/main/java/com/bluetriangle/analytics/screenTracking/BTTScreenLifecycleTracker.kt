@@ -2,7 +2,6 @@ package com.bluetriangle.analytics.screenTracking
 
 import com.bluetriangle.analytics.Constants.TIMER_MIN_PGTM
 import com.bluetriangle.analytics.Timer
-import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.model.Screen
 import com.bluetriangle.analytics.utility.logD
 
@@ -67,7 +66,6 @@ internal class BTTScreenLifecycleTracker(
     }
 
     private fun shouldIgnore(name: String): Boolean {
-        Tracker.instance?.configuration?.logger?.debug("shouldIgnore $name, ignoreList: $ignoreScreens")
         return ignoreScreens.contains(name)
     }
 

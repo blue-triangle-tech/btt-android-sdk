@@ -1,3 +1,7 @@
+# Blue Triangle 2.16.1 Latest
+### New Features
+- Ability to remotely ignore automatically tracked screen names. Developers can configure a list of page names from the BlueTriangle portal, which will be ignored from tracking. Any Activity/Fragment class name or page name given in Compose `BttTimerEffect(_)` side-effect will also be ignored. These names are case-sensitive. This feature allows developers to remotely calibrate the list of Activities/Fragments or Composables they want to track at any time.
+
 # 2.16.0
 ### New Features
 - Ability to remotely override Network Sample Rate
