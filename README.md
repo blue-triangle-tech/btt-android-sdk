@@ -673,7 +673,7 @@ fun testCrashTracking() {
 ### Automated Native View Timers
 The Blue Triangle SDK automatically sets up timers to measure the appearance of Native Views in the Mobile app:
 
-![image](https://github.com/blue-triangle-tech/btt-android-sdk/assets/147184142/ec34a2bc-3a26-4c89-9f8f-5d1f8440fa02)
+![image](/automated-view-timers.png)
 
 
 ## Troubleshooting
