@@ -8,11 +8,9 @@ package com.bluetriangle.analytics.sessionmanager
 import android.app.Activity
 import android.app.Application
 import android.content.Context
-import com.bluetriangle.analytics.Constants
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.Utils
 import com.bluetriangle.analytics.dynamicconfig.model.BTTRemoteConfiguration
-import com.bluetriangle.analytics.dynamicconfig.model.BTTSavedRemoteConfiguration
 import com.bluetriangle.analytics.dynamicconfig.repository.IBTTConfigurationRepository
 import com.bluetriangle.analytics.dynamicconfig.updater.IBTTConfigurationUpdater
 import com.bluetriangle.analytics.launchtime.AppEventConsumer
@@ -89,6 +87,7 @@ internal class SessionManager(
             debugConfig.fullSampleRate || Utils.shouldSample(config.networkSampleRate?:defaultConfig.networkSampleRate!!),
             false,
             config.networkSampleRate?:defaultConfig.networkSampleRate!!,
+            config.ignoreScreens,
             getNewExpiration()
         )
     }
@@ -115,6 +114,7 @@ internal class SessionManager(
                 it.shouldSampleNetwork,
                 it.isConfigApplied,
                 it.networkSampleRate,
+                it.ignoreScreens,
                 getNewExpiration()
             )
             sessionStore.storeSessionData(
@@ -153,6 +153,7 @@ internal class SessionManager(
                                 Utils.shouldSample(config.networkSampleRate?:defaultConfig.networkSampleRate!!),
                                 true,
                                 config.networkSampleRate?:defaultConfig.networkSampleRate!!,
+                                config.ignoreScreens,
                                 session.expiration
                             )
                             Tracker.instance?.updateSession(sessionData)

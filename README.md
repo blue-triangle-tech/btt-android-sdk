@@ -60,7 +60,7 @@ Add the package dependency to your application's `build.gradle` file:
 ```groovy
 dependencies {
     //...
-    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.16.0'
+    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.16.1'
 }
 ```
 
@@ -69,7 +69,7 @@ dependencies {
 If project uses gradle plugin version 8.2.0 and above, use exclude with dependency like below.
 
 ```groovy
-implementation("com.github.blue-triangle-tech:btt-android-sdk:2.16.0") {
+implementation("com.github.blue-triangle-tech:btt-android-sdk:2.16.1") {
     exclude("com.squareup.okhttp3", "okhttp-bom")
 }
 ```
@@ -673,7 +673,7 @@ fun testCrashTracking() {
 ### Automated Native View Timers
 The Blue Triangle SDK automatically sets up timers to measure the appearance of Native Views in the Mobile app:
 
-![image](https://github.com/blue-triangle-tech/btt-android-sdk/assets/147184142/ec34a2bc-3a26-4c89-9f8f-5d1f8440fa02)
+![image](/automated-view-timers.png)
 
 
 ## Troubleshooting

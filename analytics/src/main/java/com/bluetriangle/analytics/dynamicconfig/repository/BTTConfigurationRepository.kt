@@ -34,6 +34,7 @@ internal class BTTConfigurationRepository(context: Context,
     override fun save(config: BTTRemoteConfiguration) {
         val savedConfig = BTTSavedRemoteConfiguration(
             config.networkSampleRate,
+            config.ignoreScreens,
             config.enableRemoteConfigAck,
             System.currentTimeMillis()
         )
