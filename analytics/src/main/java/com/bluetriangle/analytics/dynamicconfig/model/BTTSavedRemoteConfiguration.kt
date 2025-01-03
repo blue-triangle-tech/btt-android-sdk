@@ -7,9 +7,10 @@ package com.bluetriangle.analytics.dynamicconfig.model
 
 internal class BTTSavedRemoteConfiguration(
     networkSampleRate: Double?,
+    ignoreList: List<String>,
     enableRemoteConfigAck: Boolean,
     val savedDate: Long
-) : BTTRemoteConfiguration(networkSampleRate, enableRemoteConfigAck) {
+) : BTTRemoteConfiguration(networkSampleRate, ignoreList, enableRemoteConfigAck) {
 
     override fun equals(other: Any?): Boolean {
         if(other is BTTSavedRemoteConfiguration) {

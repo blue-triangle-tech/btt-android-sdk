@@ -6,14 +6,20 @@
 package com.bluetriangle.analytics.sessionmanager
 
 import com.bluetriangle.analytics.Tracker
+import com.bluetriangle.analytics.utility.getBooleanOrNull
+import com.bluetriangle.analytics.utility.getDoubleOrNull
+import com.bluetriangle.analytics.utility.getJsonArrayOrNull
+import com.bluetriangle.analytics.utility.getStringOrNull
+import org.json.JSONArray
 import org.json.JSONObject
 
 internal data class SessionData(
-    val sessionId:String,
+    val sessionId: String,
     val shouldSampleNetwork: Boolean,
     val isConfigApplied: Boolean,
     val networkSampleRate: Double,
-    val expiration:Long
+    val ignoreScreens: List<String>,
+    val expiration: Long
 ) {
     companion object {
         private const val SESSION_ID = "sessionId"
@@ -21,14 +27,22 @@ internal data class SessionData(
         private const val SHOULD_SAMPLE_NETWORK = "shouldSampleNetwork"
         private const val IS_CONFIG_APPLIED = "isConfigApplied"
         private const val NETWORK_SAMPLE_RATE = "networkSampleRate"
+        private const val IGNORE_SCREENS = "ignoreScreens"
 
-        internal fun JSONObject.toSessionData():SessionData? {
+        internal fun JSONObject.toSessionData(): SessionData? {
             try {
                 return SessionData(
-                    sessionId = getString(SESSION_ID),
-                    shouldSampleNetwork = getBoolean(SHOULD_SAMPLE_NETWORK),
-                    isConfigApplied = getBoolean(IS_CONFIG_APPLIED),
-                    networkSampleRate = getDouble(NETWORK_SAMPLE_RATE),
+                    sessionId = getStringOrNull(SESSION_ID)?:return null,
+                    shouldSampleNetwork = getBooleanOrNull(SHOULD_SAMPLE_NETWORK)?:false,
+                    isConfigApplied = getBooleanOrNull(IS_CONFIG_APPLIED)?:false,
+                    networkSampleRate = getDoubleOrNull(NETWORK_SAMPLE_RATE)?:0.0,
+                    ignoreScreens = getJsonArrayOrNull(IGNORE_SCREENS)?.let { array ->
+                        buildList {
+                            repeat(array.length()) {
+                                add(array.getString(it))
+                            }
+                        }
+                    } ?: listOf(),
                     expiration = getLong(EXPIRATION)
                 )
             } catch (e: Exception) {
@@ -42,6 +56,7 @@ internal data class SessionData(
             put(SHOULD_SAMPLE_NETWORK, shouldSampleNetwork)
             put(IS_CONFIG_APPLIED, isConfigApplied)
             put(NETWORK_SAMPLE_RATE, networkSampleRate)
+            put(IGNORE_SCREENS, JSONArray(ignoreScreens))
             put(EXPIRATION, expiration)
         }
     }

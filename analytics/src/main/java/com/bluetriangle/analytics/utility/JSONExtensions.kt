@@ -1,5 +1,6 @@
 package com.bluetriangle.analytics.utility
 
+import org.json.JSONArray
 import org.json.JSONObject
 
 internal fun JSONObject.getIntOrNull(key:String):Int? {
@@ -18,3 +19,10 @@ internal fun JSONObject.getBooleanOrNull(key:String):Boolean? {
     return if(has(key)) getBoolean(key) else null
 }
 
+internal fun JSONObject.getStringOrNull(key:String):String? {
+    return if(has(key)) getString(key) else null
+}
+
+internal fun JSONObject.getJsonArrayOrNull(key:String):JSONArray? {
+    return if(has(key)) getJSONArray(key) else null
+}
