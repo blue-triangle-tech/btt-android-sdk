@@ -1,4 +1,8 @@
-# Blue Triangle 2.16.1 Latest, Dec 27 2024
+# Blue Triangle 2.16.2 Latest, Jan 29 2024
+### New Features
+- Ability to remotely disable SDK. SDK now has a remote configuration field that can enable/disable SDK on the fly without needing any code push. Once the SDK recieves the enableAllTracking flag from the portal as false, the SDK will turn off all tracking including screen tracking, crash tracking, ANR tracking, custom timers, network request tracking and launch time tracking.
+
+# Blue Triangle 2.16.1, Dec 27 2024
 ### New Features
 - Ability to remotely ignore automatically tracked screen names. Developers can configure a list of page names from the BlueTriangle portal, which will be ignored from tracking. Any Activity/Fragment class name or page name given in Compose `BttTimerEffect(_)` side-effect will also be ignored. These names are case-sensitive. This feature allows developers to remotely calibrate the list of Activities/Fragments or Composables they want to track at any time.
 

@@ -30,7 +30,7 @@ internal class TrackerExecutor(private val configuration: BlueTriangleConfigurat
     /**
      * A custom thread which sets priority to background and generates a unique name
      */
-    private class TrackerThread internal constructor(runnable: Runnable?) :
+    private class TrackerThread(runnable: Runnable?) :
         Thread(runnable, THREAD_NAME_PREFIX + SEQUENCE_GENERATOR.getAndIncrement()) {
         override fun run() {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND)

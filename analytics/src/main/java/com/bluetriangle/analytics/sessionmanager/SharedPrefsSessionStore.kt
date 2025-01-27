@@ -6,6 +6,7 @@
 package com.bluetriangle.analytics.sessionmanager
 
 import android.content.Context
+import androidx.core.content.edit
 import com.bluetriangle.analytics.sessionmanager.SessionData.Companion.toJsonObject
 import com.bluetriangle.analytics.sessionmanager.SessionData.Companion.toSessionData
 import org.json.JSONObject
@@ -21,9 +22,9 @@ internal class SharedPrefsSessionStore(val context: Context, val siteId: String)
     private val sessionDataKey:String = "${SESSION_DATA}_${siteId}"
 
     override fun storeSessionData(sessionData: SessionData) {
-        storePrefs.edit()
-            .putString(sessionDataKey, sessionData.toJsonObject().toString())
-            .apply()
+        storePrefs.edit {
+            putString(sessionDataKey, sessionData.toJsonObject().toString())
+        }
     }
 
     override fun retrieveSessionData(): SessionData? {
@@ -32,4 +33,9 @@ internal class SharedPrefsSessionStore(val context: Context, val siteId: String)
         return JSONObject(sessionDataJSON).toSessionData()
     }
 
+    override fun clearSessionData() {
+        storePrefs.edit {
+            remove(sessionDataKey)
+        }
+    }
 }

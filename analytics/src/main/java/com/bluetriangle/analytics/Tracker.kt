@@ -14,6 +14,7 @@ import android.text.TextUtils
 import androidx.core.content.ContextCompat
 import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
+import com.bluetriangle.analytics.appeventhub.AppEventHub
 import com.bluetriangle.analytics.deviceinfo.DeviceInfoProvider
 import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 import com.bluetriangle.analytics.dynamicconfig.fetcher.BTTConfigurationFetcher
@@ -22,6 +23,7 @@ import com.bluetriangle.analytics.dynamicconfig.reporter.BTTConfigUpdateReporter
 import com.bluetriangle.analytics.dynamicconfig.repository.BTTConfigurationRepository
 import com.bluetriangle.analytics.dynamicconfig.repository.IBTTConfigurationRepository
 import com.bluetriangle.analytics.dynamicconfig.updater.BTTConfigurationUpdater
+import com.bluetriangle.analytics.dynamicconfig.updater.IBTTConfigurationUpdater
 import com.bluetriangle.analytics.hybrid.BTTWebViewTracker
 import com.bluetriangle.analytics.launchtime.LaunchMonitor
 import com.bluetriangle.analytics.launchtime.LaunchReporter
@@ -32,8 +34,13 @@ import com.bluetriangle.analytics.networkstate.NetworkTimelineTracker
 import com.bluetriangle.analytics.screenTracking.ActivityLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.BTTScreenLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.FragmentLifecycleTracker
+import com.bluetriangle.analytics.sessionmanager.ISessionManager
 import com.bluetriangle.analytics.sessionmanager.SessionData
 import com.bluetriangle.analytics.sessionmanager.SessionManager
+import com.bluetriangle.analytics.sessionmanager.UnConfiguredSessionManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.File
 import java.lang.ref.WeakReference
@@ -47,7 +54,7 @@ class Tracker private constructor(
     application: Application,
     configuration: BlueTriangleConfiguration
 ) {
-    private var anrManager: AnrManager
+    private var anrManager: AnrManager? = null
 
     /**
      * Weak reference to Android application context
@@ -67,12 +74,12 @@ class Tracker private constructor(
     /**
      * A map of fields that should be applied to all timers such as
      */
-    val globalFields: MutableMap<String, String>
+    val globalFields: MutableMap<String, String> = HashMap(8)
 
     /**
      * A map of extended custom variables
      */
-    private val customVariables: MutableMap<String, String>
+    private val customVariables: MutableMap<String, String> = HashMap()
 
     /**
      * Executor service to queue and submit timers
@@ -89,29 +96,40 @@ class Tracker private constructor(
      */
     private val capturedRequests = ConcurrentHashMap<Long, CapturedRequestCollection>()
 
-    internal val screenTrackMonitor: BTTScreenLifecycleTracker
-    private val activityLifecycleTracker: ActivityLifecycleTracker
+    internal var screenTrackMonitor: BTTScreenLifecycleTracker? = null
+    private var activityLifecycleTracker: ActivityLifecycleTracker? = null
 
     internal var networkTimelineTracker: NetworkTimelineTracker? = null
     internal var networkStateMonitor: NetworkStateMonitor? = null
-    private var sessionManager: SessionManager
+    private lateinit var sessionManager: ISessionManager
     private val configurationRepository: IBTTConfigurationRepository
+    private val configurationUpdater: IBTTConfigurationUpdater
     private var deviceInfoProvider: IDeviceInfoProvider
+
+    private val defaultConfig = BTTSavedRemoteConfiguration(
+        networkSampleRate = configuration.networkSampleRate,
+        ignoreList = listOf(),
+        enableRemoteConfigAck = false,
+        enableAllTracking = true,
+        savedDate = 0L
+    )
+
 
     init {
         this.context = WeakReference(application.applicationContext)
+        this.configuration = configuration
         this.deviceInfoProvider = DeviceInfoProvider()
 
-        val defaultConfig = BTTSavedRemoteConfiguration(configuration.networkSampleRate, listOf(), false, 0L)
+        trackerExecutor = TrackerExecutor(configuration)
+
         this.configurationRepository = BTTConfigurationRepository(
             application.applicationContext,
             configuration.siteId?:"",
             defaultConfig = defaultConfig
         )
-        this.configuration = configuration
 
         val configUrl = "https://d.btttag.com/config.php?siteID=${configuration.siteId}"
-        val configUpdater = BTTConfigurationUpdater(
+        configurationUpdater = BTTConfigurationUpdater(
             repository = this.configurationRepository,
             fetcher = BTTConfigurationFetcher(configUrl),
             60 * 60 * 1000,
@@ -120,63 +138,19 @@ class Tracker private constructor(
                 this.deviceInfoProvider
             )
         )
-        this.sessionManager = SessionManager(
-            application.applicationContext,
-            this.configuration.siteId?:"",
-            this.configuration.sessionExpiryDuration,
-            this.configurationRepository,
-            configUpdater,
-            defaultConfig
-        )
-        AppEventHub.instance.addConsumer(this.sessionManager)
 
-        globalFields = HashMap(8)
-        customVariables = mutableMapOf()
-        configuration.siteId?.let { globalFields[Timer.FIELD_SITE_ID] = it }
-        globalFields[Timer.FIELD_BROWSER] = Constants.BROWSER
-        globalFields[Timer.FIELD_NA_FLG] = "1"
-        val appVersion = Utils.getAppVersion(application.applicationContext)
-        val isTablet = Utils.isTablet(application.applicationContext)
-        globalFields[Timer.FIELD_DEVICE] =
-            if (isTablet) Constants.DEVICE_TABLET else Constants.DEVICE_MOBILE
-        globalFields[Timer.FIELD_BROWSER_VERSION] = "${Constants.BROWSER}-$appVersion-${Utils.os}"
-        globalFields[Timer.FIELD_SDK_VERSION] = BuildConfig.SDK_VERSION
+        initializeGlobalFields()
 
         setGlobalUserId(globalUserId)
         configuration.globalUserId = globalUserId
 
-        val sessionData = sessionManager.sessionData
-        setSessionId(sessionData.sessionId)
-        this.configuration.sessionId = sessionData.sessionId
-        this.configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
+        configure()
 
-        trackerExecutor = TrackerExecutor(configuration)
-        screenTrackMonitor = BTTScreenLifecycleTracker(
-            configuration.isScreenTrackingEnabled,
-            sessionData.ignoreScreens
-        )
-
-        val fragmentLifecycleTracker = FragmentLifecycleTracker(screenTrackMonitor)
-        activityLifecycleTracker = ActivityLifecycleTracker(
-            screenTrackMonitor,
-            fragmentLifecycleTracker
-        )
-        application.registerActivityLifecycleCallbacks(activityLifecycleTracker)
-
-        anrManager = AnrManager(configuration, deviceInfoProvider)
-
-        if (configuration.isTrackAnrEnabled) {
-            anrManager.start()
-        }
-        if (configuration.isTrackCrashesEnabled) {
-            trackCrashes()
-        }
-
-        initializeNetworkMonitoring()
         if (configuration.isLaunchTimeEnabled) {
             logLaunchMonitorErrors()
             LaunchReporter(configuration.logger, LaunchMonitor.instance)
         }
+        observeEnableSDKField()
         configuration.logger?.debug("BlueTriangleSDK Initialized: $configuration")
     }
 
@@ -185,6 +159,145 @@ class Tracker private constructor(
         for (log in logs) {
             configuration.logger?.log(log.level, log.message)
         }
+    }
+
+    @Suppress("OPT_IN_USAGE")
+    private fun observeEnableSDKField() {
+        configuration.logger?.debug("Listening for UnConfigure...")
+        GlobalScope.launch(Dispatchers.IO) {
+            configurationRepository.getLiveUpdates().collect {
+                configuration.logger?.debug("Got Live updated config: $it")
+                if(it?.enableAllTracking != true) {
+                    unConfigure()
+                } else {
+                    configure()
+                }
+            }
+        }
+    }
+
+    private fun configure() {
+        if(instance != null) return
+
+        instance = this
+        initializeSessionManager()
+
+        val sessionData = sessionManager.sessionData
+        setSessionId(sessionData.sessionId)
+        this.configuration.sessionId = sessionData.sessionId
+        this.configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
+
+        initializeScreenTracker()
+
+        if(configuration.isTrackAnrEnabled) {
+            initializeANRMonitor()
+        }
+
+        if (configuration.isTrackCrashesEnabled) {
+            trackCrashes()
+        }
+
+        initializeNetworkMonitoring()
+    }
+
+    private fun unConfigure() {
+        if(instance == null) return
+
+        configuration.logger?.debug("Un Configuring SDK...")
+        deInitializeScreenTracker()
+        deInitializeANRMonitor()
+        stopTrackCrashes()
+        deInitializeSessionManager()
+        deInitializeNetworkMonitoring()
+        instance = null
+    }
+
+    fun trackCrashes() {
+        if (Thread.getDefaultUncaughtExceptionHandler() !is BtCrashHandler) {
+            Thread.setDefaultUncaughtExceptionHandler(
+                BtCrashHandler(
+                    configuration,
+                    deviceInfoProvider
+                )
+            )
+        }
+    }
+
+    private fun stopTrackCrashes() {
+        (Thread.getDefaultUncaughtExceptionHandler() as? BtCrashHandler)?.let {
+            Thread.setDefaultUncaughtExceptionHandler(it.defaultUEH)
+        }
+    }
+
+    private fun initializeGlobalFields() {
+        val appContext = context.get()?.applicationContext?:return
+        val appVersion = Utils.getAppVersion(appContext)
+        val isTablet = Utils.isTablet(appContext)
+
+        globalFields.apply {
+            configuration.siteId?.let { put(Timer.FIELD_SITE_ID, it) }
+            put(Timer.FIELD_BROWSER, Constants.BROWSER)
+            put(Timer.FIELD_NA_FLG, "1")
+            put(Timer.FIELD_DEVICE, if (isTablet) Constants.DEVICE_TABLET else Constants.DEVICE_MOBILE)
+            put(Timer.FIELD_BROWSER_VERSION, "${Constants.BROWSER}-$appVersion-${Utils.os}")
+            put(Timer.FIELD_SDK_VERSION, BuildConfig.SDK_VERSION)
+        }
+    }
+
+    private fun initializeSessionManager() {
+        val applicationContext = context.get()?.applicationContext?:return
+
+        if(::sessionManager.isInitialized && sessionManager is UnConfiguredSessionManager) {
+            AppEventHub.instance.removeConsumer(sessionManager)
+        }
+        this.sessionManager = SessionManager(
+            applicationContext,
+            this.configuration.siteId?:"",
+            this.configuration.sessionExpiryDuration,
+            this.configurationRepository,
+            configurationUpdater,
+            defaultConfig
+        )
+        AppEventHub.instance.addConsumer(this.sessionManager)
+    }
+
+    private fun deInitializeSessionManager() {
+        sessionManager.endSession()
+        AppEventHub.instance.removeConsumer(sessionManager)
+        sessionManager = UnConfiguredSessionManager(configuration, configurationUpdater)
+        AppEventHub.instance.addConsumer(sessionManager)
+    }
+
+    private fun initializeANRMonitor() {
+        anrManager = AnrManager(configuration, deviceInfoProvider)
+        anrManager?.start()
+    }
+
+    private fun deInitializeANRMonitor() {
+        anrManager?.stop()
+        anrManager = null
+    }
+
+    private fun initializeScreenTracker() {
+        screenTrackMonitor = BTTScreenLifecycleTracker(
+            configuration.isScreenTrackingEnabled,
+            sessionManager.sessionData.ignoreScreens
+        ).also {
+            val fragmentLifecycleTracker = FragmentLifecycleTracker(it)
+            activityLifecycleTracker = ActivityLifecycleTracker(
+                it,
+                fragmentLifecycleTracker
+            )
+            (context.get()?.applicationContext as? Application)?.registerActivityLifecycleCallbacks(activityLifecycleTracker)
+        }
+    }
+
+    private fun deInitializeScreenTracker() {
+        activityLifecycleTracker?.let {
+            (context.get()?.applicationContext as? Application)?.unregisterActivityLifecycleCallbacks(it)
+        }
+        screenTrackMonitor = null
+        activityLifecycleTracker = null
     }
 
     private fun initializeNetworkMonitoring() {
@@ -216,6 +329,15 @@ class Tracker private constructor(
         networkTimelineTracker = NetworkTimelineTracker(networkStateMonitor!!)
 
         configuration.logger?.debug("Network state monitoring started.")
+    }
+
+    private fun deInitializeNetworkMonitoring() {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            networkStateMonitor?.stop()
+            networkTimelineTracker?.stop()
+            networkStateMonitor = null
+            networkTimelineTracker = null
+        }
     }
 
     @Synchronized
@@ -367,7 +489,7 @@ class Tracker private constructor(
      * @param sessionId session ID to send with all timers submitted
      */
     fun setSessionId(sessionId: String) {
-        setGlobalField(Timer.FIELD_SESSION_ID, sessionId)
+        setGlobalField(FIELD_SESSION_ID, sessionId)
     }
 
     /**
@@ -516,14 +638,15 @@ class Tracker private constructor(
     internal fun updateSession(sessionData: SessionData) {
         if (configuration.sessionId == sessionData.sessionId &&
             configuration.shouldSampleNetwork == sessionData.shouldSampleNetwork &&
-            configuration.networkSampleRate == sessionData.networkSampleRate &&
-            screenTrackMonitor.ignoreScreens.joinToString(",") == sessionData.ignoreScreens.joinToString(",")) return
+            configuration.networkSampleRate == sessionData.networkSampleRate) return
+
+        if(screenTrackMonitor != null && screenTrackMonitor?.ignoreScreens?.joinToString(",") == sessionData.ignoreScreens.joinToString(",")) return
 
         configuration.logger?.debug("Updating session Data from ${configuration.sessionId}:${configuration.networkSampleRate}:${configuration.shouldSampleNetwork} to ${sessionData.sessionId}:${sessionData.networkSampleRate}:${sessionData.shouldSampleNetwork}")
         configuration.sessionId = sessionData.sessionId
         configuration.networkSampleRate = sessionData.networkSampleRate
         configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
-        screenTrackMonitor.ignoreScreens = sessionData.ignoreScreens
+        screenTrackMonitor?.ignoreScreens = sessionData.ignoreScreens
         setSessionId(sessionData.sessionId)
         BTTWebViewTracker.updateSession(sessionData.sessionId)
     }
@@ -612,16 +735,6 @@ class Tracker private constructor(
         }
     }
 
-    fun trackCrashes() {
-        if (Thread.getDefaultUncaughtExceptionHandler() !is BtCrashHandler) {
-            Thread.setDefaultUncaughtExceptionHandler(
-                BtCrashHandler(
-                    configuration,
-                    deviceInfoProvider
-                )
-            )
-        }
-    }
 
     fun trackError(message: String) {
         trackException(message, object : Throwable() {

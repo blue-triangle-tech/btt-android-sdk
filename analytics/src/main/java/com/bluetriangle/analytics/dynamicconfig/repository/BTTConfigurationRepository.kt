@@ -12,9 +12,10 @@ import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.dynamicconfig.model.BTTRemoteConfiguration
 import com.bluetriangle.analytics.dynamicconfig.model.BTTSavedRemoteConfiguration
 import com.bluetriangle.analytics.dynamicconfig.model.BTTSavedRemoteConfigurationMapper
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
 import org.json.JSONObject
 
@@ -36,6 +37,7 @@ internal class BTTConfigurationRepository(context: Context,
             config.networkSampleRate,
             config.ignoreScreens,
             config.enableRemoteConfigAck,
+            config.enableAllTracking,
             System.currentTimeMillis()
         )
 
@@ -58,11 +60,11 @@ internal class BTTConfigurationRepository(context: Context,
     }
 
     override fun getLiveUpdates(): Flow<BTTSavedRemoteConfiguration> = callbackFlow {
-        trySendBlocking(get())
+        trySend(get())
 
         val prefsChangeListener = OnSharedPreferenceChangeListener { _, s ->
-            if(s == REMOTE_CONFIG) {
-                trySendBlocking(get())
+            if(s == configKey) {
+                trySend(get())
             }
         }
         sharedPreferences.registerOnSharedPreferenceChangeListener(prefsChangeListener)
@@ -70,6 +72,6 @@ internal class BTTConfigurationRepository(context: Context,
         awaitClose {
             sharedPreferences.unregisterOnSharedPreferenceChangeListener(prefsChangeListener)
         }
-    }
+    }.buffer(Channel.UNLIMITED)
 
 }

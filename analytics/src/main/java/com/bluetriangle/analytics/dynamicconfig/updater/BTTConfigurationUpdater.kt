@@ -11,7 +11,7 @@ import com.bluetriangle.analytics.dynamicconfig.fetcher.IBTTConfigurationFetcher
 import com.bluetriangle.analytics.dynamicconfig.model.BTTSavedRemoteConfiguration
 import com.bluetriangle.analytics.dynamicconfig.reporter.BTTConfigUpdateReporter
 import com.bluetriangle.analytics.dynamicconfig.repository.IBTTConfigurationRepository
-import com.bluetriangle.analytics.launchtime.AppEventConsumer
+import com.bluetriangle.analytics.appeventhub.AppEventConsumer
 
 internal class BTTConfigurationUpdater(
     private val repository: IBTTConfigurationRepository,
@@ -42,6 +42,7 @@ internal class BTTConfigurationUpdater(
                         result.config.networkSampleRate,
                         result.config.ignoreScreens,
                         result.config.enableRemoteConfigAck,
+                        result.config.enableAllTracking,
                         System.currentTimeMillis()
                     )
                 )

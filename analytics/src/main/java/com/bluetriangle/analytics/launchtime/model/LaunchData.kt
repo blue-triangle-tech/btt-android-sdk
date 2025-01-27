@@ -1,4 +1,4 @@
-package com.bluetriangle.analytics.launchtime.data
+package com.bluetriangle.analytics.launchtime.model
 
 internal data class LaunchData(
     val activityName:String,

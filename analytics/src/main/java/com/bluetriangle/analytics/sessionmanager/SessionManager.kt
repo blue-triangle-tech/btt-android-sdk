@@ -13,7 +13,6 @@ import com.bluetriangle.analytics.Utils
 import com.bluetriangle.analytics.dynamicconfig.model.BTTRemoteConfiguration
 import com.bluetriangle.analytics.dynamicconfig.repository.IBTTConfigurationRepository
 import com.bluetriangle.analytics.dynamicconfig.updater.IBTTConfigurationUpdater
-import com.bluetriangle.analytics.launchtime.AppEventConsumer
 import com.bluetriangle.analytics.utility.DebugConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,7 +28,7 @@ internal class SessionManager(
     private val configurationRepository: IBTTConfigurationRepository,
     private val updater: IBTTConfigurationUpdater,
     private val defaultConfig: BTTRemoteConfiguration
-) : AppEventConsumer {
+) : ISessionManager {
 
     private var currentSession: SessionData? = null
         @Synchronized get
@@ -39,11 +38,15 @@ internal class SessionManager(
     private var debugConfig = DebugConfig.getCurrent(context)
     private var scope: CoroutineScope? = null
 
-    val sessionData: SessionData
+    override val sessionData: SessionData
         @Synchronized get() {
             invalidateSessionData()
             return currentSession!!
         }
+
+    override fun endSession() {
+        sessionStore.clearSessionData()
+    }
 
     init {
         initScope()
@@ -95,7 +98,7 @@ internal class SessionManager(
     private fun getNewExpiration() = System.currentTimeMillis() + expirationDurationInMillis
 
     @Synchronized
-    fun onLaunch() {
+    private fun onLaunch() {
         Tracker.instance?.updateSession(sessionData)
         scope?.launch {
             if (!sessionData.isConfigApplied) {
@@ -107,7 +110,7 @@ internal class SessionManager(
     }
 
     @Synchronized
-    fun onOffScreen() {
+    private fun onOffScreen() {
         currentSession?.let {
             val newExpirySession = SessionData(
                 it.sessionId,
