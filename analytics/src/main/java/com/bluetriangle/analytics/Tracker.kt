@@ -950,7 +950,7 @@ class Tracker private constructor(
                 logger = configuration.logger,
                 repository = this.configurationRepository,
                 fetcher = BTTConfigurationFetcher(configUrl),
-                6 * 60 * 1000,
+                60 * 60 * 1000,
                 reporter = BTTConfigUpdateReporter(
                     configuration, DeviceInfoProvider
                 )
