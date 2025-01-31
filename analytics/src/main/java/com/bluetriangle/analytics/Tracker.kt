@@ -945,12 +945,12 @@ class Tracker private constructor(
                 defaultConfig = configuration.defaultRemoteConfig
             )
 
-            val configUrl = "https://192.168.0.102:3000/config.php?siteID=${configuration.siteId}"
+            val configUrl = "https://d.btttag.com/config.php?siteID=${configuration.siteId}"
             configurationUpdater = BTTConfigurationUpdater(
                 logger = configuration.logger,
                 repository = this.configurationRepository,
                 fetcher = BTTConfigurationFetcher(configUrl),
-                2 * 60 * 1000,
+                6 * 60 * 1000,
                 reporter = BTTConfigUpdateReporter(
                     configuration, DeviceInfoProvider
                 )
