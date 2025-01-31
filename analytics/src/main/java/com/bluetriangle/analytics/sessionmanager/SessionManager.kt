@@ -8,6 +8,7 @@ package com.bluetriangle.analytics.sessionmanager
 import android.app.Activity
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.Utils
 import com.bluetriangle.analytics.dynamicconfig.model.BTTRemoteConfiguration
@@ -19,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 internal class SessionManager(
@@ -52,6 +54,7 @@ internal class SessionManager(
         initScope()
         scope?.launch {
             if (!sessionData.isConfigApplied) {
+                Tracker.instance?.configuration?.logger?.debug("Calling forceUpdate from SessionManager::init")
                 updater.forceUpdate()
             }
         }
@@ -138,7 +141,8 @@ internal class SessionManager(
     }
 
     private fun initScope() {
-        destroyScope()
+        if(scope?.isActive == true) return
+
         scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
         observeAndUpdateSession()
@@ -146,7 +150,7 @@ internal class SessionManager(
 
     private fun observeAndUpdateSession() {
         scope?.launch {
-            configurationRepository.getLiveUpdates().collectLatest { savedConfig ->
+            configurationRepository.getLiveUpdates(notifyCurrent = true).collectLatest { savedConfig ->
                 savedConfig?.let { config ->
                     currentSession?.let { session ->
                         if (!session.isConfigApplied) {
@@ -169,6 +173,10 @@ internal class SessionManager(
                 }
             }
         }
+    }
+
+    protected fun finalize() {
+        destroyScope()
     }
 
     private fun destroyScope() {

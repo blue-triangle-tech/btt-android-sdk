@@ -6,6 +6,7 @@
 package com.bluetriangle.analytics.sessionmanager
 
 import android.content.Context
+import android.util.Log
 import androidx.core.content.edit
 import com.bluetriangle.analytics.sessionmanager.SessionData.Companion.toJsonObject
 import com.bluetriangle.analytics.sessionmanager.SessionData.Companion.toSessionData

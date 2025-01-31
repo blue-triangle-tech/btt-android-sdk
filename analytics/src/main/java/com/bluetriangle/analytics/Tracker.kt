@@ -34,12 +34,13 @@ import com.bluetriangle.analytics.networkstate.NetworkTimelineTracker
 import com.bluetriangle.analytics.screenTracking.ActivityLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.BTTScreenLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.FragmentLifecycleTracker
+import com.bluetriangle.analytics.sessionmanager.DisabledModeSessionManager
 import com.bluetriangle.analytics.sessionmanager.ISessionManager
 import com.bluetriangle.analytics.sessionmanager.SessionData
 import com.bluetriangle.analytics.sessionmanager.SessionManager
-import com.bluetriangle.analytics.sessionmanager.UnConfiguredSessionManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.File
@@ -51,8 +52,7 @@ import java.util.concurrent.ConcurrentHashMap
  * background thread.
  */
 class Tracker private constructor(
-    application: Application,
-    configuration: BlueTriangleConfiguration
+    application: Application, configuration: BlueTriangleConfiguration
 ) {
     private var anrManager: AnrManager? = null
 
@@ -97,60 +97,38 @@ class Tracker private constructor(
     private val capturedRequests = ConcurrentHashMap<Long, CapturedRequestCollection>()
 
     internal var screenTrackMonitor: BTTScreenLifecycleTracker? = null
+        @Synchronized set
+
     private var activityLifecycleTracker: ActivityLifecycleTracker? = null
+        @Synchronized set
 
     internal var networkTimelineTracker: NetworkTimelineTracker? = null
-    internal var networkStateMonitor: NetworkStateMonitor? = null
-    private lateinit var sessionManager: ISessionManager
-    private val configurationRepository: IBTTConfigurationRepository
-    private val configurationUpdater: IBTTConfigurationUpdater
-    private var deviceInfoProvider: IDeviceInfoProvider
+        @Synchronized set
 
-    private val defaultConfig = BTTSavedRemoteConfiguration(
-        networkSampleRate = configuration.networkSampleRate,
-        ignoreList = listOf(),
-        enableRemoteConfigAck = false,
-        enableAllTracking = true,
-        savedDate = 0L
-    )
+    internal var networkStateMonitor: NetworkStateMonitor? = null
+        @Synchronized set
+
+    private var deviceInfoProvider: IDeviceInfoProvider
 
 
     init {
         this.context = WeakReference(application.applicationContext)
         this.configuration = configuration
-        this.deviceInfoProvider = DeviceInfoProvider()
+        this.deviceInfoProvider = DeviceInfoProvider
 
         trackerExecutor = TrackerExecutor(configuration)
-
-        this.configurationRepository = BTTConfigurationRepository(
-            application.applicationContext,
-            configuration.siteId?:"",
-            defaultConfig = defaultConfig
-        )
-
-        val configUrl = "https://d.btttag.com/config.php?siteID=${configuration.siteId}"
-        configurationUpdater = BTTConfigurationUpdater(
-            repository = this.configurationRepository,
-            fetcher = BTTConfigurationFetcher(configUrl),
-            60 * 60 * 1000,
-            reporter = BTTConfigUpdateReporter(
-                this.configuration,
-                this.deviceInfoProvider
-            )
-        )
 
         initializeGlobalFields()
 
         setGlobalUserId(globalUserId)
         configuration.globalUserId = globalUserId
 
-        configure()
-
         if (configuration.isLaunchTimeEnabled) {
             logLaunchMonitorErrors()
             LaunchReporter(configuration.logger, LaunchMonitor.instance)
         }
-        observeEnableSDKField()
+
+        enable()
         configuration.logger?.debug("BlueTriangleSDK Initialized: $configuration")
     }
 
@@ -161,27 +139,8 @@ class Tracker private constructor(
         }
     }
 
-    @Suppress("OPT_IN_USAGE")
-    private fun observeEnableSDKField() {
-        configuration.logger?.debug("Listening for UnConfigure...")
-        GlobalScope.launch(Dispatchers.IO) {
-            configurationRepository.getLiveUpdates().collect {
-                configuration.logger?.debug("Got Live updated config: $it")
-                if(it?.enableAllTracking != true) {
-                    unConfigure()
-                } else {
-                    configure()
-                }
-            }
-        }
-    }
-
-    private fun configure() {
-        if(instance != null) return
-
-        instance = this
-        initializeSessionManager()
-
+    @Synchronized
+    private fun enable() {
         val sessionData = sessionManager.sessionData
         setSessionId(sessionData.sessionId)
         this.configuration.sessionId = sessionData.sessionId
@@ -189,7 +148,7 @@ class Tracker private constructor(
 
         initializeScreenTracker()
 
-        if(configuration.isTrackAnrEnabled) {
+        if (configuration.isTrackAnrEnabled) {
             initializeANRMonitor()
         }
 
@@ -198,26 +157,26 @@ class Tracker private constructor(
         }
 
         initializeNetworkMonitoring()
+        configuration.logger?.debug("SDK is enabled")
     }
 
-    private fun unConfigure() {
-        if(instance == null) return
-
-        configuration.logger?.debug("Un Configuring SDK...")
+    @Synchronized
+    private fun disable() {
+        performanceMonitors.forEach {
+            it.value.stopRunning()
+        }
         deInitializeScreenTracker()
         deInitializeANRMonitor()
         stopTrackCrashes()
-        deInitializeSessionManager()
         deInitializeNetworkMonitoring()
-        instance = null
+        configuration.logger?.debug("SDK is disabled.")
     }
 
     fun trackCrashes() {
         if (Thread.getDefaultUncaughtExceptionHandler() !is BtCrashHandler) {
             Thread.setDefaultUncaughtExceptionHandler(
                 BtCrashHandler(
-                    configuration,
-                    deviceInfoProvider
+                    configuration, deviceInfoProvider
                 )
             )
         }
@@ -230,7 +189,7 @@ class Tracker private constructor(
     }
 
     private fun initializeGlobalFields() {
-        val appContext = context.get()?.applicationContext?:return
+        val appContext = context.get()?.applicationContext ?: return
         val appVersion = Utils.getAppVersion(appContext)
         val isTablet = Utils.isTablet(appContext)
 
@@ -238,34 +197,13 @@ class Tracker private constructor(
             configuration.siteId?.let { put(Timer.FIELD_SITE_ID, it) }
             put(Timer.FIELD_BROWSER, Constants.BROWSER)
             put(Timer.FIELD_NA_FLG, "1")
-            put(Timer.FIELD_DEVICE, if (isTablet) Constants.DEVICE_TABLET else Constants.DEVICE_MOBILE)
+            put(
+                Timer.FIELD_DEVICE,
+                if (isTablet) Constants.DEVICE_TABLET else Constants.DEVICE_MOBILE
+            )
             put(Timer.FIELD_BROWSER_VERSION, "${Constants.BROWSER}-$appVersion-${Utils.os}")
             put(Timer.FIELD_SDK_VERSION, BuildConfig.SDK_VERSION)
         }
-    }
-
-    private fun initializeSessionManager() {
-        val applicationContext = context.get()?.applicationContext?:return
-
-        if(::sessionManager.isInitialized && sessionManager is UnConfiguredSessionManager) {
-            AppEventHub.instance.removeConsumer(sessionManager)
-        }
-        this.sessionManager = SessionManager(
-            applicationContext,
-            this.configuration.siteId?:"",
-            this.configuration.sessionExpiryDuration,
-            this.configurationRepository,
-            configurationUpdater,
-            defaultConfig
-        )
-        AppEventHub.instance.addConsumer(this.sessionManager)
-    }
-
-    private fun deInitializeSessionManager() {
-        sessionManager.endSession()
-        AppEventHub.instance.removeConsumer(sessionManager)
-        sessionManager = UnConfiguredSessionManager(configuration, configurationUpdater)
-        AppEventHub.instance.addConsumer(sessionManager)
     }
 
     private fun initializeANRMonitor() {
@@ -280,21 +218,23 @@ class Tracker private constructor(
 
     private fun initializeScreenTracker() {
         screenTrackMonitor = BTTScreenLifecycleTracker(
-            configuration.isScreenTrackingEnabled,
-            sessionManager.sessionData.ignoreScreens
+            configuration.isScreenTrackingEnabled, sessionManager.sessionData.ignoreScreens
         ).also {
             val fragmentLifecycleTracker = FragmentLifecycleTracker(it)
             activityLifecycleTracker = ActivityLifecycleTracker(
-                it,
-                fragmentLifecycleTracker
+                it, fragmentLifecycleTracker
             )
-            (context.get()?.applicationContext as? Application)?.registerActivityLifecycleCallbacks(activityLifecycleTracker)
+            (context.get()?.applicationContext as? Application)?.registerActivityLifecycleCallbacks(
+                activityLifecycleTracker
+            )
         }
     }
 
     private fun deInitializeScreenTracker() {
         activityLifecycleTracker?.let {
-            (context.get()?.applicationContext as? Application)?.unregisterActivityLifecycleCallbacks(it)
+            (context.get()?.applicationContext as? Application)?.unregisterActivityLifecycleCallbacks(
+                it
+            )
         }
         screenTrackMonitor = null
         activityLifecycleTracker = null
@@ -311,8 +251,7 @@ class Tracker private constructor(
         }
 
         val hasNetworkStatePermission = ContextCompat.checkSelfPermission(
-            appContext,
-            ACCESS_NETWORK_STATE
+            appContext, ACCESS_NETWORK_STATE
         ) == PackageManager.PERMISSION_GRANTED
 
         if (!hasNetworkStatePermission) {
@@ -332,7 +271,7 @@ class Tracker private constructor(
     }
 
     private fun deInitializeNetworkMonitoring() {
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             networkStateMonitor?.stop()
             networkTimelineTracker?.stop()
             networkStateMonitor = null
@@ -636,11 +575,12 @@ class Tracker private constructor(
 
     @Synchronized
     internal fun updateSession(sessionData: SessionData) {
-        if (configuration.sessionId == sessionData.sessionId &&
-            configuration.shouldSampleNetwork == sessionData.shouldSampleNetwork &&
-            configuration.networkSampleRate == sessionData.networkSampleRate) return
+        if (configuration.sessionId == sessionData.sessionId && configuration.shouldSampleNetwork == sessionData.shouldSampleNetwork && configuration.networkSampleRate == sessionData.networkSampleRate) return
 
-        if(screenTrackMonitor != null && screenTrackMonitor?.ignoreScreens?.joinToString(",") == sessionData.ignoreScreens.joinToString(",")) return
+        if (screenTrackMonitor != null && screenTrackMonitor?.ignoreScreens?.joinToString(",") == sessionData.ignoreScreens.joinToString(
+                ","
+            )
+        ) return
 
         configuration.logger?.debug("Updating session Data from ${configuration.sessionId}:${configuration.networkSampleRate}:${configuration.shouldSampleNetwork} to ${sessionData.sessionId}:${sessionData.networkSampleRate}:${sessionData.shouldSampleNetwork}")
         configuration.sessionId = sessionData.sessionId
@@ -752,9 +692,7 @@ class Tracker private constructor(
      * @param exception the exception to track
      */
     fun trackException(
-        message: String?,
-        exception: Throwable,
-        errorType: BTErrorType = BTErrorType.NativeAppCrash
+        message: String?, exception: Throwable, errorType: BTErrorType = BTErrorType.NativeAppCrash
     ) {
         val timeStamp = System.currentTimeMillis().toString()
         val mostRecentTimer = getMostRecentTimer()
@@ -870,20 +808,71 @@ class Tracker private constructor(
                 return instance
             }
 
-            if (configuration.isDebug) {
-                configuration.logger = AndroidLogger(configuration.debugLevel)
+            if (!validateAndInitializeConfiguration(application, configuration)) {
+                return null
             }
+
+            initializeConfigurationUpdater(application, configuration)
+
+            if (configurationRepository.get().enableAllTracking) {
+                initializeSessionManager(application, configuration)
+                instance = Tracker(application, configuration)
+            } else {
+                deInitializeSessionManager(configuration)
+                configuration.logger?.debug("enableAllTracking is false, no need to initialize SDK")
+            }
+
+            observeEnableDisableSDK(application, configuration)
+            return instance
+        }
+
+        private fun validateAndInitializeConfiguration(
+            application: Application, configuration: BlueTriangleConfiguration
+        ): Boolean {
+            initializeLogger(configuration)
 
             MetadataReader.applyMetadata(application, configuration)
 
-            if (configuration.applicationName.isNullOrBlank()) {
-                configuration.applicationName = Utils.getAppNameAndOs(application)
-            }
+            initializeAppName(application, configuration)
+            initializeUserAgent(application, configuration)
+            initializeCacheDirectory(application, configuration)
+            checkAndInitializeSiteIDFromResources(application, configuration)
 
+            // if still no site ID, log error
+            if (configuration.siteId.isNullOrBlank()) {
+                configuration.logger?.error("Site ID is required.")
+                return false
+            }
+            return true
+        }
+
+        private fun initializeLogger(
+            configuration: BlueTriangleConfiguration
+        ) {
+            if (configuration.isDebug) {
+                configuration.logger = AndroidLogger(configuration.debugLevel)
+            }
+        }
+
+        private fun initializeUserAgent(
+            application: Application, configuration: BlueTriangleConfiguration
+        ) {
             if (configuration.userAgent.isNullOrBlank()) {
                 configuration.userAgent = Utils.buildUserAgent(application)
             }
+        }
 
+        private fun initializeAppName(
+            application: Application, configuration: BlueTriangleConfiguration
+        ) {
+            if (configuration.applicationName.isNullOrBlank()) {
+                configuration.applicationName = Utils.getAppNameAndOs(application)
+            }
+        }
+
+        private fun initializeCacheDirectory(
+            application: Application, configuration: BlueTriangleConfiguration
+        ) {
             if (configuration.cacheDirectory.isNullOrBlank()) {
                 val cacheDir = File(application.cacheDir, "bta")
                 if (!cacheDir.exists()) {
@@ -893,7 +882,11 @@ class Tracker private constructor(
                 }
                 configuration.cacheDirectory = cacheDir.absolutePath
             }
+        }
 
+        private fun checkAndInitializeSiteIDFromResources(
+            application: Application, configuration: BlueTriangleConfiguration
+        ) {
             // if site id is still not configured, try legacy resource string method
             if (configuration.siteId.isNullOrBlank()) {
                 val resourceSiteID = Utils.getResourceString(application, SITE_ID_RESOURCE_KEY)
@@ -901,15 +894,94 @@ class Tracker private constructor(
                     configuration.siteId = resourceSiteID
                 }
             }
+        }
 
-            // if still no site ID, log error
-            if (configuration.siteId.isNullOrBlank()) {
-                configuration.logger?.error("Site ID is required.")
-                return null
+        private var repositoryUpdatesJob: Job? = null
+
+        @Suppress("OPT_IN_USAGE")
+        private fun observeEnableDisableSDK(
+            application: Application,
+            configuration: BlueTriangleConfiguration
+        ) {
+            repositoryUpdatesJob?.cancel()
+            repositoryUpdatesJob = GlobalScope.launch(Dispatchers.IO) {
+                configurationRepository.getLiveUpdates(notifyCurrent = false).collect {
+                    if (it?.enableAllTracking == true) {
+                        if(instance == null) {
+                            initializeSessionManager(application, configuration)
+                            instance = init(application, configuration)
+                        }
+                    } else {
+                        if(instance != null) {
+                            instance?.disable()
+                            deInitializeSessionManager(configuration)
+                            instance = null
+                        }
+                    }
+                }
             }
+        }
 
-            instance = Tracker(application, configuration)
-            return instance
+        private lateinit var configurationRepository: IBTTConfigurationRepository
+        private lateinit var configurationUpdater: IBTTConfigurationUpdater
+        private lateinit var sessionManager: ISessionManager
+
+        private val BlueTriangleConfiguration.defaultRemoteConfig: BTTSavedRemoteConfiguration
+            get() = BTTSavedRemoteConfiguration(
+                networkSampleRate = networkSampleRate,
+                ignoreList = listOf(),
+                enableRemoteConfigAck = false,
+                enableAllTracking = true,
+                savedDate = 0L
+            )
+
+        private fun initializeConfigurationUpdater(
+            application: Application, configuration: BlueTriangleConfiguration
+        ) {
+            configurationRepository = BTTConfigurationRepository(
+                configuration.logger,
+                application,
+                configuration.siteId ?: "",
+                defaultConfig = configuration.defaultRemoteConfig
+            )
+
+            val configUrl = "https://192.168.0.102:3000/config.php?siteID=${configuration.siteId}"
+            configurationUpdater = BTTConfigurationUpdater(
+                logger = configuration.logger,
+                repository = this.configurationRepository,
+                fetcher = BTTConfigurationFetcher(configUrl),
+                2 * 60 * 1000,
+                reporter = BTTConfigUpdateReporter(
+                    configuration, DeviceInfoProvider
+                )
+            )
+        }
+
+        private fun initializeSessionManager(
+            application: Application,
+            configuration: BlueTriangleConfiguration
+        ) {
+            if (::sessionManager.isInitialized) {
+                AppEventHub.instance.removeConsumer(sessionManager)
+            }
+            this.sessionManager = SessionManager(
+                application,
+                configuration.siteId ?: "",
+                configuration.sessionExpiryDuration,
+                configurationRepository,
+                configurationUpdater,
+                defaultConfig = configuration.defaultRemoteConfig
+            )
+            AppEventHub.instance.addConsumer(this.sessionManager)
+        }
+
+        private fun deInitializeSessionManager(configuration: BlueTriangleConfiguration) {
+            if(::sessionManager.isInitialized) {
+                sessionManager.endSession()
+                AppEventHub.instance.removeConsumer(sessionManager)
+            }
+            sessionManager = DisabledModeSessionManager(configuration, configurationUpdater)
+            AppEventHub.instance.addConsumer(sessionManager)
         }
     }
 

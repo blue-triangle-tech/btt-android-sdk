@@ -36,5 +36,9 @@ internal class AppEventAccumulator(private val logHolder: LogHolder) {
         return null
     }
 
+    internal fun reset() {
+        events.clear()
+    }
+
     class Result(val type: LaunchType, val events: List<AppLifecycleEvent>)
 }

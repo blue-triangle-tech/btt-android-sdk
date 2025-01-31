@@ -11,7 +11,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-internal class UnConfiguredSessionManager(
+internal class DisabledModeSessionManager(
     private val configuration: BlueTriangleConfiguration,
     private val updater: IBTTConfigurationUpdater
 ) : ISessionManager {
@@ -37,17 +37,14 @@ internal class UnConfiguredSessionManager(
         updateConfig()
     }
 
-    override fun endSession() {
-
+    private fun updateConfig() {
+        scope?.launch {
+            updater.update()
+        }
     }
 
-    private fun updateConfig() {
-        if(!sessionData.isConfigApplied) {
-            scope?.launch {
-                updater.forceUpdate()
-            }
-            dummySession = dummySessionData(true)
-        }
+    override fun endSession() {
+
     }
 
     override fun onActivityResumed(activity: Activity) {
@@ -69,7 +66,8 @@ internal class UnConfiguredSessionManager(
     }
 
     private fun initScope() {
-        destroyScope()
+        if(scope?.isActive == true) return
+
         scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     }
 

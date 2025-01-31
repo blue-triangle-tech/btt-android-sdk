@@ -155,7 +155,11 @@ class Timer : Parcelable {
     )
 
     private fun isTrackingEnabled():Boolean {
-        return tracker != null
+        // tracker field is set when the timer object is created
+        // Tracker.instance is the current state of the Tracker
+        // Tracking is enabled only if the tracker was not null from the time the Timer object was created till now
+        // so checking both these edge cases is necessary
+        return tracker != null && Tracker.instance != null
     }
 
     fun generateNativeAppProperties() {

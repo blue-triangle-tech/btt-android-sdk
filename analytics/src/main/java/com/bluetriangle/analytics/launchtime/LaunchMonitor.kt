@@ -75,6 +75,11 @@ internal class LaunchMonitor private constructor(): AppEventConsumer, LaunchEven
     }
 
     override fun onActivityResumed(activity: Activity) {
+        if(Tracker.instance == null) {
+            appEventAccumulator.reset()
+            return
+        }
+
         log(LogData(level = Log.VERBOSE, message = "${getPrefix()} onActivityResumed"))
         val result = appEventAccumulator.accumulate(AppLifecycleEvent.ActivityResumed())
         if(result != null) {
@@ -92,6 +97,11 @@ internal class LaunchMonitor private constructor(): AppEventConsumer, LaunchEven
     }
 
     override fun onAppMovedToBackground(application:Application) {
+        if(Tracker.instance == null) {
+            appEventAccumulator.reset()
+            return
+        }
+
         log(LogData(level = Log.VERBOSE, message = "${getPrefix()} onAppMovedToBackground"))
     }
 
