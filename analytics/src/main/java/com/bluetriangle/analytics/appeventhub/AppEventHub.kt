@@ -1,24 +1,14 @@
-package com.bluetriangle.analytics
+package com.bluetriangle.analytics.appeventhub
 
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
-import android.util.Log
 import androidx.lifecycle.ProcessLifecycleOwner
-import com.bluetriangle.analytics.launchtime.AppEventConsumer
-import com.bluetriangle.analytics.launchtime.helpers.ActivityEventHandler
-import com.bluetriangle.analytics.launchtime.helpers.AppBackgroundNotifier
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Dispatchers.IO
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.bluetriangle.analytics.appeventhub.helpers.ActivityEventHandler
+import com.bluetriangle.analytics.appeventhub.helpers.AppBackgroundNotifier
 import java.lang.ref.WeakReference
 
-internal class AppEventHub private constructor():AppEventConsumer  {
-
-    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+internal class AppEventHub private constructor(): AppEventConsumer {
 
     companion object {
         private var _instance: AppEventHub? = null

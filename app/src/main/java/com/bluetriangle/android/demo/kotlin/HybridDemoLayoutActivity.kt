@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.webkit.WebView
-import androidx.activity.addCallback
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import com.bluetriangle.android.demo.BTTWebViewClient
 import com.bluetriangle.android.demo.DemoApplication
@@ -34,18 +34,22 @@ class HybridDemoLayoutActivity : AppCompatActivity() {
 
         binding?.webView?.loadUrl(DemoApplication.DEMO_WEBSITE_URL)
 
-        onBackPressedDispatcher.addCallback {
-            binding?.webView?.apply {
-                if (canGoBack()) {
-                    goBack()
-                    if(!canGoBack()) {
-                        optionsMenu?.findItem(R.id.about_menu)?.isVisible = true
+        onBackPressedDispatcher.addCallback(object:
+            OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                binding?.webView?.apply {
+                    if (canGoBack()) {
+                        goBack()
+                        if(!canGoBack()) {
+                            optionsMenu?.findItem(R.id.about_menu)?.isVisible = true
+                        }
+                    } else {
+                        finish()
                     }
-                } else {
-                    finish()
                 }
             }
-        }
+
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

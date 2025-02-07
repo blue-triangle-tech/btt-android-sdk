@@ -8,19 +8,21 @@ package com.bluetriangle.analytics.dynamicconfig.model
 internal open class BTTRemoteConfiguration(
     val networkSampleRate: Double?,
     val ignoreScreens:List<String>,
+    val enableAllTracking: Boolean,
     val enableRemoteConfigAck: Boolean
 ) {
     override fun equals(other: Any?): Boolean {
         if(other is BTTRemoteConfiguration) {
             return other.networkSampleRate == this.networkSampleRate &&
                     other.enableRemoteConfigAck == this.enableRemoteConfigAck &&
-                    other.ignoreScreens.joinToString() == ignoreScreens.joinToString()
+                    other.ignoreScreens.joinToString() == ignoreScreens.joinToString() &&
+                    other.enableAllTracking == enableAllTracking
         }
         return false
     }
 
     override fun toString(): String {
-        return "RemoteConfig { networkSampleRate: $networkSampleRate, ignoreList: ${ignoreScreens}, enableRemoteConfigAck: $enableRemoteConfigAck }"
+        return "RemoteConfig { networkSampleRate: $networkSampleRate, ignoreList: ${ignoreScreens}, enableRemoteConfigAck: $enableRemoteConfigAck, enableAllTracking: $enableAllTracking }"
     }
 
     override fun hashCode(): Int {

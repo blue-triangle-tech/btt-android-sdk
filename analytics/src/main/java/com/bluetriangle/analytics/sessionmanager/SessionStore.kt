@@ -11,4 +11,6 @@ internal interface SessionStore {
 
     fun retrieveSessionData():SessionData?
 
+    fun clearSessionData()
+
 }

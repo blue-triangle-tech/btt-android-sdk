@@ -5,7 +5,7 @@ package com.bluetriangle.analytics.launchtime
 import com.bluetriangle.analytics.Logger
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Tracker
-import com.bluetriangle.analytics.launchtime.data.LaunchEvent
+import com.bluetriangle.analytics.launchtime.model.LaunchEvent
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay

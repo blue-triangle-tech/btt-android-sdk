@@ -1,4 +1,4 @@
-package com.bluetriangle.analytics.launchtime.data
+package com.bluetriangle.analytics.launchtime.model
 
 internal enum class LaunchType {
     Hot,

@@ -3,10 +3,8 @@ package com.bluetriangle.analytics.networkcapture
 import android.net.Uri
 import com.bluetriangle.analytics.Constants
 import com.bluetriangle.analytics.Timer
-import com.bluetriangle.analytics.deviceinfo.DeviceInfoProvider
 import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 import org.json.JSONArray
-import org.json.JSONObject
 
 class CapturedRequestCollection(
     private var siteId: String,

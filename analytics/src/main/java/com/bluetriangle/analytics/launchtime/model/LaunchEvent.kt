@@ -1,4 +1,4 @@
-package com.bluetriangle.analytics.launchtime.data
+package com.bluetriangle.analytics.launchtime.model
 
 internal sealed class LaunchEvent private constructor(val data: LaunchData) {
 

@@ -30,6 +30,8 @@ internal sealed class BTTNetworkState {
 
 internal interface INetworkStateMonitor {
     val state: StateFlow<BTTNetworkState>
+
+    fun stop()
 }
 
 @SuppressLint("MissingPermission")
@@ -72,12 +74,19 @@ internal class NetworkStateMonitor(logger: Logger?, context: Context) : INetwork
         }
     }.stateIn(GlobalScope, SharingStarted.WhileSubscribed(), BTTNetworkState.Offline)
 
+    private val handlers = arrayOf(wifiTransportHandler, cellularTransportHandler, ethernetTransportHandler)
     init {
-        arrayOf(wifiTransportHandler, cellularTransportHandler, ethernetTransportHandler).forEach {
+        handlers.forEach {
             connectivityManager?.registerNetworkCallback(
                 it.networkRequest, it.listener
             )
         }
         logger?.debug("-------------------Network Monitoring Started!-----------------")
+    }
+
+    override fun stop() {
+        handlers.forEach {
+            connectivityManager?.unregisterNetworkCallback(it.listener)
+        }
     }
 }
