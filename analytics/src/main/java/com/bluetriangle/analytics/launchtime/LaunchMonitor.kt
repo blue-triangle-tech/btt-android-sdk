@@ -8,8 +8,9 @@ import android.os.Process
 import android.os.SystemClock
 import android.util.Log
 import com.bluetriangle.analytics.Tracker
-import com.bluetriangle.analytics.launchtime.data.AppEvent
-import com.bluetriangle.analytics.launchtime.data.LaunchEvent
+import com.bluetriangle.analytics.appeventhub.AppEventConsumer
+import com.bluetriangle.analytics.launchtime.model.AppLifecycleEvent
+import com.bluetriangle.analytics.launchtime.model.LaunchEvent
 import com.bluetriangle.analytics.launchtime.helpers.AppEventAccumulator
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -18,7 +19,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.launch
 
 @OptIn(DelicateCoroutinesApi::class)
-internal class LaunchMonitor private constructor():AppEventConsumer, LaunchEventProducer, LogHolder {
+internal class LaunchMonitor private constructor(): AppEventConsumer, LaunchEventProducer, LogHolder {
 
     companion object {
         private const val LOG_BUFFER_SIZE = 30
@@ -45,7 +46,7 @@ internal class LaunchMonitor private constructor():AppEventConsumer, LaunchEvent
             return
         }
         while(_logs.size >= LOG_BUFFER_SIZE) {
-            _logs.removeFirst()
+            _logs.removeAt(0)
         }
         _logs.add(logData)
     }
@@ -60,22 +61,27 @@ internal class LaunchMonitor private constructor():AppEventConsumer, LaunchEvent
 
     override fun onAppCreated(application:Application) {
         log(LogData(level = Log.VERBOSE, message = "${getPrefix()} onAppCreated"))
-        appEventAccumulator.accumulate(AppEvent.AppCreated())
+        appEventAccumulator.accumulate(AppLifecycleEvent.AppLifecycleCreated())
     }
 
     override fun onActivityCreated(activity: Activity, data: Bundle?) {
         log(LogData(level = Log.VERBOSE, message = "${getPrefix()} onActivityCreated: $data"))
-        appEventAccumulator.accumulate(AppEvent.ActivityCreated(data))
+        appEventAccumulator.accumulate(AppLifecycleEvent.ActivityCreated())
     }
 
     override fun onActivityStarted(activity: Activity) {
         log(LogData(level = Log.VERBOSE, message = "${getPrefix()} onActivityStarted"))
-        appEventAccumulator.accumulate(AppEvent.ActivityStarted())
+        appEventAccumulator.accumulate(AppLifecycleEvent.ActivityStarted())
     }
 
     override fun onActivityResumed(activity: Activity) {
+        if(Tracker.instance == null) {
+            appEventAccumulator.reset()
+            return
+        }
+
         log(LogData(level = Log.VERBOSE, message = "${getPrefix()} onActivityResumed"))
-        val result = appEventAccumulator.accumulate(AppEvent.ActivityResumed())
+        val result = appEventAccumulator.accumulate(AppLifecycleEvent.ActivityResumed())
         if(result != null) {
             val activityName = activity::class.java.simpleName
             val startTime = result.events[0].time
@@ -91,6 +97,11 @@ internal class LaunchMonitor private constructor():AppEventConsumer, LaunchEvent
     }
 
     override fun onAppMovedToBackground(application:Application) {
+        if(Tracker.instance == null) {
+            appEventAccumulator.reset()
+            return
+        }
+
         log(LogData(level = Log.VERBOSE, message = "${getPrefix()} onAppMovedToBackground"))
     }
 

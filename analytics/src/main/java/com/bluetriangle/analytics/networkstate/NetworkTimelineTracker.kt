@@ -7,20 +7,26 @@ import com.bluetriangle.analytics.networkstate.data.NetworkSwitch
 import com.bluetriangle.analytics.utility.value
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 internal class NetworkTimelineTracker(private val networkStateMonitor: NetworkStateMonitor) {
 
-    private var appScope = CoroutineScope(Dispatchers.IO)
+    private var appScope:CoroutineScope? = CoroutineScope(Dispatchers.IO)
     private val networkSwitches = arrayListOf<NetworkSwitch>()
 
     init {
-        appScope.launch {
+        appScope?.launch {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 networkStateMonitor.state.collectLatest(::onNetworkChange)
             }
         }
+    }
+
+    internal fun stop() {
+        appScope?.cancel()
+        appScope = null
     }
 
     @Synchronized

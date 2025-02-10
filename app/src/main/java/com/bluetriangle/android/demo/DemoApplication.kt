@@ -79,7 +79,7 @@ class DemoApplication : Application() {
         configuration.isMemoryWarningEnabled = true
         tracker = init(this, configuration)
 
-        tracker!!.setSessionTrafficSegmentName("Demo Traffic Segment")
+        tracker?.setSessionTrafficSegmentName("Demo Traffic Segment")
     }
 
     private fun checkANRTestOnAppCreate() {

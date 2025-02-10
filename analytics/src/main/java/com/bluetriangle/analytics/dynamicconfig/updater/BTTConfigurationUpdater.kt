@@ -5,15 +5,16 @@
  */
 package com.bluetriangle.analytics.dynamicconfig.updater
 
-import com.bluetriangle.analytics.Tracker
+import com.bluetriangle.analytics.Logger
+import com.bluetriangle.analytics.appeventhub.AppEventConsumer
 import com.bluetriangle.analytics.dynamicconfig.fetcher.BTTConfigFetchResult
 import com.bluetriangle.analytics.dynamicconfig.fetcher.IBTTConfigurationFetcher
 import com.bluetriangle.analytics.dynamicconfig.model.BTTSavedRemoteConfiguration
 import com.bluetriangle.analytics.dynamicconfig.reporter.BTTConfigUpdateReporter
 import com.bluetriangle.analytics.dynamicconfig.repository.IBTTConfigurationRepository
-import com.bluetriangle.analytics.launchtime.AppEventConsumer
 
 internal class BTTConfigurationUpdater(
+    private val logger: Logger?,
     private val repository: IBTTConfigurationRepository,
     private val fetcher: IBTTConfigurationFetcher,
     private val configRefreshDuration: Long,
@@ -31,22 +32,23 @@ internal class BTTConfigurationUpdater(
     private var isFetching = false
 
     override suspend fun forceUpdate() {
-        if(isFetching) return
+        if (isFetching) return
         isFetching = true
         when (val result = fetcher.fetch()) {
             is BTTConfigFetchResult.Success -> {
-                Tracker.instance?.configuration?.logger?.debug("Fetched remote config: ${result.config}")
+                logger?.debug("Fetched remote config: ${result.config}")
                 val savedRemoteConfig = repository.get()
                 repository.save(
                     BTTSavedRemoteConfiguration(
                         result.config.networkSampleRate,
                         result.config.ignoreScreens,
                         result.config.enableRemoteConfigAck,
+                        result.config.enableAllTracking,
                         System.currentTimeMillis()
                     )
                 )
-                if(result.config.enableRemoteConfigAck) {
-                    if(result.config != savedRemoteConfig) {
+                if (result.config.enableRemoteConfigAck) {
+                    if (result.config != savedRemoteConfig) {
                         reporter.reportSuccess()
                     }
                 }
@@ -54,8 +56,8 @@ internal class BTTConfigurationUpdater(
 
             is BTTConfigFetchResult.Failure -> {
                 val savedRemoteConfig = repository.get()
-                Tracker.instance?.configuration?.logger?.error("Error while fetching remote config, Reason: ${result.error.reason}")
-                if(savedRemoteConfig.enableRemoteConfigAck) {
+                logger?.error("Error while fetching remote config, Reason: ${result.error.reason}")
+                if (savedRemoteConfig.enableRemoteConfigAck) {
                     reporter.reportError(result.error)
                 }
             }

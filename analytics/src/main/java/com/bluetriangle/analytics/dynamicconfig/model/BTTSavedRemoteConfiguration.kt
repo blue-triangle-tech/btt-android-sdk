@@ -9,8 +9,9 @@ internal class BTTSavedRemoteConfiguration(
     networkSampleRate: Double?,
     ignoreList: List<String>,
     enableRemoteConfigAck: Boolean,
+    enableAllTracking: Boolean,
     val savedDate: Long
-) : BTTRemoteConfiguration(networkSampleRate, ignoreList, enableRemoteConfigAck) {
+) : BTTRemoteConfiguration(networkSampleRate, ignoreList, enableAllTracking, enableRemoteConfigAck) {
 
     override fun equals(other: Any?): Boolean {
         if(other is BTTSavedRemoteConfiguration) {

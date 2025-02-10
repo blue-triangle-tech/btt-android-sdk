@@ -1,9 +1,9 @@
-package com.bluetriangle.analytics.launchtime.helpers
+package com.bluetriangle.analytics.appeventhub.helpers
 
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
-import com.bluetriangle.analytics.AppEventHub
+import com.bluetriangle.analytics.appeventhub.AppEventHub
 
 internal class ActivityEventHandler :
     Application.ActivityLifecycleCallbacks {

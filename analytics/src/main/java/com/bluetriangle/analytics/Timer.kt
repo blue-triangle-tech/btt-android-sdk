@@ -154,6 +154,14 @@ class Timer : Parcelable {
         null
     )
 
+    private fun isTrackingEnabled():Boolean {
+        // tracker field is set when the timer object is created
+        // Tracker.instance is the current state of the Tracker
+        // Tracking is enabled only if the tracker was not null from the time the Timer object was created till now
+        // so checking both these edge cases is necessary
+        return tracker != null && Tracker.instance != null
+    }
+
     fun generateNativeAppProperties() {
         nativeAppProperties = NativeAppProperties(
             null,
@@ -231,6 +239,8 @@ class Timer : Parcelable {
      */
     @Synchronized
     fun start(): Timer {
+        if(!isTrackingEnabled()) return this
+
         if (start == 0L) {
             start = System.currentTimeMillis()
             setField(FIELD_UNLOAD_EVENT_START, start)
@@ -262,6 +272,8 @@ class Timer : Parcelable {
      */
     @Synchronized
     fun interactive(): Timer {
+        if(!isTrackingEnabled()) return this
+
         if (start > 0 && interactive == 0L) {
             interactive = System.currentTimeMillis()
             setField(FIELD_DOM_INTERACTIVE, interactive)
@@ -286,6 +298,8 @@ class Timer : Parcelable {
      */
     @Synchronized
     fun end(): Timer {
+        if(!isTrackingEnabled()) return this
+
         if (start > 0 && end == 0L) {
             end = System.currentTimeMillis()
             setField(FIELD_PAGE_TIME, pageTimeCalculator())
@@ -338,6 +352,8 @@ class Timer : Parcelable {
      * Convenience method to submit this timer to the global tracker
      */
     fun submit() {
+        if(!isTrackingEnabled()) return
+
         val tracker = Tracker.instance
         if (tracker != null) {
             if (nativeAppProperties.loadTime == null) {
@@ -711,13 +727,4 @@ class Timer : Parcelable {
         fields[FIELD_ERR] = if (err) "1" else "0"
     }
 
-//    companion object CREATOR : Parcelable.Creator<Timer> {
-//        override fun createFromParcel(parcel: Parcel): Timer {
-//            return Timer(parcel)
-//        }
-//
-//        override fun newArray(size: Int): Array<Timer?> {
-//            return arrayOfNulls(size)
-//        }
-//    }
 }

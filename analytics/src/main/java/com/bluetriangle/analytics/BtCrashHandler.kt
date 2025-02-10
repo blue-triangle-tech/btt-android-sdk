@@ -9,7 +9,7 @@ internal class BtCrashHandler(
     private val configuration: BlueTriangleConfiguration,
     private val deviceInfoProvider: IDeviceInfoProvider
 ) : Thread.UncaughtExceptionHandler {
-    private val defaultUEH: Thread.UncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler()
+    internal val defaultUEH: Thread.UncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler()
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     override fun uncaughtException(t: Thread, e: Throwable) {

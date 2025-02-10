@@ -1,4 +1,4 @@
-package com.bluetriangle.analytics.launchtime
+package com.bluetriangle.analytics.appeventhub
 
 import android.app.Activity
 import android.app.Application
