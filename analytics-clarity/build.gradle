@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
+    id 'maven-publish'
 }
 
 android {
@@ -31,5 +32,19 @@ android {
 
 dependencies {
     implementation project(":analytics")
-    api 'com.microsoft.clarity:clarity:3.1.2'
+    api "com.microsoft.clarity:clarity:3.1.2"
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            // Creates a Maven publication called "release".
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.github.blue-triangle-tech'
+                artifactId = 'btt-android-sdk-clarity'
+                version = "2.16.2"
+            }
+        }
+    }
 }
