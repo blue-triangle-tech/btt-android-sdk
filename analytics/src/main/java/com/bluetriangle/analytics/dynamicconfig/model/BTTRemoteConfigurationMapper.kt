@@ -8,6 +8,7 @@ package com.bluetriangle.analytics.dynamicconfig.model
 import com.bluetriangle.analytics.utility.getBooleanOrNull
 import com.bluetriangle.analytics.utility.getIntOrNull
 import com.bluetriangle.analytics.utility.getJsonArrayOrNull
+import com.bluetriangle.analytics.utility.getStringOrNull
 import org.json.JSONObject
 
 internal object BTTRemoteConfigurationMapper {
@@ -16,6 +17,7 @@ internal object BTTRemoteConfigurationMapper {
     private const val ENABLE_REMOTE_CONFIG = "enableRemoteConfigAck"
     private const val IGNORE_SCREENS = "ignoreScreens"
     private const val ENABLE_ALL_TRACKING = "enableAllTracking"
+    private const val CLARITY_PROJECT_ID = "clarityProjectID"
 
     fun fromJson(remoteConfigJson: JSONObject): BTTRemoteConfiguration {
         val networkSampleRate = remoteConfigJson.getIntOrNull(NETWORK_SAMPLE_RATE)?.div(100.0)
@@ -30,12 +32,14 @@ internal object BTTRemoteConfigurationMapper {
             }
         } ?: listOf()
         val enableAllTracking = remoteConfigJson.getBooleanOrNull(ENABLE_ALL_TRACKING) ?: true
+        val clarityProjectID = remoteConfigJson.getStringOrNull(CLARITY_PROJECT_ID)
 
         return BTTRemoteConfiguration(
             networkSampleRate,
             ignoreScreens,
             enableAllTracking,
-            enableRemoteConfig
+            enableRemoteConfig,
+            clarityProjectID
         )
     }
 }

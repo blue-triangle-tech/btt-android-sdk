@@ -15,6 +15,8 @@ import androidx.core.content.ContextCompat
 import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
 import com.bluetriangle.analytics.appeventhub.AppEventHub
+import com.bluetriangle.analytics.sdkevents.SDKConfiguration
+import com.bluetriangle.analytics.sdkevents.SDKEventsManager
 import com.bluetriangle.analytics.deviceinfo.DeviceInfoProvider
 import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 import com.bluetriangle.analytics.dynamicconfig.fetcher.BTTConfigurationFetcher
@@ -158,6 +160,14 @@ class Tracker private constructor(
 
         initializeNetworkMonitoring()
         configuration.logger?.debug("SDK is enabled")
+        SDKEventsManager.notifyEnabled(
+            SDKConfiguration(
+                configuration.siteId?:"",
+                configuration.sessionId,
+                configuration.clarityProjectID,
+                false
+            )
+        )
     }
 
     @Synchronized
@@ -170,6 +180,14 @@ class Tracker private constructor(
         stopTrackCrashes()
         deInitializeNetworkMonitoring()
         configuration.logger?.debug("SDK is disabled.")
+        SDKEventsManager.notifyDisabled(
+            SDKConfiguration(
+                configuration.siteId?:"",
+                configuration.sessionId,
+                configuration.clarityProjectID,
+                false
+            )
+        )
     }
 
     fun trackCrashes() {
@@ -589,6 +607,14 @@ class Tracker private constructor(
         screenTrackMonitor?.ignoreScreens = sessionData.ignoreScreens
         setSessionId(sessionData.sessionId)
         BTTWebViewTracker.updateSession(sessionData.sessionId)
+        SDKEventsManager.notifySessionChanged(
+            SDKConfiguration(
+                configuration.siteId?:"",
+                configuration.sessionId,
+                configuration.clarityProjectID,
+                false
+            )
+        )
     }
 
     /**
@@ -812,9 +838,20 @@ class Tracker private constructor(
                 return null
             }
 
+            SDKEventsManager.notifyConfigured(application, SDKConfiguration(
+                configuration.siteId?:"",
+                configuration.sessionId,
+                configuration.clarityProjectID,
+                false
+            )
+            )
+
             initializeConfigurationUpdater(application, configuration)
 
-            if (configurationRepository.get().enableAllTracking) {
+            val remoteConfig = configurationRepository.get()
+            configuration.clarityProjectID = remoteConfig.clarityProjectID
+
+            if (remoteConfig.enableAllTracking) {
                 initializeSessionManager(application, configuration)
                 instance = Tracker(application, configuration)
             } else {
@@ -906,6 +943,7 @@ class Tracker private constructor(
             repositoryUpdatesJob?.cancel()
             repositoryUpdatesJob = GlobalScope.launch(Dispatchers.IO) {
                 configurationRepository.getLiveUpdates(notifyCurrent = false).collect {
+                    configuration.clarityProjectID = it?.clarityProjectID
                     if (it?.enableAllTracking == true) {
                         if(instance == null) {
                             initializeSessionManager(application, configuration)
@@ -932,7 +970,8 @@ class Tracker private constructor(
                 ignoreList = listOf(),
                 enableRemoteConfigAck = false,
                 enableAllTracking = true,
-                savedDate = 0L
+                savedDate = 0L,
+                clarityProjectID = clarityProjectID
             )
 
         private fun initializeConfigurationUpdater(

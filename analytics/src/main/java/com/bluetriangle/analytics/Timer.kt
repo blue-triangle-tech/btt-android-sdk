@@ -151,7 +151,8 @@ class Timer : Parcelable {
         null,
         null,
         performanceMonitor?.maxMainThreadUsage,
-        null
+        null,
+        clarityProjectID = tracker?.configuration?.clarityProjectID
     )
 
     private fun isTrackingEnabled():Boolean {
@@ -168,7 +169,8 @@ class Timer : Parcelable {
             null,
             performanceMonitor?.maxMainThreadUsage,
             null,
-            getNumberOfCPUCores()
+            getNumberOfCPUCores(),
+            clarityProjectID = tracker?.configuration?.clarityProjectID
         )
         Tracker.instance?.networkTimelineTracker?.let {
             val networkSlice = it.sliceStats(

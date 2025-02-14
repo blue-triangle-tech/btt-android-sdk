@@ -9,7 +9,8 @@ internal open class BTTRemoteConfiguration(
     val networkSampleRate: Double?,
     val ignoreScreens:List<String>,
     val enableAllTracking: Boolean,
-    val enableRemoteConfigAck: Boolean
+    val enableRemoteConfigAck: Boolean,
+    val clarityProjectID: String?
 ) {
     override fun equals(other: Any?): Boolean {
         if(other is BTTRemoteConfiguration) {
@@ -27,7 +28,11 @@ internal open class BTTRemoteConfiguration(
 
     override fun hashCode(): Int {
         var result = networkSampleRate?.hashCode() ?: 0
+        result = 31 * result + ignoreScreens.hashCode()
+        result = 31 * result + enableAllTracking.hashCode()
         result = 31 * result + enableRemoteConfigAck.hashCode()
+        result = 31 * result + (clarityProjectID?.hashCode() ?: 0)
         return result
     }
+
 }

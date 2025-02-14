@@ -1,0 +1,1 @@
+-keep class com.bluetriangle.analytics.clarity.ClarityInitializer { *; }

@@ -24,7 +24,8 @@ internal data class NativeAppProperties(
     var offline: Long? = null,
     var launchScreenName: String? = null,
     var deviceModel: String? = null,
-    var netStateSource: String? = null
+    var netStateSource: String? = null,
+    var clarityProjectID: String? = null
 ) : Parcelable {
 
     private val cellularTotal
@@ -39,6 +40,7 @@ internal data class NativeAppProperties(
         obj.put("maxMainThreadUsage", maxMainThreadUsage)
         obj.put("screenType", screenType?.value)
         obj.put("numberOfCPUCores", numberOfCPUCores)
+        obj.put("clarityProjectID", clarityProjectID)
 
         networkStates.apply {
             forEach { obj.put(it) }
