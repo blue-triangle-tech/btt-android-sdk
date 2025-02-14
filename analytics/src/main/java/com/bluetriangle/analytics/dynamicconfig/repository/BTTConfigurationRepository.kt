@@ -40,6 +40,7 @@ internal class BTTConfigurationRepository(
             config.ignoreScreens,
             config.enableRemoteConfigAck,
             config.enableAllTracking,
+            config.clarityProjectID,
             System.currentTimeMillis()
         )
 
