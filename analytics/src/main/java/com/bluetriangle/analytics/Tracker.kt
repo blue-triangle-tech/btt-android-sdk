@@ -837,7 +837,6 @@ class Tracker private constructor(
             initializeConfigurationUpdater(application, configuration)
 
             val remoteConfig = configurationRepository.get()
-            configuration.clarityProjectID = remoteConfig.clarityProjectID
 
             if (remoteConfig.enableAllTracking) {
                 initializeSessionManager(application, configuration)
@@ -958,7 +957,7 @@ class Tracker private constructor(
                 enableRemoteConfigAck = false,
                 enableAllTracking = true,
                 savedDate = 0L,
-                clarityProjectID = clarityProjectID,
+                clarityProjectID = null,
                 clarityEnabled = false
             )
 
