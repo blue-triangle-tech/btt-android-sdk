@@ -161,7 +161,7 @@ class BlueTriangleConfiguration {
      */
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     var isTrackNetworkStateEnabled: Boolean = true
-    
+
     companion object {
         const val DEFAULT_TRACKER_URL = "https://d.btttag.com/analytics.rcv"
         const val DEFAULT_ERROR_REPORTING_URL = "https://d.btttag.com/err.rcv"
