@@ -18,6 +18,7 @@ internal object BTTRemoteConfigurationMapper {
     private const val IGNORE_SCREENS = "ignoreScreens"
     private const val ENABLE_ALL_TRACKING = "enableAllTracking"
     private const val CLARITY_PROJECT_ID = "clarityProjectID"
+    private const val CLARITY_ENABLED = "clarityEnabled"
 
     fun fromJson(remoteConfigJson: JSONObject): BTTRemoteConfiguration {
         val networkSampleRate = remoteConfigJson.getIntOrNull(NETWORK_SAMPLE_RATE)?.div(100.0)
@@ -33,13 +34,15 @@ internal object BTTRemoteConfigurationMapper {
         } ?: listOf()
         val enableAllTracking = remoteConfigJson.getBooleanOrNull(ENABLE_ALL_TRACKING) ?: true
         val clarityProjectID = remoteConfigJson.getStringOrNull(CLARITY_PROJECT_ID)
+        val clarityEnabled = remoteConfigJson.getBooleanOrNull(CLARITY_ENABLED)?:false
 
         return BTTRemoteConfiguration(
             networkSampleRate,
             ignoreScreens,
             enableAllTracking,
             enableRemoteConfig,
-            clarityProjectID
+            clarityProjectID,
+            clarityEnabled
         )
     }
 }

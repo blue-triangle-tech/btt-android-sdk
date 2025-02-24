@@ -52,7 +52,6 @@ android {
 dependencies {
     implementation project(':analytics')
     implementation project(':analytics-okhttp')
-    implementation project(":analytics-clarity")
 
     implementation "com.squareup.okhttp3:okhttp-bom:4.9.2"
     implementation "com.squareup.okhttp3:okhttp"

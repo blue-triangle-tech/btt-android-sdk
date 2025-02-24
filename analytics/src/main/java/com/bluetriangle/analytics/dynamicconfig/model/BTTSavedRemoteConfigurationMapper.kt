@@ -19,6 +19,7 @@ internal object BTTSavedRemoteConfigurationMapper {
     private const val IGNORE_SCREENS = "ignoreScreens"
     private const val ENABLE_ALL_TRACKING = "enableAllTracking"
     private const val CLARITY_PROJECT_ID = "clarityProjectID"
+    private const val CLARITY_ENABLED = "clarityEnabled"
 
     fun fromJson(jsonObject: JSONObject): BTTSavedRemoteConfiguration {
         val ignoreScreens = jsonObject.getJsonArrayOrNull(IGNORE_SCREENS)?.let { array ->
@@ -37,6 +38,7 @@ internal object BTTSavedRemoteConfigurationMapper {
             jsonObject.getBoolean(ENABLE_REMOTE_CONFIG),
             jsonObject.getBooleanOrNull(ENABLE_ALL_TRACKING)?: true,
             jsonObject.getStringOrNull(CLARITY_PROJECT_ID),
+            jsonObject.getBooleanOrNull(CLARITY_ENABLED)?:false,
             jsonObject.getLong(SAVED_DATE)
         )
     }
@@ -51,6 +53,7 @@ internal object BTTSavedRemoteConfigurationMapper {
         put(ENABLE_ALL_TRACKING, config.enableAllTracking)
         put(ENABLE_REMOTE_CONFIG, config.enableRemoteConfigAck)
         put(CLARITY_PROJECT_ID, config.clarityProjectID)
+        put(CLARITY_ENABLED, config.clarityEnabled)
         put(SAVED_DATE, config.savedDate)
     }
 }

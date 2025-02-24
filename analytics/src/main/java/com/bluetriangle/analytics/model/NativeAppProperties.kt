@@ -2,6 +2,7 @@ package com.bluetriangle.analytics.model
 
 import android.os.Parcelable
 import com.bluetriangle.analytics.Timer
+import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.deviceinfo.DeviceInfo
 import com.bluetriangle.analytics.networkcapture.CapturedRequest
 import com.bluetriangle.analytics.networkcapture.CapturedRequest.Companion.FIELD_DEVICE_MODEL
@@ -24,8 +25,7 @@ internal data class NativeAppProperties(
     var offline: Long? = null,
     var launchScreenName: String? = null,
     var deviceModel: String? = null,
-    var netStateSource: String? = null,
-    var clarityProjectID: String? = null
+    var netStateSource: String? = null
 ) : Parcelable {
 
     private val cellularTotal
@@ -40,7 +40,6 @@ internal data class NativeAppProperties(
         obj.put("maxMainThreadUsage", maxMainThreadUsage)
         obj.put("screenType", screenType?.value)
         obj.put("numberOfCPUCores", numberOfCPUCores)
-        obj.put("clarityProjectID", clarityProjectID)
 
         networkStates.apply {
             forEach { obj.put(it) }
@@ -54,6 +53,9 @@ internal data class NativeAppProperties(
         obj.put("launchScreenName", launchScreenName)
         obj.put(FIELD_DEVICE_MODEL, deviceModel)
 
+        Tracker.instance?.thirdPartyConnectorManager?.payloadFields?.forEach {
+            obj.put(it.key, it.value)
+        }
         return obj
     }
 

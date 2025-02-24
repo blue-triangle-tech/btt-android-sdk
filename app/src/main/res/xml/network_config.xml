@@ -5,7 +5,7 @@
     </domain-config>
 
     <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">192.168.0.102</domain>
+        <domain includeSubdomains="true">192.168.0.103</domain>
         <trust-anchors>
             <certificates src="@raw/cert" />
         </trust-anchors>

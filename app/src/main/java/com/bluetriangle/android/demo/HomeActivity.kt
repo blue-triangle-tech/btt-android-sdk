@@ -2,8 +2,10 @@ package com.bluetriangle.android.demo
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import com.bluetriangle.android.demo.DemoApplication.Companion.onCreateTime
 import com.bluetriangle.android.demo.databinding.ActivityHomeBinding
 import com.bluetriangle.android.demo.java.JavaTestListActivity
 import com.bluetriangle.android.demo.kotlin.HybridDemoLayoutActivity
@@ -50,5 +52,10 @@ class HomeActivity : AppCompatActivity() {
             )
         }
         DemoApplication.checkLaunchTest(LaunchTestScenario.OnActivityCreate)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d("BenchmarkingSDK", "LaunchTime: ${System.currentTimeMillis() - onCreateTime}")
     }
 }

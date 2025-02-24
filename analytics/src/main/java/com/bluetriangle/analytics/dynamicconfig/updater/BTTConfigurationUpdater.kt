@@ -45,6 +45,7 @@ internal class BTTConfigurationUpdater(
                         result.config.enableRemoteConfigAck,
                         result.config.enableAllTracking,
                         result.config.clarityProjectID,
+                        result.config.clarityEnabled,
                         System.currentTimeMillis()
                     )
                 )

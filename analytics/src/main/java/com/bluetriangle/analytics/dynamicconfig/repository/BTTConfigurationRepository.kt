@@ -41,6 +41,7 @@ internal class BTTConfigurationRepository(
             config.enableRemoteConfigAck,
             config.enableAllTracking,
             config.clarityProjectID,
+            config.clarityEnabled,
             System.currentTimeMillis()
         )
 

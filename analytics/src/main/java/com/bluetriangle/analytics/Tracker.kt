@@ -15,7 +15,6 @@ import androidx.core.content.ContextCompat
 import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
 import com.bluetriangle.analytics.appeventhub.AppEventHub
-import com.bluetriangle.analytics.sdkevents.SDKConfiguration
 import com.bluetriangle.analytics.sdkevents.SDKEventsManager
 import com.bluetriangle.analytics.deviceinfo.DeviceInfoProvider
 import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
@@ -40,6 +39,10 @@ import com.bluetriangle.analytics.sessionmanager.DisabledModeSessionManager
 import com.bluetriangle.analytics.sessionmanager.ISessionManager
 import com.bluetriangle.analytics.sessionmanager.SessionData
 import com.bluetriangle.analytics.sessionmanager.SessionManager
+import com.bluetriangle.analytics.thirdpartyintegration.ClarityConnector
+import com.bluetriangle.analytics.thirdpartyintegration.SDKConfiguration
+import com.bluetriangle.analytics.thirdpartyintegration.ThirdPartyConnector
+import com.bluetriangle.analytics.thirdpartyintegration.ThirdPartyConnectorManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
@@ -112,6 +115,7 @@ class Tracker private constructor(
 
     private var deviceInfoProvider: IDeviceInfoProvider
 
+    internal val thirdPartyConnectorManager = ThirdPartyConnectorManager()
 
     init {
         this.context = WeakReference(application.applicationContext)
@@ -130,7 +134,10 @@ class Tracker private constructor(
             LaunchReporter(configuration.logger, LaunchMonitor.instance)
         }
 
+        thirdPartyConnectorManager.register(ClarityConnector(application))
+
         enable()
+
         configuration.logger?.debug("BlueTriangleSDK Initialized: $configuration")
     }
 
@@ -154,20 +161,17 @@ class Tracker private constructor(
             initializeANRMonitor()
         }
 
+        thirdPartyConnectorManager.setConfiguration(SDKConfiguration(
+            sessionData.clarityProjectID,
+            sessionData.clarityEnabled
+        ))
+        thirdPartyConnectorManager.startConnectors()
         if (configuration.isTrackCrashesEnabled) {
             trackCrashes()
         }
 
         initializeNetworkMonitoring()
         configuration.logger?.debug("SDK is enabled")
-        SDKEventsManager.notifyEnabled(
-            SDKConfiguration(
-                configuration.siteId?:"",
-                configuration.sessionId,
-                configuration.clarityProjectID,
-                false
-            )
-        )
     }
 
     @Synchronized
@@ -179,15 +183,9 @@ class Tracker private constructor(
         deInitializeANRMonitor()
         stopTrackCrashes()
         deInitializeNetworkMonitoring()
+
+        thirdPartyConnectorManager.stopConnectors()
         configuration.logger?.debug("SDK is disabled.")
-        SDKEventsManager.notifyDisabled(
-            SDKConfiguration(
-                configuration.siteId?:"",
-                configuration.sessionId,
-                configuration.clarityProjectID,
-                false
-            )
-        )
     }
 
     fun trackCrashes() {
@@ -605,16 +603,14 @@ class Tracker private constructor(
         configuration.networkSampleRate = sessionData.networkSampleRate
         configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
         screenTrackMonitor?.ignoreScreens = sessionData.ignoreScreens
+
+        thirdPartyConnectorManager.setConfiguration(SDKConfiguration(
+            sessionData.clarityProjectID,
+            sessionData.clarityEnabled
+        ))
+        thirdPartyConnectorManager.startConnectors()
         setSessionId(sessionData.sessionId)
         BTTWebViewTracker.updateSession(sessionData.sessionId)
-        SDKEventsManager.notifySessionChanged(
-            SDKConfiguration(
-                configuration.siteId?:"",
-                configuration.sessionId,
-                configuration.clarityProjectID,
-                false
-            )
-        )
     }
 
     /**
@@ -838,14 +834,6 @@ class Tracker private constructor(
                 return null
             }
 
-            SDKEventsManager.notifyConfigured(application, SDKConfiguration(
-                configuration.siteId?:"",
-                configuration.sessionId,
-                configuration.clarityProjectID,
-                false
-            )
-            )
-
             initializeConfigurationUpdater(application, configuration)
 
             val remoteConfig = configurationRepository.get()
@@ -943,14 +931,13 @@ class Tracker private constructor(
             repositoryUpdatesJob?.cancel()
             repositoryUpdatesJob = GlobalScope.launch(Dispatchers.IO) {
                 configurationRepository.getLiveUpdates(notifyCurrent = false).collect {
-                    configuration.clarityProjectID = it?.clarityProjectID
                     if (it?.enableAllTracking == true) {
-                        if(instance == null) {
+                        if (instance == null) {
                             initializeSessionManager(application, configuration)
                             instance = init(application, configuration)
                         }
                     } else {
-                        if(instance != null) {
+                        if (instance != null) {
                             instance?.disable()
                             deInitializeSessionManager(configuration)
                             instance = null
@@ -971,7 +958,8 @@ class Tracker private constructor(
                 enableRemoteConfigAck = false,
                 enableAllTracking = true,
                 savedDate = 0L,
-                clarityProjectID = clarityProjectID
+                clarityProjectID = clarityProjectID,
+                clarityEnabled = false
             )
 
         private fun initializeConfigurationUpdater(
@@ -984,7 +972,8 @@ class Tracker private constructor(
                 defaultConfig = configuration.defaultRemoteConfig
             )
 
-            val configUrl = "https://${configuration.siteId}.btttag.com/config.php"
+//            val configUrl = "https://${configuration.siteId}.btttag.com/config.php"
+            val configUrl = "https://192.168.0.103:3000/config.php"
             configurationUpdater = BTTConfigurationUpdater(
                 logger = configuration.logger,
                 repository = this.configurationRepository,
@@ -1015,7 +1004,7 @@ class Tracker private constructor(
         }
 
         private fun deInitializeSessionManager(configuration: BlueTriangleConfiguration) {
-            if(::sessionManager.isInitialized) {
+            if (::sessionManager.isInitialized) {
                 sessionManager.endSession()
                 AppEventHub.instance.removeConsumer(sessionManager)
             }

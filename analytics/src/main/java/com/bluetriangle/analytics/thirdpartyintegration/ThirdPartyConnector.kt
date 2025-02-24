@@ -1,12 +1,13 @@
 package com.bluetriangle.analytics.thirdpartyintegration
 
-interface ThirdPartyConnector {
+internal interface ThirdPartyConnector {
 
     fun start()
 
     fun stop()
 
-    fun configuration()
-    fun payloadFields():Map<String, Any>
+    fun setConfiguration(sdkConfiguration: SDKConfiguration)
+
+    fun payloadFields():Map<String, String?>
 
 }

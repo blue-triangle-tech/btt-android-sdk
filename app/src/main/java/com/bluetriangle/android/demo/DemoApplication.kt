@@ -18,6 +18,7 @@ class DemoApplication : Application() {
     companion object {
         lateinit var sharedPreferencesMgr: SharedPreferencesMgr
         lateinit var tinyDB: TinyDB
+        var onCreateTime: Long = 0L
         const val DEFAULT_SITE_ID = "sdkdemo26621z"
         const val TAG_URL = "TAG_URL"
         const val DEFAULT_TAG_URL = "$DEFAULT_SITE_ID.btttag.com/btt.js"
@@ -41,6 +42,7 @@ class DemoApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        onCreateTime = System.currentTimeMillis()
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         tinyDB = TinyDB(applicationContext)
 
@@ -65,6 +67,8 @@ class DemoApplication : Application() {
     private fun initTracker(siteId: String?) {
         if (siteId.isNullOrBlank()) return
 
+        val configStartTime = System.currentTimeMillis()
+
         val configuration = BlueTriangleConfiguration()
         configuration.isScreenTrackingEnabled = true
         configuration.isTrackCrashesEnabled = true
@@ -78,7 +82,7 @@ class DemoApplication : Application() {
         configuration.isTrackNetworkStateEnabled = true
         configuration.isMemoryWarningEnabled = true
         tracker = init(this, configuration)
-
+        Log.d("BenchmarkingSDK", "Config: ${System.currentTimeMillis() - configStartTime}")
         tracker?.setSessionTrafficSegmentName("Demo Traffic Segment")
     }
 
