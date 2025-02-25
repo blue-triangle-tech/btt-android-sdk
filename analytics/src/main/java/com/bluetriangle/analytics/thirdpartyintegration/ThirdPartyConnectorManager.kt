@@ -18,7 +18,7 @@ internal class ThirdPartyConnectorManager {
         connectors.forEach { it.start() }
     }
 
-    fun setConfiguration(config: SDKConfiguration) {
+    fun setConfiguration(config: ConnectorConfiguration) {
         connectors.forEach {
             it.setConfiguration(config)
         }

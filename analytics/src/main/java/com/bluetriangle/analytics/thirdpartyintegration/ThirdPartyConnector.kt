@@ -6,7 +6,7 @@ internal interface ThirdPartyConnector {
 
     fun stop()
 
-    fun setConfiguration(sdkConfiguration: SDKConfiguration)
+    fun setConfiguration(connectorConfiguration: ConnectorConfiguration)
 
     fun payloadFields():Map<String, String?>
 

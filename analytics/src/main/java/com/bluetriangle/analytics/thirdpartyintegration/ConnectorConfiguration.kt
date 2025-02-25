@@ -1,6 +1,6 @@
 package com.bluetriangle.analytics.thirdpartyintegration
 
-data class SDKConfiguration(
+data class ConnectorConfiguration(
     val clarityProjectID: String?,
     val clarityEnabled: Boolean
 )

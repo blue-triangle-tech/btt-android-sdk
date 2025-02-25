@@ -204,3 +204,8 @@ fun JSONObject.toMap(): Map<String, Any> {
         }.getOrNull()
     }.filterValues { it != null }.mapValues { it.value as Any }
 }
+
+
+internal fun getConfigUrl(siteId: String?): String {
+    return "https://${siteId}.btttag.com/config.php"
+}

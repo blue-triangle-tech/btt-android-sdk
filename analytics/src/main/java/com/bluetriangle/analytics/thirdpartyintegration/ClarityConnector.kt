@@ -24,9 +24,9 @@ internal class ClarityConnector(val application: Application):ThirdPartyConnecto
         Clarity.pause()
     }
 
-    override fun setConfiguration(sdkConfiguration: SDKConfiguration) {
-        clarityProjectID = sdkConfiguration.clarityProjectID
-        clarityEnabled = sdkConfiguration.clarityEnabled
+    override fun setConfiguration(connectorConfiguration: ConnectorConfiguration) {
+        clarityProjectID = connectorConfiguration.clarityProjectID
+        clarityEnabled = connectorConfiguration.clarityEnabled
     }
 
     override fun payloadFields() = if(clarityProjectID != null && clarityEnabled) {

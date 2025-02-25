@@ -15,7 +15,6 @@ import androidx.core.content.ContextCompat
 import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
 import com.bluetriangle.analytics.appeventhub.AppEventHub
-import com.bluetriangle.analytics.sdkevents.SDKEventsManager
 import com.bluetriangle.analytics.deviceinfo.DeviceInfoProvider
 import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 import com.bluetriangle.analytics.dynamicconfig.fetcher.BTTConfigurationFetcher
@@ -40,8 +39,7 @@ import com.bluetriangle.analytics.sessionmanager.ISessionManager
 import com.bluetriangle.analytics.sessionmanager.SessionData
 import com.bluetriangle.analytics.sessionmanager.SessionManager
 import com.bluetriangle.analytics.thirdpartyintegration.ClarityConnector
-import com.bluetriangle.analytics.thirdpartyintegration.SDKConfiguration
-import com.bluetriangle.analytics.thirdpartyintegration.ThirdPartyConnector
+import com.bluetriangle.analytics.thirdpartyintegration.ConnectorConfiguration
 import com.bluetriangle.analytics.thirdpartyintegration.ThirdPartyConnectorManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -161,7 +159,7 @@ class Tracker private constructor(
             initializeANRMonitor()
         }
 
-        thirdPartyConnectorManager.setConfiguration(SDKConfiguration(
+        thirdPartyConnectorManager.setConfiguration(ConnectorConfiguration(
             sessionData.clarityProjectID,
             sessionData.clarityEnabled
         ))
@@ -604,7 +602,7 @@ class Tracker private constructor(
         configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
         screenTrackMonitor?.ignoreScreens = sessionData.ignoreScreens
 
-        thirdPartyConnectorManager.setConfiguration(SDKConfiguration(
+        thirdPartyConnectorManager.setConfiguration(ConnectorConfiguration(
             sessionData.clarityProjectID,
             sessionData.clarityEnabled
         ))
@@ -971,8 +969,8 @@ class Tracker private constructor(
                 defaultConfig = configuration.defaultRemoteConfig
             )
 
-//            val configUrl = "https://${configuration.siteId}.btttag.com/config.php"
-            val configUrl = "https://192.168.0.103:3000/config.php"
+            val configUrl = getConfigUrl(configuration.siteId)
+
             configurationUpdater = BTTConfigurationUpdater(
                 logger = configuration.logger,
                 repository = this.configurationRepository,
