@@ -10,6 +10,13 @@ internal class ThirdPartyConnectorManager {
             }
         }
 
+    val nativeAppPayloadFields: Map<String, String?>
+        get() = buildMap {
+            connectors.forEach {
+                putAll(it.nativeAppPayloadFields())
+            }
+        }
+
     fun register(connector: ThirdPartyConnector) {
         connectors.add(connector)
     }

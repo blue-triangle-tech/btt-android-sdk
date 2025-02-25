@@ -12,6 +12,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.text.TextUtils
 import androidx.core.content.ContextCompat
+import com.bluetriangle.analytics.BlueTriangleConfiguration.Companion.configUrl
 import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
 import com.bluetriangle.analytics.appeventhub.AppEventHub
@@ -352,6 +353,12 @@ class Tracker private constructor(
             timer.end()
         }
         timer.setFields(globalFields.toMap())
+        thirdPartyConnectorManager.payloadFields.forEach {
+            val value = it.value
+            if(value != null) {
+                timer.setField(it.key, value)
+            }
+        }
         if (customVariables.isNotEmpty()) {
             kotlin.runCatching {
                 val extendedCustomVariables = JSONObject(customVariables as Map<*, *>?).toString()
@@ -602,11 +609,6 @@ class Tracker private constructor(
         configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
         screenTrackMonitor?.ignoreScreens = sessionData.ignoreScreens
 
-        thirdPartyConnectorManager.setConfiguration(ConnectorConfiguration(
-            sessionData.clarityProjectID,
-            sessionData.clarityEnabled
-        ))
-        thirdPartyConnectorManager.startConnectors()
         setSessionId(sessionData.sessionId)
         BTTWebViewTracker.updateSession(sessionData.sessionId)
     }
@@ -969,7 +971,7 @@ class Tracker private constructor(
                 defaultConfig = configuration.defaultRemoteConfig
             )
 
-            val configUrl = getConfigUrl(configuration.siteId)
+            val configUrl = configuration.configUrl
 
             configurationUpdater = BTTConfigurationUpdater(
                 logger = configuration.logger,

@@ -33,7 +33,7 @@ internal object BTTRemoteConfigurationMapper {
             }
         } ?: listOf()
         val enableAllTracking = remoteConfigJson.getBooleanOrNull(ENABLE_ALL_TRACKING) ?: true
-        val clarityProjectID = remoteConfigJson.getStringOrNull(CLARITY_PROJECT_ID)
+        val clarityProjectID = remoteConfigJson.getStringOrNull(CLARITY_PROJECT_ID)?.trim()
         val clarityEnabled = remoteConfigJson.getBooleanOrNull(CLARITY_ENABLED)?:false
 
         return BTTRemoteConfiguration(

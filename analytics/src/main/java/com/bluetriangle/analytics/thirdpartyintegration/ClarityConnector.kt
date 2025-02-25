@@ -10,6 +10,7 @@ internal class ClarityConnector(val application: Application):ThirdPartyConnecto
     private var clarityProjectID: String? = null
     private var clarityEnabled: Boolean = false
 
+    @Synchronized
     override fun start() {
         clarityProjectID?.also {
             if(Clarity.isPaused()) {
@@ -20,19 +21,31 @@ internal class ClarityConnector(val application: Application):ThirdPartyConnecto
         }
     }
 
+    @Synchronized
     override fun stop() {
         Clarity.pause()
     }
 
+    @Synchronized
     override fun setConfiguration(connectorConfiguration: ConnectorConfiguration) {
         clarityProjectID = connectorConfiguration.clarityProjectID
         clarityEnabled = connectorConfiguration.clarityEnabled
     }
 
+    @Synchronized
+    override fun nativeAppPayloadFields() = if(clarityProjectID != null && clarityEnabled) {
+        mapOf(
+            "clarityProjectID" to clarityProjectID
+        )
+    } else {
+        mapOf()
+    }
+
+    @Synchronized
     override fun payloadFields() = if(clarityProjectID != null && clarityEnabled) {
         mapOf(
-            "clarityProjectID" to clarityProjectID,
-            "clarityURL" to Clarity.getCurrentSessionUrl()
+            "clarityURL" to Clarity.getCurrentSessionUrl(),
+            "claritySessionID" to Clarity.getCurrentSessionId()
         )
     } else {
         mapOf()

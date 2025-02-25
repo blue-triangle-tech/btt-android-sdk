@@ -8,6 +8,8 @@ internal interface ThirdPartyConnector {
 
     fun setConfiguration(connectorConfiguration: ConnectorConfiguration)
 
+    fun nativeAppPayloadFields(): Map<String, String?>
+
     fun payloadFields():Map<String, String?>
 
 }

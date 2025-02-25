@@ -53,7 +53,7 @@ internal data class NativeAppProperties(
         obj.put("launchScreenName", launchScreenName)
         obj.put(FIELD_DEVICE_MODEL, deviceModel)
 
-        Tracker.instance?.thirdPartyConnectorManager?.payloadFields?.forEach {
+        Tracker.instance?.thirdPartyConnectorManager?.nativeAppPayloadFields?.forEach {
             obj.put(it.key, it.value)
         }
         return obj
