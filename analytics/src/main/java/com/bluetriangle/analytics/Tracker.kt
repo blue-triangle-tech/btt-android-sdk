@@ -136,7 +136,6 @@ class Tracker private constructor(
         thirdPartyConnectorManager.register(ClarityConnector(application))
 
         enable()
-
         configuration.logger?.debug("BlueTriangleSDK Initialized: $configuration")
     }
 
@@ -182,7 +181,6 @@ class Tracker private constructor(
         deInitializeANRMonitor()
         stopTrackCrashes()
         deInitializeNetworkMonitoring()
-
         thirdPartyConnectorManager.stopConnectors()
         configuration.logger?.debug("SDK is disabled.")
     }
@@ -608,7 +606,6 @@ class Tracker private constructor(
         configuration.networkSampleRate = sessionData.networkSampleRate
         configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
         screenTrackMonitor?.ignoreScreens = sessionData.ignoreScreens
-
         setSessionId(sessionData.sessionId)
         BTTWebViewTracker.updateSession(sessionData.sessionId)
     }
@@ -836,9 +833,7 @@ class Tracker private constructor(
 
             initializeConfigurationUpdater(application, configuration)
 
-            val remoteConfig = configurationRepository.get()
-
-            if (remoteConfig.enableAllTracking) {
+            if (configurationRepository.get().enableAllTracking) {
                 initializeSessionManager(application, configuration)
                 instance = Tracker(application, configuration)
             } else {
@@ -931,12 +926,12 @@ class Tracker private constructor(
             repositoryUpdatesJob = GlobalScope.launch(Dispatchers.IO) {
                 configurationRepository.getLiveUpdates(notifyCurrent = false).collect {
                     if (it?.enableAllTracking == true) {
-                        if (instance == null) {
+                        if(instance == null) {
                             initializeSessionManager(application, configuration)
                             instance = init(application, configuration)
                         }
                     } else {
-                        if (instance != null) {
+                        if(instance != null) {
                             instance?.disable()
                             deInitializeSessionManager(configuration)
                             instance = null
@@ -972,7 +967,6 @@ class Tracker private constructor(
             )
 
             val configUrl = configuration.configUrl
-
             configurationUpdater = BTTConfigurationUpdater(
                 logger = configuration.logger,
                 repository = this.configurationRepository,
@@ -1003,7 +997,7 @@ class Tracker private constructor(
         }
 
         private fun deInitializeSessionManager(configuration: BlueTriangleConfiguration) {
-            if (::sessionManager.isInitialized) {
+            if(::sessionManager.isInitialized) {
                 sessionManager.endSession()
                 AppEventHub.instance.removeConsumer(sessionManager)
             }
