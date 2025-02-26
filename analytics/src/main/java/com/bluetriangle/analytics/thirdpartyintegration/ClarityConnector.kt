@@ -44,7 +44,7 @@ internal class ClarityConnector(val application: Application):ThirdPartyConnecto
     @Synchronized
     override fun payloadFields() = if(clarityProjectID != null && clarityEnabled) {
         mapOf(
-            "clarityURL" to Clarity.getCurrentSessionUrl(),
+            "claritySessionURL" to Clarity.getCurrentSessionUrl(),
             "claritySessionID" to Clarity.getCurrentSessionId()
         )
     } else {
