@@ -42,7 +42,6 @@ class DemoApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        onCreateTime = System.currentTimeMillis()
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         tinyDB = TinyDB(applicationContext)
 
@@ -67,8 +66,6 @@ class DemoApplication : Application() {
     private fun initTracker(siteId: String?) {
         if (siteId.isNullOrBlank()) return
 
-        val configStartTime = System.currentTimeMillis()
-
         val configuration = BlueTriangleConfiguration()
         configuration.isScreenTrackingEnabled = true
         configuration.isTrackCrashesEnabled = true
@@ -82,7 +79,7 @@ class DemoApplication : Application() {
         configuration.isTrackNetworkStateEnabled = true
         configuration.isMemoryWarningEnabled = true
         tracker = init(this, configuration)
-        Log.d("BenchmarkingSDK", "Config: ${System.currentTimeMillis() - configStartTime}")
+
         tracker?.setSessionTrafficSegmentName("Demo Traffic Segment")
     }
 
