@@ -18,7 +18,6 @@ class DemoApplication : Application() {
     companion object {
         lateinit var sharedPreferencesMgr: SharedPreferencesMgr
         lateinit var tinyDB: TinyDB
-        var onCreateTime: Long = 0L
         const val DEFAULT_SITE_ID = "sdkdemo26621z"
         const val TAG_URL = "TAG_URL"
         const val DEFAULT_TAG_URL = "$DEFAULT_SITE_ID.btttag.com/btt.js"
