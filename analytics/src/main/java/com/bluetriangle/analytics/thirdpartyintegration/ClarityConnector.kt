@@ -10,6 +10,12 @@ internal class ClarityConnector(val application: Application):ThirdPartyConnecto
     private var clarityProjectID: String? = null
     private var clarityEnabled: Boolean = false
 
+    companion object {
+        const val CLARITY_SESSION_ID = "claritySessionID"
+        const val CLARITY_PROJECT_ID = "clarityProjectID"
+        const val CLARITY_SESSION_URL = "claritySessionURL"
+    }
+
     @Synchronized
     override fun start() {
         clarityProjectID?.also {
@@ -35,7 +41,7 @@ internal class ClarityConnector(val application: Application):ThirdPartyConnecto
     @Synchronized
     override fun nativeAppPayloadFields() = if(clarityProjectID != null && clarityEnabled) {
         mapOf(
-            "clarityProjectID" to clarityProjectID
+            CLARITY_PROJECT_ID to clarityProjectID
         )
     } else {
         mapOf()
@@ -44,8 +50,8 @@ internal class ClarityConnector(val application: Application):ThirdPartyConnecto
     @Synchronized
     override fun payloadFields() = if(clarityProjectID != null && clarityEnabled) {
         mapOf(
-            "claritySessionURL" to Clarity.getCurrentSessionUrl(),
-            "claritySessionID" to Clarity.getCurrentSessionId()
+            CLARITY_SESSION_URL to Clarity.getCurrentSessionUrl(),
+            CLARITY_SESSION_ID to Clarity.getCurrentSessionId()
         )
     } else {
         mapOf()
