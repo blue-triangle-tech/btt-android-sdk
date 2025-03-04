@@ -1,6 +1,7 @@
 package com.bluetriangle.android.demo.tests
 
 import java.net.URL
+import javax.net.ssl.HttpsURLConnection
 
 class DownloadTest : BTTTestCase {
 
@@ -19,9 +20,9 @@ class DownloadTest : BTTTestCase {
 
         while (System.currentTimeMillis() - taskStartTime < intervalInMillis) {
             val connection =
-                URL("http://ipv4.download.thinkbroadband.com/200MB.zip").openConnection()
+                URL("https://github.com/IsmailAloha/downloadtest/blob/main/dummy.txt").openConnection() as HttpsURLConnection
             connection.connect()
-            val inputStream = connection.getInputStream()
+            val inputStream = connection.inputStream
             while (inputStream.read() != -1) {
                 totalBytesDownloded++
             }

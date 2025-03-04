@@ -25,20 +25,25 @@ internal class ClarityConnector(val application: Application,
         clarityEnabled = connectorConfiguration.clarityEnabled
 
         Clarity.setOnSessionStartedCallback {
-            val sessionURL = Clarity.getCurrentSessionUrl()
-            logger?.debug("Clarity session started: $sessionURL")
-            if(sessionURL != null) {
-                customVariablesAdapter.setCustomVariable(CLARITY_SESSION_URL_CV, sessionURL)
-            }
+            logger?.debug("Clarity session started: ${Clarity.getCurrentSessionUrl()}")
+            setSessionURLToCustomVariable()
         }
         clarityProjectID?.also {
             if(Clarity.isPaused()) {
                 logger?.debug("Clarity is paused, resuming")
                 Clarity.resume()
+                setSessionURLToCustomVariable()
             } else if (clarityEnabled) {
                 logger?.debug("Clarity initialized for project ID: $it")
                 Clarity.initialize(application, ClarityConfig(it, logLevel = LogLevel.Verbose))
             }
+        }
+    }
+
+    private fun setSessionURLToCustomVariable() {
+        val sessionURL = Clarity.getCurrentSessionUrl()
+        if(sessionURL != null) {
+            customVariablesAdapter.setCustomVariable(CLARITY_SESSION_URL_CV, sessionURL)
         }
     }
 
