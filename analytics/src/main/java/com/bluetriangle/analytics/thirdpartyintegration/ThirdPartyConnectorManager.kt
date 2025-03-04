@@ -21,14 +21,8 @@ internal class ThirdPartyConnectorManager {
         connectors.add(connector)
     }
 
-    fun startConnectors() {
-        connectors.forEach { it.start() }
-    }
-
-    fun setConfiguration(config: ConnectorConfiguration) {
-        connectors.forEach {
-            it.setConfiguration(config)
-        }
+    fun startConnectors(configuration: ConnectorConfiguration) {
+        connectors.forEach { it.start(configuration) }
     }
 
     fun stopConnectors() {

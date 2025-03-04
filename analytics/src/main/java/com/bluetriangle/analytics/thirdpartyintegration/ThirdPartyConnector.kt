@@ -1,15 +1,15 @@
 package com.bluetriangle.analytics.thirdpartyintegration
 
-internal interface ThirdPartyConnector {
+import com.bluetriangle.analytics.Logger
 
-    fun start()
+internal abstract class ThirdPartyConnector(protected val logger: Logger?, protected val customVariablesAdapter: CustomVariablesAdapter) {
 
-    fun stop()
+    abstract fun start(connectorConfiguration: ConnectorConfiguration)
 
-    fun setConfiguration(connectorConfiguration: ConnectorConfiguration)
+    abstract fun stop()
 
-    fun nativeAppPayloadFields(): Map<String, String?>
+    abstract fun nativeAppPayloadFields(): Map<String, String?>
 
-    fun payloadFields():Map<String, String?>
+    abstract fun payloadFields():Map<String, String?>
 
 }

@@ -41,6 +41,7 @@ import com.bluetriangle.analytics.sessionmanager.SessionData
 import com.bluetriangle.analytics.sessionmanager.SessionManager
 import com.bluetriangle.analytics.thirdpartyintegration.ClarityConnector
 import com.bluetriangle.analytics.thirdpartyintegration.ConnectorConfiguration
+import com.bluetriangle.analytics.thirdpartyintegration.CustomVariablesAdapter
 import com.bluetriangle.analytics.thirdpartyintegration.ThirdPartyConnectorManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -133,7 +134,8 @@ class Tracker private constructor(
             LaunchReporter(configuration.logger, LaunchMonitor.instance)
         }
 
-        thirdPartyConnectorManager.register(ClarityConnector(application))
+        val customVariablesAdapter: CustomVariablesAdapter = BTTCustomVariablesAdapter()
+        thirdPartyConnectorManager.register(ClarityConnector(application, configuration.logger, customVariablesAdapter))
 
         enable()
         configuration.logger?.debug("BlueTriangleSDK Initialized: $configuration")
@@ -159,11 +161,10 @@ class Tracker private constructor(
             initializeANRMonitor()
         }
 
-        thirdPartyConnectorManager.setConfiguration(ConnectorConfiguration(
+        thirdPartyConnectorManager.startConnectors(ConnectorConfiguration(
             sessionData.clarityProjectID,
             sessionData.clarityEnabled
         ))
-        thirdPartyConnectorManager.startConnectors()
         if (configuration.isTrackCrashesEnabled) {
             trackCrashes()
         }
