@@ -1,5 +1,6 @@
 package com.bluetriangle.android.demo.tests
 
+import android.os.StrictMode
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
@@ -14,13 +15,14 @@ class DownloadTest : BTTTestCase {
         get() = "This test downloads 200MB file in loop until $interval Sec."
 
     override fun run(): String? {
+        StrictMode.setThreadPolicy(StrictMode.ThreadPolicy.Builder().permitNetwork().build())
         val taskStartTime = System.currentTimeMillis()
         var totalBytesDownloded = 0
         val intervalInMillis = interval * 1000
 
         while (System.currentTimeMillis() - taskStartTime < intervalInMillis) {
             val connection =
-                URL("https://github.com/IsmailAloha/downloadtest/blob/main/dummy.txt").openConnection() as HttpsURLConnection
+                URL("https://github.com/IsmailAloha/downloadtest/raw/refs/heads/main/dummy.txt?download=").openConnection() as HttpsURLConnection
             connection.connect()
             val inputStream = connection.inputStream
             while (inputStream.read() != -1) {
