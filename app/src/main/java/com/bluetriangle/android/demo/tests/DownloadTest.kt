@@ -15,7 +15,7 @@ class DownloadTest : BTTTestCase {
         get() = "This test downloads 200MB file in loop until $interval Sec."
 
     override fun run(): String? {
-        StrictMode.setThreadPolicy(StrictMode.ThreadPolicy.Builder().permitNetwork().build())
+        StrictMode.setThreadPolicy(StrictMode.ThreadPolicy.Builder().detectAll().permitNetwork().penaltyLog().build())
         val taskStartTime = System.currentTimeMillis()
         var totalBytesDownloded = 0
         val intervalInMillis = interval * 1000
