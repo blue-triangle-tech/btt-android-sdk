@@ -24,34 +24,48 @@ internal class ClarityConnector(val application: Application,
         clarityProjectID = connectorConfiguration.clarityProjectID
         clarityEnabled = connectorConfiguration.clarityEnabled
 
-        Clarity.setOnSessionStartedCallback {
-            logger?.debug("Clarity session started: ${Clarity.getCurrentSessionUrl()}")
-            setSessionURLToCustomVariable()
-        }
-        clarityProjectID?.also {
-            if(Clarity.isPaused()) {
-                logger?.debug("Clarity is paused, resuming")
-                Clarity.resume()
+        clarityGuard {
+            Clarity.setOnSessionStartedCallback {
+                logger?.debug("Clarity session started: ${Clarity.getCurrentSessionUrl()}")
                 setSessionURLToCustomVariable()
-            } else if (clarityEnabled) {
-                logger?.debug("Clarity initialized for project ID: $it")
-                Clarity.initialize(application, ClarityConfig(it, logLevel = LogLevel.Verbose))
+            }
+            clarityProjectID?.also {
+                if(Clarity.isPaused()) {
+                    logger?.debug("Clarity is paused, resuming")
+                    Clarity.resume()
+                    setSessionURLToCustomVariable()
+                } else if (clarityEnabled) {
+                    logger?.debug("Clarity initialized for project ID: $it")
+                    Clarity.initialize(application, ClarityConfig(it, logLevel = LogLevel.Verbose))
+                }
             }
         }
     }
 
     private fun setSessionURLToCustomVariable() {
-        val sessionURL = Clarity.getCurrentSessionUrl()
-        if(sessionURL != null) {
-            customVariablesAdapter.setCustomVariable(CLARITY_SESSION_URL_CV, sessionURL)
+        clarityGuard {
+            val sessionURL = Clarity.getCurrentSessionUrl()
+            if(sessionURL != null) {
+                customVariablesAdapter.setCustomVariable(CLARITY_SESSION_URL_CV, sessionURL)
+            }
         }
     }
 
     @Synchronized
     override fun stop() {
-        Clarity.pause()
-        customVariablesAdapter.clearCustomVariable(CLARITY_SESSION_URL_CV)
-        logger?.debug("Clarity paused")
+        clarityGuard {
+            Clarity.pause()
+            customVariablesAdapter.clearCustomVariable(CLARITY_SESSION_URL_CV)
+            logger?.debug("Clarity paused")
+        }
+    }
+
+    private inline fun clarityGuard(clarityBlock:()->Unit) {
+        try {
+            clarityBlock()
+        } catch (exc: NoClassDefFoundError) {
+            logger?.error("Clarity not found in classpath")
+        }
     }
 
     @Synchronized
