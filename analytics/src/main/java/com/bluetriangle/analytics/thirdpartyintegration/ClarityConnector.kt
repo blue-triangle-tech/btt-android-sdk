@@ -5,7 +5,6 @@ import com.bluetriangle.analytics.Logger
 import com.microsoft.clarity.Clarity
 import com.microsoft.clarity.ClarityConfig
 import com.microsoft.clarity.models.LogLevel
-import kotlin.math.log
 
 internal class ClarityConnector(val application: Application,
                                 logger: Logger?,
@@ -20,26 +19,8 @@ internal class ClarityConnector(val application: Application,
         const val CLARITY_SESSION_URL_CV = "CV0"
     }
 
-    private var isClarityInClasspath = false
-
-    init {
-        checkClarityInClassPath()
-    }
-
-    private fun checkClarityInClassPath() {
-        try {
-            Class.forName("com.microsoft.clarity.Clarity")
-            isClarityInClasspath = true
-        } catch (e: ClassNotFoundException) {
-            logger?.error("Clarity not found in classpath")
-            isClarityInClasspath = false
-        }
-    }
-
     @Synchronized
     override fun start(connectorConfiguration: ConnectorConfiguration) {
-        if(!isClarityInClasspath) return
-
         clarityProjectID = connectorConfiguration.clarityProjectID
         clarityEnabled = connectorConfiguration.clarityEnabled
 
@@ -60,8 +41,6 @@ internal class ClarityConnector(val application: Application,
     }
 
     private fun setSessionURLToCustomVariable() {
-        if(!isClarityInClasspath) return
-
         val sessionURL = Clarity.getCurrentSessionUrl()
         if(sessionURL != null) {
             customVariablesAdapter.setCustomVariable(CLARITY_SESSION_URL_CV, sessionURL)
@@ -70,8 +49,6 @@ internal class ClarityConnector(val application: Application,
 
     @Synchronized
     override fun stop() {
-        if(!isClarityInClasspath) return
-
         Clarity.pause()
         customVariablesAdapter.clearCustomVariable(CLARITY_SESSION_URL_CV)
         logger?.debug("Clarity paused")
