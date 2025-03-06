@@ -39,7 +39,6 @@ import com.bluetriangle.analytics.sessionmanager.DisabledModeSessionManager
 import com.bluetriangle.analytics.sessionmanager.ISessionManager
 import com.bluetriangle.analytics.sessionmanager.SessionData
 import com.bluetriangle.analytics.sessionmanager.SessionManager
-import com.bluetriangle.analytics.thirdpartyintegration.ClarityConnector
 import com.bluetriangle.analytics.thirdpartyintegration.ConnectorConfiguration
 import com.bluetriangle.analytics.thirdpartyintegration.CustomVariablesAdapter
 import com.bluetriangle.analytics.thirdpartyintegration.ThirdPartyConnectorManager
@@ -135,7 +134,7 @@ class Tracker private constructor(
         }
 
         val customVariablesAdapter: CustomVariablesAdapter = BTTCustomVariablesAdapter()
-        thirdPartyConnectorManager.register(ClarityConnector(application, configuration.logger, customVariablesAdapter))
+//        thirdPartyConnectorManager.register(ClarityConnector(application, configuration.logger, customVariablesAdapter))
 
         enable()
         configuration.logger?.debug("BlueTriangleSDK Initialized: $configuration")
