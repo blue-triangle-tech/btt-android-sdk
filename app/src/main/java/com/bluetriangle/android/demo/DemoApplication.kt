@@ -11,6 +11,9 @@ import com.bluetriangle.android.demo.tests.ANRTestFactory
 import com.bluetriangle.android.demo.tests.ANRTestScenario
 import com.bluetriangle.android.demo.tests.HeavyLoopTest
 import com.bluetriangle.android.demo.tests.LaunchTestScenario
+import com.microsoft.clarity.Clarity
+import com.microsoft.clarity.ClarityConfig
+import com.microsoft.clarity.models.LogLevel
 
 class DemoApplication : Application() {
     private var tracker: Tracker? = null
@@ -78,6 +81,12 @@ class DemoApplication : Application() {
         configuration.isTrackNetworkStateEnabled = true
         configuration.isMemoryWarningEnabled = true
         tracker = init(this, configuration)
+
+        Clarity.setOnSessionStartedCallback {
+            Tracker.instance?.setClaritySessionUrl(Clarity.getCurrentSessionUrl())
+        }
+
+        Clarity.initialize(this, ClarityConfig("jtjobmhr3i", logLevel = LogLevel.Debug))
 
         tracker?.setSessionTrafficSegmentName("Demo Traffic Segment")
     }

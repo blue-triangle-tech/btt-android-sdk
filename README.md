@@ -60,7 +60,7 @@ Add the package dependency to your application's `build.gradle` file:
 ```groovy
 dependencies {
     //...
-    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.16.2'
+    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.17.0'
 }
 ```
 
@@ -69,7 +69,7 @@ dependencies {
 If project uses gradle plugin version 8.2.0 and above, use exclude with dependency like below.
 
 ```groovy
-implementation("com.github.blue-triangle-tech:btt-android-sdk:2.16.2") {
+implementation("com.github.blue-triangle-tech:btt-android-sdk:2.17.0") {
     exclude("com.squareup.okhttp3", "okhttp-bom")
 }
 ```
@@ -666,6 +666,23 @@ To test Crash Tracking, you can declare and call the following function:
 fun testCrashTracking() {
     throw ArithmeticException()
 }
+```
+
+### Clarity Support
+
+Blue Triangle provides support for Microsoft Clarity to enhance session recording analysis. To enable this integration, developers must follow the steps outlined below.  
+1. Adding Clarity to the App  
+   You can integrate Microsoft Clarity into your app by following the instruction by [Microsoft Clarity documentation](https://learn.microsoft.com/en-us/clarity/mobile-sdk/android-sdk?tabs=kotlin).  
+2. Implementing Session Stitching Code  
+   To enable session stitching between Blue Triangle and Microsoft Clarity, You must add the following code after BlueTriangle configuration to your app:  
+
+```kotlin
+//Session stitching code
+Clarity.setOnSessionStartedCallback {
+  Tracker.instance?.setClaritySessionUrl(Clarity.getCurrentSessionUrl())
+}
+
+Clarity.initialize(this, ClarityConfig("<PROJECT ID>"))
 ```
 
 ## Further General Information
