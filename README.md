@@ -670,9 +670,9 @@ fun testCrashTracking() {
 
 ### Clarity Support
 
-Blue Triangle provides support for Microsoft Clarity to enhance session recording analysis. To enable this integration, developers must follow the steps outlined below.  
+Blue Triangle provides support for Microsoft Clarity to get better insights into user journey. To enable this integration, follow the steps outlined below.  
 1. Adding Clarity to the App  
-   You can integrate Microsoft Clarity into your app by following the instructions in [Microsoft Clarity Documentation](https://learn.microsoft.com/en-us/clarity/mobile-sdk/android-sdk?tabs=kotlin).
+   You can integrate Microsoft Clarity into your app by following the instructions in the [Microsoft Clarity Documentation](https://learn.microsoft.com/en-us/clarity/mobile-sdk/android-sdk?tabs=kotlin).
 
 2. Implementing Session Stitching Code  
    To enable session stitching between Blue Triangle and Microsoft Clarity, You must add the following code after BlueTriangle configuration to your app:  
