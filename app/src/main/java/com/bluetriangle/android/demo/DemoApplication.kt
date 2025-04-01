@@ -82,10 +82,6 @@ class DemoApplication : Application() {
         configuration.isMemoryWarningEnabled = true
         tracker = init(this, configuration)
 
-        Clarity.setOnSessionStartedCallback {
-            Tracker.instance?.setClaritySessionUrl(Clarity.getCurrentSessionUrl())
-        }
-
         Clarity.initialize(this, ClarityConfig("jtjobmhr3i", logLevel = LogLevel.Debug))
 
         tracker?.setSessionTrafficSegmentName("Demo Traffic Segment")
