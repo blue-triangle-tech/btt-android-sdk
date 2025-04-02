@@ -12,7 +12,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.text.TextUtils
 import androidx.core.content.ContextCompat
-import com.bluetriangle.analytics.Constants.CLARITY_SESSION_CV
 import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
 import com.bluetriangle.analytics.appeventhub.AppEventHub
@@ -140,15 +139,6 @@ class Tracker private constructor(
         val logs = LaunchMonitor.instance.logs
         for (log in logs) {
             configuration.logger?.log(log.level, log.message)
-        }
-    }
-
-    private fun updateClaritySessionUrl() {
-        val sessionUrl = claritySessionConnector.getSessionUrl()
-        if(sessionUrl == null) {
-            clearCustomVariable(CLARITY_SESSION_CV)
-        } else {
-            setCustomVariable(CLARITY_SESSION_CV, sessionUrl)
         }
     }
 
@@ -350,7 +340,8 @@ class Tracker private constructor(
         if (!timer.hasEnded()) {
             timer.end()
         }
-        updateClaritySessionUrl()
+        claritySessionConnector.refreshClaritySessionUrlCustomVariable()
+
         timer.setFields(globalFields.toMap())
         if (customVariables.isNotEmpty()) {
             kotlin.runCatching {

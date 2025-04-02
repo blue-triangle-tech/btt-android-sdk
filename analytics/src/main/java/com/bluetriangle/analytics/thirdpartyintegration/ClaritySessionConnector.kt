@@ -1,6 +1,7 @@
 package com.bluetriangle.analytics.thirdpartyintegration
 
 import com.bluetriangle.analytics.Logger
+import com.bluetriangle.analytics.Tracker
 import java.lang.reflect.Method
 
 class ClaritySessionConnector(val logger: Logger?) {
@@ -8,13 +9,20 @@ class ClaritySessionConnector(val logger: Logger?) {
     companion object {
         private const val CLARITY_CLASS = "com.microsoft.clarity.Clarity"
         private const val CLARITY_SESSION_URL_METHOD = "getCurrentSessionUrl"
+        private const val CLARITY_SESSION_CV = "CV0"
     }
 
     private val clarityClass = classForName(CLARITY_CLASS)
     private val getCurrentSessionUrl = clarityClass?.methodForName(CLARITY_SESSION_URL_METHOD)
 
-    fun getSessionUrl():String? {
-        return getCurrentSessionUrl?.invoke(null) as? String?
+    fun refreshClaritySessionUrlCustomVariable() {
+        val sessionUrl = getCurrentSessionUrl?.invoke(null) as? String?
+
+        if(sessionUrl == null) {
+            Tracker.instance?.clearCustomVariable(CLARITY_SESSION_CV)
+        } else {
+            Tracker.instance?.setCustomVariable(CLARITY_SESSION_CV, sessionUrl)
+        }
     }
 
     private fun classForName(className: String): Class<*>? {
