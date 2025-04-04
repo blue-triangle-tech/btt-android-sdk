@@ -670,7 +670,11 @@ fun testCrashTracking() {
 
 ### Clarity Support
 
-Blue Triangle provides support for Microsoft Clarity to get better insights into user journey. To enable this integration, setup Microsoft Clarity into your app by following the instructions in the [Microsoft Clarity Documentation](https://learn.microsoft.com/en-us/clarity/mobile-sdk/android-sdk?tabs=kotlin). Make sure to use Microsoft Clarity version 2.1.0 or above.
+Blue Triangle offers session playback via Microsoft Clarity integration. For help with this process, please reach out to your BT representative.
+
+To get started, integrate and configure Microsoft Clarity as shown in the official Microsoft Clarity documentation using your project ID. 
+
+Blue Triangle automatically detects Clarity in your app and based on that it automatically does the session mapping between Blue Triangle and Microsoft Clarity.
 
 ## Further General Information
 
