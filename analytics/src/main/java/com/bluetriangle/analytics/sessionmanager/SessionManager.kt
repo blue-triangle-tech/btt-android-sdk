@@ -94,7 +94,9 @@ internal class SessionManager(
             false,
             config.networkSampleRate?:defaultConfig.networkSampleRate!!,
             config.ignoreScreens,
-            getNewExpiration()
+            getNewExpiration(),
+            config.clarityProjectID,
+            config.clarityEnabled
         )
     }
 
@@ -121,7 +123,9 @@ internal class SessionManager(
                 it.isConfigApplied,
                 it.networkSampleRate,
                 it.ignoreScreens,
-                getNewExpiration()
+                getNewExpiration(),
+                it.clarityProjectID,
+                it.clarityEnabled
             )
             sessionStore.storeSessionData(
                 newExpirySession
@@ -161,7 +165,9 @@ internal class SessionManager(
                                 true,
                                 config.networkSampleRate?:defaultConfig.networkSampleRate!!,
                                 config.ignoreScreens,
-                                session.expiration
+                                session.expiration,
+                                config.clarityProjectID,
+                                config.clarityEnabled
                             )
                             Tracker.instance?.updateSession(sessionData)
                             sessionStore.storeSessionData(

@@ -11,7 +11,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
-        android:networkSecurityConfig="@xml/network_config"
         android:largeHeap="true"
         android:theme="@style/AppTheme">
         <activity

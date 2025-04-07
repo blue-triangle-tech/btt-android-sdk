@@ -12,6 +12,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.text.TextUtils
 import androidx.core.content.ContextCompat
+import com.bluetriangle.analytics.BlueTriangleConfiguration.Companion.configUrl
 import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
 import com.bluetriangle.analytics.appeventhub.AppEventHub
@@ -38,6 +39,10 @@ import com.bluetriangle.analytics.sessionmanager.DisabledModeSessionManager
 import com.bluetriangle.analytics.sessionmanager.ISessionManager
 import com.bluetriangle.analytics.sessionmanager.SessionData
 import com.bluetriangle.analytics.sessionmanager.SessionManager
+import com.bluetriangle.analytics.thirdpartyintegration.ClarityConnector
+import com.bluetriangle.analytics.thirdpartyintegration.ConnectorConfiguration
+import com.bluetriangle.analytics.thirdpartyintegration.CustomVariablesAdapter
+import com.bluetriangle.analytics.thirdpartyintegration.ThirdPartyConnectorManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
@@ -110,6 +115,7 @@ class Tracker private constructor(
 
     private var deviceInfoProvider: IDeviceInfoProvider
 
+    internal val thirdPartyConnectorManager = ThirdPartyConnectorManager()
 
     init {
         this.context = WeakReference(application.applicationContext)
@@ -127,6 +133,9 @@ class Tracker private constructor(
             logLaunchMonitorErrors()
             LaunchReporter(configuration.logger, LaunchMonitor.instance)
         }
+
+        val customVariablesAdapter: CustomVariablesAdapter = BTTCustomVariablesAdapter()
+        thirdPartyConnectorManager.register(ClarityConnector(application, configuration.logger, customVariablesAdapter))
 
         enable()
         configuration.logger?.debug("BlueTriangleSDK Initialized: $configuration")
@@ -152,6 +161,10 @@ class Tracker private constructor(
             initializeANRMonitor()
         }
 
+        thirdPartyConnectorManager.startConnectors(ConnectorConfiguration(
+            sessionData.clarityProjectID,
+            sessionData.clarityEnabled
+        ))
         if (configuration.isTrackCrashesEnabled) {
             trackCrashes()
         }
@@ -169,6 +182,7 @@ class Tracker private constructor(
         deInitializeANRMonitor()
         stopTrackCrashes()
         deInitializeNetworkMonitoring()
+        thirdPartyConnectorManager.stopConnectors()
         configuration.logger?.debug("SDK is disabled.")
     }
 
@@ -338,6 +352,12 @@ class Tracker private constructor(
             timer.end()
         }
         timer.setFields(globalFields.toMap())
+        thirdPartyConnectorManager.payloadFields.forEach {
+            val value = it.value
+            if(value != null) {
+                timer.setField(it.key, value)
+            }
+        }
         if (customVariables.isNotEmpty()) {
             kotlin.runCatching {
                 val extendedCustomVariables = JSONObject(customVariables as Map<*, *>?).toString()
@@ -932,7 +952,9 @@ class Tracker private constructor(
                 ignoreList = listOf(),
                 enableRemoteConfigAck = false,
                 enableAllTracking = true,
-                savedDate = 0L
+                savedDate = 0L,
+                clarityProjectID = null,
+                clarityEnabled = false
             )
 
         private fun initializeConfigurationUpdater(
@@ -945,7 +967,7 @@ class Tracker private constructor(
                 defaultConfig = configuration.defaultRemoteConfig
             )
 
-            val configUrl = "https://${configuration.siteId}.btttag.com/config.php"
+            val configUrl = configuration.configUrl
             configurationUpdater = BTTConfigurationUpdater(
                 logger = configuration.logger,
                 repository = this.configurationRepository,

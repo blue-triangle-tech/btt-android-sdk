@@ -167,6 +167,9 @@ class BlueTriangleConfiguration {
         const val DEFAULT_ERROR_REPORTING_URL = "https://d.btttag.com/err.rcv"
         const val DEFAULT_NETWORK_CAPTURE_URL = "https://d.btttag.com/wcdv02.rcv"
 
+        val BlueTriangleConfiguration.configUrl: String
+            get() = "https://${siteId}.btttag.com/config.php"
+
         private const val KB = 1024L
         private const val MB = 1024 * 1024L
         private const val MIN = 60 * 1000L

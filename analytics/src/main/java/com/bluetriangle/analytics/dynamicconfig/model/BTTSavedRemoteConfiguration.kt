@@ -10,8 +10,10 @@ internal class BTTSavedRemoteConfiguration(
     ignoreList: List<String>,
     enableRemoteConfigAck: Boolean,
     enableAllTracking: Boolean,
+    clarityProjectID: String?,
+    clarityEnabled: Boolean,
     val savedDate: Long
-) : BTTRemoteConfiguration(networkSampleRate, ignoreList, enableAllTracking, enableRemoteConfigAck) {
+) : BTTRemoteConfiguration(networkSampleRate, ignoreList, enableAllTracking, enableRemoteConfigAck, clarityProjectID, clarityEnabled) {
 
     override fun equals(other: Any?): Boolean {
         if(other is BTTSavedRemoteConfiguration) {
@@ -28,5 +30,6 @@ internal class BTTSavedRemoteConfiguration(
         result = 31 * result + savedDate.hashCode()
         return result
     }
+
 
 }

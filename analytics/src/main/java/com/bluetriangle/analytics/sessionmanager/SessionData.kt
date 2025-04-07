@@ -19,7 +19,9 @@ internal data class SessionData(
     val isConfigApplied: Boolean,
     val networkSampleRate: Double,
     val ignoreScreens: List<String>,
-    val expiration: Long
+    val expiration: Long,
+    val clarityProjectID: String?,
+    val clarityEnabled: Boolean
 ) {
     companion object {
         private const val SESSION_ID = "sessionId"
@@ -28,6 +30,8 @@ internal data class SessionData(
         private const val IS_CONFIG_APPLIED = "isConfigApplied"
         private const val NETWORK_SAMPLE_RATE = "networkSampleRate"
         private const val IGNORE_SCREENS = "ignoreScreens"
+        private const val CLARITY_PROJECT_ID = "clarityProjectID"
+        private const val CLARITY_ENABLED = "clarityEnabled"
 
         internal fun JSONObject.toSessionData(): SessionData? {
             try {
@@ -43,7 +47,9 @@ internal data class SessionData(
                             }
                         }
                     } ?: listOf(),
-                    expiration = getLong(EXPIRATION)
+                    expiration = getLong(EXPIRATION),
+                    clarityProjectID = getStringOrNull(CLARITY_PROJECT_ID),
+                    clarityEnabled = getBooleanOrNull(CLARITY_ENABLED) ?: false
                 )
             } catch (e: Exception) {
                 Tracker.instance?.configuration?.logger?.error("Error while parsing session data: ${e::class.simpleName}(\"${e.message}\")")
@@ -58,6 +64,8 @@ internal data class SessionData(
             put(NETWORK_SAMPLE_RATE, networkSampleRate)
             put(IGNORE_SCREENS, JSONArray(ignoreScreens))
             put(EXPIRATION, expiration)
+            put(CLARITY_PROJECT_ID, clarityProjectID)
+            put(CLARITY_ENABLED, clarityEnabled)
         }
     }
 }

@@ -24,7 +24,9 @@ internal class DisabledModeSessionManager(
         isConfigApplied = isConfigApplied,
         networkSampleRate = 0.0,
         ignoreScreens = listOf(),
-        expiration = 0L
+        expiration = 0L,
+        clarityEnabled = false,
+        clarityProjectID = null
     )
 
     override val sessionData: SessionData

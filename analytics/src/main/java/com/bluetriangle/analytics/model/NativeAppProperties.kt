@@ -2,6 +2,7 @@ package com.bluetriangle.analytics.model
 
 import android.os.Parcelable
 import com.bluetriangle.analytics.Timer
+import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.deviceinfo.DeviceInfo
 import com.bluetriangle.analytics.networkcapture.CapturedRequest
 import com.bluetriangle.analytics.networkcapture.CapturedRequest.Companion.FIELD_DEVICE_MODEL
@@ -52,6 +53,9 @@ internal data class NativeAppProperties(
         obj.put("launchScreenName", launchScreenName)
         obj.put(FIELD_DEVICE_MODEL, deviceModel)
 
+        Tracker.instance?.thirdPartyConnectorManager?.nativeAppPayloadFields?.forEach {
+            obj.put(it.key, it.value)
+        }
         return obj
     }
 
