@@ -668,7 +668,7 @@ fun testCrashTracking() {
 }
 ```
 
-### Clarity Support
+### Microsoft Clarity Integration
 
 Blue Triangle offers session playback via Microsoft Clarity integration. For help with this process, please reach out to your Blue Triangle representative.
 
