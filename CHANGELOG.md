@@ -1,7 +1,6 @@
 # Blue Triangle 2.17.0 Latest, April 7 2025
 ### New Features
-- Added support for Blue Triangle and Microsoft Clarity session mapping.
-- Added ability to detect Clarity SDK present in host app, if present associate clarity session url with Timers.
+- Added support for Blue Triangle and Microsoft Clarity session mapping. Added ability to detect Clarity SDK present in host app, if present associate clarity session url with Timers.
 
 # Blue Triangle 2.16.2 Latest, Feb 3 2025
 ### New Features
