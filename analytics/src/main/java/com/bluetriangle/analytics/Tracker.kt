@@ -38,6 +38,7 @@ import com.bluetriangle.analytics.sessionmanager.DisabledModeSessionManager
 import com.bluetriangle.analytics.sessionmanager.ISessionManager
 import com.bluetriangle.analytics.sessionmanager.SessionData
 import com.bluetriangle.analytics.sessionmanager.SessionManager
+import com.bluetriangle.analytics.thirdpartyintegration.ClaritySessionConnector
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
@@ -110,6 +111,7 @@ class Tracker private constructor(
 
     private var deviceInfoProvider: IDeviceInfoProvider
 
+    private val claritySessionConnector:ClaritySessionConnector
 
     init {
         this.context = WeakReference(application.applicationContext)
@@ -117,6 +119,8 @@ class Tracker private constructor(
         this.deviceInfoProvider = DeviceInfoProvider
 
         trackerExecutor = TrackerExecutor(configuration)
+
+        claritySessionConnector = ClaritySessionConnector(configuration.logger)
 
         initializeGlobalFields()
 
@@ -127,7 +131,6 @@ class Tracker private constructor(
             logLaunchMonitorErrors()
             LaunchReporter(configuration.logger, LaunchMonitor.instance)
         }
-
         enable()
         configuration.logger?.debug("BlueTriangleSDK Initialized: $configuration")
     }
@@ -337,6 +340,8 @@ class Tracker private constructor(
         if (!timer.hasEnded()) {
             timer.end()
         }
+        claritySessionConnector.refreshClaritySessionUrlCustomVariable()
+
         timer.setFields(globalFields.toMap())
         if (customVariables.isNotEmpty()) {
             kotlin.runCatching {

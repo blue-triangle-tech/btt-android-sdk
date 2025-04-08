@@ -1,4 +1,8 @@
-# Blue Triangle 2.16.2 Latest, Feb 3 2025
+# Blue Triangle 2.17.0 Latest, April 7 2025
+### New Features
+- Added support for Blue Triangle and Microsoft Clarity session mapping. Added ability to detect Clarity SDK present in host app, if present associate clarity session url with Timers.
+
+# Blue Triangle 2.16.2, Feb 3 2025
 ### New Features
 - Ability to remotely disable SDK. SDK now has a remote configuration field that can enable/disable SDK on the fly without needing any code push. Once the SDK receives the setting from portal as disabled, the SDK will turn off all tracking and reporting.
 
