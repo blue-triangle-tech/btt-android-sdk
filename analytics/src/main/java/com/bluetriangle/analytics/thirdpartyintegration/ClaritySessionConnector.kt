@@ -9,36 +9,37 @@ class ClaritySessionConnector(val logger: Logger?) {
     companion object {
         private const val CLARITY_CLASS = "com.microsoft.clarity.Clarity"
         private const val CLARITY_SESSION_URL_METHOD = "getCurrentSessionUrl"
-        private const val CLARITY_SESSION_CV = "CV0"
+        private const val BTT_CLARITY_SESSION_CV = "CV0"
     }
 
-    private val clarityClass = classForName(CLARITY_CLASS)
-    private val getCurrentSessionUrl = clarityClass?.methodForName(CLARITY_SESSION_URL_METHOD)
+    private val getCurrentSessionUrl = getClarityClass()?.getCurrentSessionUrlMethod()
 
     fun refreshClaritySessionUrlCustomVariable() {
-        val sessionUrl = getCurrentSessionUrl?.invoke(null) as? String?
+        if(getCurrentSessionUrl == null) return
+
+        val sessionUrl = getCurrentSessionUrl.invoke(null) as? String?
 
         if(sessionUrl == null) {
-            Tracker.instance?.clearCustomVariable(CLARITY_SESSION_CV)
+            Tracker.instance?.clearCustomVariable(BTT_CLARITY_SESSION_CV)
         } else {
-            Tracker.instance?.setCustomVariable(CLARITY_SESSION_CV, sessionUrl)
+            Tracker.instance?.setCustomVariable(BTT_CLARITY_SESSION_CV, sessionUrl)
         }
     }
 
-    private fun classForName(className: String): Class<*>? {
+    private fun getClarityClass(): Class<*>? {
         return try {
-            Class.forName(className)
+            Class.forName(CLARITY_CLASS)
         } catch (e: Exception) {
-            logger?.error("${className.split(".").lastOrNull()} not found in classpath")
+            logger?.error("Clarity not found in classpath")
             null
         }
     }
 
-    private fun Class<*>?.methodForName(methodName: String): Method? {
+    private fun Class<*>?.getCurrentSessionUrlMethod(): Method? {
         return try {
-            this?.getDeclaredMethod(methodName)
+            this?.getDeclaredMethod(CLARITY_SESSION_URL_METHOD)
         } catch (e: Exception) {
-            logger?.error("$methodName not exists in class ${this?.simpleName}")
+            logger?.error("$CLARITY_SESSION_URL_METHOD not found in Clarity")
             null
         }
     }
