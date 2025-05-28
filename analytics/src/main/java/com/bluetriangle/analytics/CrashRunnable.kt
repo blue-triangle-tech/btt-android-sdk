@@ -70,6 +70,7 @@ internal class CrashRunnable(
             )
         }
         crashHitsTimer.setFields(tracker?.globalFields?.toMap() ?: emptyMap())
+        tracker?.loadCustomVariables(crashHitsTimer)
         val timerRunnable = TimerRunnable(configuration, crashHitsTimer, false)
         timerRunnable.run()
     }
