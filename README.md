@@ -60,7 +60,7 @@ Add the package dependency to your application's `build.gradle` file:
 ```groovy
 dependencies {
     //...
-    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.16.2'
+    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.17.0'
 }
 ```
 
@@ -69,7 +69,7 @@ dependencies {
 If project uses gradle plugin version 8.2.0 and above, use exclude with dependency like below.
 
 ```groovy
-implementation("com.github.blue-triangle-tech:btt-android-sdk:2.16.2") {
+implementation("com.github.blue-triangle-tech:btt-android-sdk:2.17.0") {
     exclude("com.squareup.okhttp3", "okhttp-bom")
 }
 ```
@@ -667,6 +667,14 @@ fun testCrashTracking() {
     throw ArithmeticException()
 }
 ```
+
+### Microsoft Clarity Integration
+
+Blue Triangle offers session playback via Microsoft Clarity integration. For help with this process, please reach out to your Blue Triangle representative.
+
+To get started, integrate and configure Microsoft Clarity as shown in the official [Microsoft Clarity Documentation](https://learn.microsoft.com/en-us/clarity/mobile-sdk/android-sdk?tabs=kotlin) using your Clarity project ID. 
+
+Blue Triangle automatically detects Clarity in your app and based on that it automatically does the session mapping between Blue Triangle and Microsoft Clarity.
 
 ## Further General Information
 
