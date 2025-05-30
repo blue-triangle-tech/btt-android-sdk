@@ -3,6 +3,7 @@ package com.bluetriangle.analytics.screenTracking
 import com.bluetriangle.analytics.Constants.TIMER_MIN_PGTM
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.model.Screen
+import com.bluetriangle.analytics.screenTracking.grouping.BTTTimerGroupManager
 import com.bluetriangle.analytics.utility.logD
 
 internal class BTTScreenLifecycleTracker(
@@ -14,13 +15,16 @@ internal class BTTScreenLifecycleTracker(
     private var viewTime = hashMapOf<String, Long>()
     private val timers = hashMapOf<String, Timer>()
     private val TAG = this::class.java.simpleName
+    private val groupManager = BTTTimerGroupManager()
 
     override fun onLoadStarted(screen: Screen) {
         if (!screenTrackingEnabled) return
         if (shouldIgnore(screen.name)) return
 
         logD(TAG, "onLoadStarted: $screen")
-        timers[screen.toString()] = Timer(screen.name, "ScreenTracker").start()
+        val timer = Timer(screen.name, "ScreenTracker").start()
+        timers[screen.toString()] = timer
+        groupManager.add(timer)
         loadTime[screen.toString()] = System.currentTimeMillis()
     }
 
@@ -61,7 +65,7 @@ internal class BTTScreenLifecycleTracker(
         timer.nativeAppProperties.loadTime = viewTm - loadTm
         timer.nativeAppProperties.fullTime = disappearTm - loadTm
         timer.nativeAppProperties.screenType = screen.type
-        timer.end().submit()
+        timer.end()
         timers.remove(scr)
     }
 

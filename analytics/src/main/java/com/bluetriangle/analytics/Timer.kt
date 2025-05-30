@@ -4,8 +4,6 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
 import com.bluetriangle.analytics.model.NativeAppProperties
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
 import com.bluetriangle.analytics.utility.getNumberOfCPUCores
 
 /**
@@ -291,6 +289,8 @@ class Timer : Parcelable {
         end - start
     }
 
+    internal var onEnded: () -> Unit = {}
+
     /**
      * End this timer.
      *
@@ -320,6 +320,7 @@ class Timer : Parcelable {
             setPerformanceReportFields(performanceReport)
             tracker?.clearPerformanceMonitor(performanceMonitor!!.id)
         }
+        onEnded()
         return this
     }
 
