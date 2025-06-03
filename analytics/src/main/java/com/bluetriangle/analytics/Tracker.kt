@@ -342,7 +342,7 @@ class Tracker private constructor(
         }
         claritySessionConnector.refreshClaritySessionUrlCustomVariable()
 
-        timer.setFields(globalFields.toMap())
+        timer.setFieldsIfAbsent(globalFields.toMap())
         loadCustomVariables(timer)
         timer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
         timer.setField(FIELD_SESSION_ID, sessionManager.sessionData.sessionId)
