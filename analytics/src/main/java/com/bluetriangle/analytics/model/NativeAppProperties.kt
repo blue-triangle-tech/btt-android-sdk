@@ -9,6 +9,7 @@ import com.bluetriangle.analytics.networkstate.BTTNetworkState
 import com.bluetriangle.analytics.networkstate.data.BTTNetworkProtocol
 import com.bluetriangle.analytics.utility.value
 import kotlinx.parcelize.Parcelize
+import org.json.JSONArray
 import org.json.JSONObject
 
 @Parcelize
@@ -24,7 +25,8 @@ internal data class NativeAppProperties(
     var offline: Long? = null,
     var launchScreenName: String? = null,
     var deviceModel: String? = null,
-    var netStateSource: String? = null
+    var netStateSource: String? = null,
+    var childViews: List<String>? = null
 ) : Parcelable {
 
     private val cellularTotal
@@ -39,6 +41,14 @@ internal data class NativeAppProperties(
         obj.put("maxMainThreadUsage", maxMainThreadUsage)
         obj.put("screenType", screenType?.value)
         obj.put("numberOfCPUCores", numberOfCPUCores)
+
+        childViews?.let {
+            val childViewsArray = JSONArray()
+            it.forEach { el ->
+                childViewsArray.put(el)
+            }
+            obj.put("childViews", childViewsArray)
+        }
 
         networkStates.apply {
             forEach { obj.put(it) }

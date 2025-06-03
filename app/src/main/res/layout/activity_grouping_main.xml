@@ -5,19 +5,31 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".groupingpoc.GroupingMainActivity">
+    tools:context=".groupingpoc.DemoMainActivity">
 
-    <TextView
-        android:id="@+id/session_id"
-        android:layout_width="0dp"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#223388"
-        android:paddingHorizontal="16dp"
-        android:paddingVertical="4dp"
-        android:textColor="#ffffff"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/session_id"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#ffffff"
+            android:paddingVertical="12dp"
+            android:paddingHorizontal="16dp"
+            tools:text="Session ID: 19923884778283838"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
     <FrameLayout
         android:id="@+id/base_frame"
         android:layout_width="0dp"
@@ -25,7 +37,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/session_id">
+        app:layout_constraintTop_toBottomOf="@id/header">
 
     </FrameLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

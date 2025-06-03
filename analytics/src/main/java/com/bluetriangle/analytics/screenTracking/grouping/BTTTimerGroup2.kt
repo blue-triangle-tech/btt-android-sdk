@@ -5,33 +5,27 @@ import android.os.Looper
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Tracker
 
-class BTTTimerGroup(
-    private val namingStrategy: GroupNamingStrategy = FirstTimerNameStrategy,
+class BTTTimerGroup2(
+    private val namingStrategy: GroupNamingStrategy = LastTimerNameStrategy,
     groupDecayInSecs: Int,
-    private val onCompleted: (BTTTimerGroup)-> Unit
+    private val onCompleted: (BTTTimerGroup2)-> Unit
 ) {
     private var timers = mutableListOf<Timer>()
     private var groupTimer = Timer()
     var isClosed = false
         private set
+    private val groupId = System.currentTimeMillis().toString()
     private var isSubmitted = false
     private var logger = Tracker.instance?.configuration?.logger
-    private val idleTime = groupDecayInSecs * 1000L
-
 
     private var handler = Handler(Looper.getMainLooper())
     private val closeGroupRunnable: Runnable = Runnable {
         close()
     }
 
-    private fun resetIdleTimeout() {
-        handler.removeCallbacks(closeGroupRunnable)
-        handler.postDelayed(closeGroupRunnable, idleTime)
-    }
-
     init {
         groupTimer.start()
-        resetIdleTimeout()
+        handler.postDelayed(closeGroupRunnable, groupDecayInSecs * 1000L)
     }
 
     fun add(timer: Timer) {
@@ -39,10 +33,10 @@ class BTTTimerGroup(
             logger?.info("Tried to add timer to closed group.")
             return
         }
+        logger?.debug("Adding Timer to Group: ${timer.getField(Timer.FIELD_PAGE_NAME)} -> $groupId")
 
         timers.add(timer)
         observe(timer)
-        resetIdleTimeout()
     }
 
     private fun observe(timer: Timer) {
@@ -77,6 +71,10 @@ class BTTTimerGroup(
         val groupName = namingStrategy.getName(timers)
         groupTimer.setPageName(groupName)
         groupTimer.setTrafficSegmentName("ScreenTracker")
+        groupTimer.generateNativeAppProperties()
+        groupTimer.nativeAppProperties.childViews =
+            timers.mapNotNull { it.getField(Timer.FIELD_PAGE_NAME) }
+        groupTimer.nativeAppProperties.loadTime = timers.maxBy { it.nativeAppProperties.loadTime?:0L }.nativeAppProperties.loadTime
         groupTimer.submit()
     }
 

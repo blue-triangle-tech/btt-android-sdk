@@ -221,7 +221,10 @@ class Tracker private constructor(
 
     private fun initializeScreenTracker() {
         screenTrackMonitor = BTTScreenLifecycleTracker(
-            configuration.isScreenTrackingEnabled, sessionManager.sessionData.ignoreScreens
+            configuration.isScreenTrackingEnabled,
+            configuration::isGroupingEnabled,
+            configuration::groupDecayInSecs,
+            sessionManager.sessionData.ignoreScreens
         ).also {
             val fragmentLifecycleTracker = FragmentLifecycleTracker(it)
             activityLifecycleTracker = ActivityLifecycleTracker(

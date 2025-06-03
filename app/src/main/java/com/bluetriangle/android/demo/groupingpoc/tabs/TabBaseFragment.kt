@@ -9,7 +9,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.bluetriangle.android.demo.R
 
-open class GroupTabBaseFragment(val color: Int, val text: String):Fragment() {
+open class TabBaseFragment(val color: Int, val text: String):Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

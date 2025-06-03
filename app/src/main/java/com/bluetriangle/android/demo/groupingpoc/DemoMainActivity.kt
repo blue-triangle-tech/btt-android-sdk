@@ -2,17 +2,17 @@ package com.bluetriangle.android.demo.groupingpoc
 
 import android.content.ClipData
 import android.content.ClipboardManager
-import android.content.Context
 import android.os.Bundle
+import android.widget.CheckBox
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.android.demo.R
-import com.bluetriangle.android.demo.groupingpoc.tabs.GroupTabContainerFragment
+import com.bluetriangle.android.demo.groupingpoc.tabs.TabContainerFragment
 
-class GroupingMainActivity : AppCompatActivity() {
+class DemoMainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_grouping_main)
@@ -24,7 +24,7 @@ class GroupingMainActivity : AppCompatActivity() {
         supportActionBar?.hide()
 
         supportFragmentManager.beginTransaction()
-            .replace(R.id.base_frame, GroupTabContainerFragment())
+            .replace(R.id.base_frame, TabContainerFragment())
             .commit()
 
         findViewById<TextView>(R.id.session_id).apply {

@@ -13,7 +13,7 @@ import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 
 
-class GroupTabContainerFragment : Fragment() {
+class TabContainerFragment : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -43,11 +43,11 @@ class GroupTabContainerFragment : Fragment() {
     class TabsAdapter(fragmentActivity: FragmentActivity) : FragmentStateAdapter(fragmentActivity) {
         override fun createFragment(position: Int): Fragment {
             return when(position) {
-                0 -> GroupFirstFragment()
-                1 -> GroupSecondFragment()
-                2 -> GroupThirdFragment()
-                3 -> GroupFourthFragment()
-                else -> GroupFifthFragment()
+                0 -> FirstTabFragment()
+                1 -> SecondTabFragment()
+                2 -> ThirdTabFragment()
+                3 -> FourthTabFragment()
+                else -> FifthTabFragment()
             }
         }
 

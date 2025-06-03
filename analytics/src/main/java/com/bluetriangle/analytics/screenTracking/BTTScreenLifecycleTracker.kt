@@ -8,6 +8,8 @@ import com.bluetriangle.analytics.utility.logD
 
 internal class BTTScreenLifecycleTracker(
     private val screenTrackingEnabled: Boolean,
+    private val groupingEnabled: ()-> Boolean,
+    groupDecayInSecs: () -> Int,
     internal var ignoreScreens: List<String>
 ) : ScreenLifecycleTracker {
 
@@ -15,7 +17,7 @@ internal class BTTScreenLifecycleTracker(
     private var viewTime = hashMapOf<String, Long>()
     private val timers = hashMapOf<String, Timer>()
     private val TAG = this::class.java.simpleName
-    private val groupManager = BTTTimerGroupManager()
+    private val groupManager = BTTTimerGroupManager(groupDecayInSecs)
 
     override fun onLoadStarted(screen: Screen) {
         if (!screenTrackingEnabled) return
@@ -24,7 +26,9 @@ internal class BTTScreenLifecycleTracker(
         logD(TAG, "onLoadStarted: $screen")
         val timer = Timer(screen.name, "ScreenTracker").start()
         timers[screen.toString()] = timer
-        groupManager.add(timer)
+        if(groupingEnabled()) {
+            groupManager.add(timer)
+        }
         loadTime[screen.toString()] = System.currentTimeMillis()
     }
 
@@ -65,7 +69,11 @@ internal class BTTScreenLifecycleTracker(
         timer.nativeAppProperties.loadTime = viewTm - loadTm
         timer.nativeAppProperties.fullTime = disappearTm - loadTm
         timer.nativeAppProperties.screenType = screen.type
-        timer.end()
+        if(groupingEnabled()) {
+            timer.end()
+        } else {
+            timer.end().submit()
+        }
         timers.remove(scr)
     }
 
