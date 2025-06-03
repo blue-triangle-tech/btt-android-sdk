@@ -572,6 +572,23 @@ class Timer : Parcelable {
     }
 
     /**
+     * Allows the setting of multiple fields via a Map. Only sets a field if it already doesn't exist in the internal fields.
+     *
+     * @param fields A map of attribute names as keys and their associated string value to set
+     * @return this timer
+     */
+    fun setFieldsIfAbsent(fields: Map<String, String>): Timer {
+        synchronized(this.fields) {
+            fields.forEach {
+                if(!this.fields.containsKey(it.key)) {
+                    this.fields.put(it.key, it.value)
+                }
+            }
+        }
+        return this
+    }
+
+    /**
      * Sets a field name with the given value
      *
      * @param fieldName the name of the field to set
