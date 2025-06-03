@@ -342,7 +342,7 @@ class Tracker private constructor(
         }
         claritySessionConnector.refreshClaritySessionUrlCustomVariable()
 
-        timer.setFields(globalFields.toMap())
+        timer.setFieldsIfAbsent(globalFields.toMap())
         if (customVariables.isNotEmpty()) {
             kotlin.runCatching {
                 val extendedCustomVariables = JSONObject(customVariables as Map<*, *>?).toString()

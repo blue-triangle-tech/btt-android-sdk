@@ -14,13 +14,14 @@ internal class BTTScreenLifecycleTracker(
     private var viewTime = hashMapOf<String, Long>()
     private val timers = hashMapOf<String, Timer>()
     private val TAG = this::class.java.simpleName
+    private val pageType = "ScreenTracker"
 
     override fun onLoadStarted(screen: Screen) {
         if (!screenTrackingEnabled) return
         if (shouldIgnore(screen.name)) return
 
         logD(TAG, "onLoadStarted: $screen")
-        timers[screen.toString()] = Timer(screen.name, "ScreenTracker").start()
+        timers[screen.toString()] = Timer(screen.name, pageType).start()
         loadTime[screen.toString()] = System.currentTimeMillis()
     }
 
@@ -30,7 +31,7 @@ internal class BTTScreenLifecycleTracker(
 
         logD(TAG, "onLoadEnded: $screen")
         if (timers[screen.toString()] == null) {
-            timers[screen.toString()] = Timer(screen.name, "ScreenTracker").start()
+            timers[screen.toString()] = Timer(screen.name, pageType).start()
             loadTime[screen.toString()] = System.currentTimeMillis()
         }
     }
@@ -54,6 +55,7 @@ internal class BTTScreenLifecycleTracker(
         val viewTm = viewTime[scr] ?: 0L
         val disappearTm = System.currentTimeMillis()
 
+        timer.setContentGroupName(pageType)
         timer.pageTimeCalculator = {
             (viewTm - loadTm).coerceAtLeast(TIMER_MIN_PGTM)
         }
