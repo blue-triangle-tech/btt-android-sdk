@@ -40,6 +40,8 @@ internal class BTTConfigurationRepository(
             config.ignoreScreens,
             config.enableRemoteConfigAck,
             config.enableAllTracking,
+            config.groupingEnabled,
+            config.groupingIdleTime,
             System.currentTimeMillis()
         )
 

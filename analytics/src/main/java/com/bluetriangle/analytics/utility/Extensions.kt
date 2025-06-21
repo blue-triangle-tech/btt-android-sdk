@@ -8,6 +8,8 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import android.system.Os
 import android.system.OsConstants
+import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager.FragmentLifecycleCallbacks
@@ -28,6 +30,15 @@ internal val Fragment.screen: Screen
         this::class.java.simpleName,
         ScreenType.Fragment
     )
+
+internal fun Activity.getToolbarTitle(): String? {
+    Log.d("ToolbarTitleExperiment", "Activity - className: ${this::class.java.simpleName}, title: ${title?.toString()}, actionBarTitle: ${this.actionBar?.title}, supportActionBarTitle: ${(this as? AppCompatActivity)?.supportActionBar?.title}")
+    return if (this is AppCompatActivity) {
+        title?.toString()
+    } else {
+        title?.toString()
+    }
+}
 
 internal val Activity.screen: Screen
     get() = Screen(

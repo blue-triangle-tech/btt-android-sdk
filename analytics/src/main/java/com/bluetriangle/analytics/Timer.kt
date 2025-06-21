@@ -320,6 +320,7 @@ class Timer : Parcelable {
             setPerformanceReportFields(performanceReport)
             tracker?.clearPerformanceMonitor(performanceMonitor!!.id)
         }
+        tracker?.removeFromTimerStack(this)
         onEnded()
         return this
     }
@@ -572,6 +573,17 @@ class Timer : Parcelable {
         return this
     }
 
+    fun setFieldsIfAbsent(fields: Map<String, String>): Timer {
+        synchronized(this.fields) {
+            fields.forEach {
+                if(!this.fields.containsKey(it.key)) {
+                    this.fields.put(it.key, it.value)
+                }
+            }
+        }
+        return this
+    }
+
     /**
      * Sets a field name with the given value
      *
@@ -726,6 +738,19 @@ class Timer : Parcelable {
 
     fun setError(err: Boolean) {
         fields[FIELD_ERR] = if (err) "1" else "0"
+    }
+
+    fun startDummy(): Timer {
+        if(!isTrackingEnabled()) return this
+
+        if (start == 0L) {
+            start = System.currentTimeMillis()
+            setField(FIELD_UNLOAD_EVENT_START, start)
+            setField(FIELD_NST, start)
+        } else {
+            logger?.error("Timer already started")
+        }
+        return this
     }
 
 }

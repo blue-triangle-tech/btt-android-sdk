@@ -72,8 +72,6 @@ class BTTTimerGroup2(
         groupTimer.setPageName(groupName)
         groupTimer.setTrafficSegmentName("ScreenTracker")
         groupTimer.generateNativeAppProperties()
-        groupTimer.nativeAppProperties.childViews =
-            timers.mapNotNull { it.getField(Timer.FIELD_PAGE_NAME) }
         groupTimer.nativeAppProperties.loadTime = timers.maxBy { it.nativeAppProperties.loadTime?:0L }.nativeAppProperties.loadTime
         groupTimer.submit()
     }

@@ -8,11 +8,15 @@ import android.widget.SeekBar
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.asLiveData
+import androidx.lifecycle.lifecycleScope
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.android.demo.R
 import com.bluetriangle.android.demo.groupingpoc.GroupingConfig
+import com.bluetriangle.android.demo.groupingpoc.QuoteRequestHelper
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class FirstTabFragment : Fragment() {
 
@@ -67,6 +71,7 @@ class FirstTabFragment : Fragment() {
 
         })
 
+        QuoteRequestHelper.instance.setupQuoteUI(lifecycleScope, view)
     }
 
 }

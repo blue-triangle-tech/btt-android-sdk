@@ -67,6 +67,7 @@ class Tracker private constructor(
      */
     private var mostRecentTimer: WeakReference<Timer>? = null
 
+    private var timerStack = ArrayDeque<WeakReference<Timer>>()
     /**
      * The tracker's configuration
      */
@@ -85,7 +86,7 @@ class Tracker private constructor(
     /**
      * Executor service to queue and submit timers
      */
-    private val trackerExecutor: TrackerExecutor
+    internal val trackerExecutor: TrackerExecutor
 
     /**
      * Performance monitoring threads
@@ -236,6 +237,10 @@ class Tracker private constructor(
         }
     }
 
+    fun setScreenName(screenName: String) {
+        screenTrackMonitor?.setScreenName(screenName)
+    }
+
     private fun deInitializeScreenTracker() {
         activityLifecycleTracker?.let {
             (context.get()?.applicationContext as? Application)?.unregisterActivityLifecycleCallbacks(
@@ -287,13 +292,16 @@ class Tracker private constructor(
 
     @Synchronized
     fun setMostRecentTimer(timer: Timer) {
-        mostRecentTimer = WeakReference(timer)
+        timerStack.addLast(WeakReference(timer))
+    }
+
+    @Synchronized
+    fun removeFromTimerStack(timer: Timer) {
+        timerStack.removeAll { it.get() == timer || it.get() == null }
     }
 
     fun getMostRecentTimer(): Timer? {
-        return if (mostRecentTimer != null) {
-            mostRecentTimer!!.get()
-        } else null
+        return timerStack.lastOrNull()?.get()
     }
 
     /**
@@ -345,7 +353,7 @@ class Tracker private constructor(
         }
         claritySessionConnector.refreshClaritySessionUrlCustomVariable()
 
-        timer.setFields(globalFields.toMap())
+        timer.setFieldsIfAbsent(globalFields.toMap())
         if (customVariables.isNotEmpty()) {
             kotlin.runCatching {
                 val extendedCustomVariables = JSONObject(customVariables as Map<*, *>?).toString()
@@ -940,6 +948,8 @@ class Tracker private constructor(
                 ignoreList = listOf(),
                 enableRemoteConfigAck = false,
                 enableAllTracking = true,
+                groupingEnabled = false,
+                groupingIdleTime = 2,
                 savedDate = 0L
             )
 

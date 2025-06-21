@@ -1,5 +1,6 @@
 package com.bluetriangle.analytics
 
+import androidx.core.net.toUri
 import com.bluetriangle.analytics.Timer.Companion.FIELD_NATIVE_APP
 import com.bluetriangle.analytics.caching.classifier.CacheType
 import com.bluetriangle.analytics.networkcapture.CapturedRequestRunnable
@@ -39,7 +40,7 @@ internal class TimerRunnable(
             }
             timer.onSubmit()
             try {
-                val url = URL(configuration.trackerUrl)
+                val url = URL(buildTrackerUrl(timer))
                 connection = url.openConnection() as HttpsURLConnection
                 connection.requestMethod = Constants.METHOD_POST
                 connection.setRequestProperty(
@@ -64,7 +65,7 @@ internal class TimerRunnable(
                         cachePayload(configuration.trackerUrl, payloadData)
                     }
                 } else {
-                    configuration.logger?.debug("$timer submitted successfully")
+                    configuration.logger?.debug("$url\n$timer submitted successfully")
 
                     // successfully submitted a timer, lets check if there are any cached timers that we can try and submit too
                     val nextCachedPayload = configuration.payloadCache?.pickNext()
@@ -85,6 +86,14 @@ internal class TimerRunnable(
         } catch(e: Exception) {
             configuration.logger?.error("Error while submitting timer: ${e.message}")
         }
+    }
+
+    private fun buildTrackerUrl(timer: Timer): String {
+        return configuration.trackerUrl.toUri().buildUpon()
+            .appendQueryParameter("pgNm", timer.getField(Timer.FIELD_PAGE_NAME))
+            .appendQueryParameter("trSeg", timer.getField(Timer.FIELD_TRAFFIC_SEGMENT_NAME))
+            .appendQueryParameter("navStart", timer.getField(Timer.FIELD_NST))
+            .build().toString()
     }
 
     /**

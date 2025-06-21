@@ -3,12 +3,19 @@ package com.bluetriangle.analytics.screenTracking
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.fragment.app.FragmentActivity
+import com.bluetriangle.analytics.utility.getToolbarTitle
 import com.bluetriangle.analytics.utility.registerFragmentLifecycleCallback
 import com.bluetriangle.analytics.utility.screen
 import com.bluetriangle.analytics.utility.unregisterFragmentLifecycleCallback
 
 internal class ActivityLifecycleTracker(private val screenTracker: ScreenLifecycleTracker, private val fragmentLifecycleTracker: FragmentLifecycleTracker):Application.ActivityLifecycleCallbacks {
+
+    companion object {
+        const val TAG = "ActivityLifecycleTracker"
+    }
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
         (activity as? FragmentActivity)?.registerFragmentLifecycleCallback(fragmentLifecycleTracker)
@@ -24,7 +31,12 @@ internal class ActivityLifecycleTracker(private val screenTracker: ScreenLifecyc
 
     override fun onActivityPostResumed(activity: Activity) {
         super.onActivityPostResumed(activity)
-        screenTracker.onViewStarted(activity.screen)
+        val screen = activity.screen
+        Handler(Looper.getMainLooper()).postDelayed({
+            val name = activity.getToolbarTitle()
+            screen.title = name
+        }, 400)
+        screenTracker.onViewStarted(screen)
     }
 
     override fun onActivityPaused(activity: Activity) {

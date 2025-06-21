@@ -25,9 +25,13 @@ internal data class NativeAppProperties(
     var offline: Long? = null,
     var launchScreenName: String? = null,
     var deviceModel: String? = null,
-    var netStateSource: String? = null,
-    var childViews: List<String>? = null
+    var netStateSource: String? = null
 ) : Parcelable {
+
+    internal var loadStartTime: Long = 0
+    internal var loadEndTime: Long = 0
+    internal var disappearTime: Long = 0
+    internal var className: String = ""
 
     private val cellularTotal
         get() = cellular?.entries?.map { it.value }?.let {
@@ -41,14 +45,6 @@ internal data class NativeAppProperties(
         obj.put("maxMainThreadUsage", maxMainThreadUsage)
         obj.put("screenType", screenType?.value)
         obj.put("numberOfCPUCores", numberOfCPUCores)
-
-        childViews?.let {
-            val childViewsArray = JSONArray()
-            it.forEach { el ->
-                childViewsArray.put(el)
-            }
-            obj.put("childViews", childViewsArray)
-        }
 
         networkStates.apply {
             forEach { obj.put(it) }
