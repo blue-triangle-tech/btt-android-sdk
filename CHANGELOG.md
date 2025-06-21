@@ -1,4 +1,10 @@
-# Blue Triangle 2.17.0 Latest, April 7 2025
+# Blue Triangle 2.17.1 Latest, June 6 2025
+### Bug Fixes
+- Fixed Launch Time issue on later configuration
+- Changed Traffic Segment name and Page type to "ScreenTracker" for Automatic Screen Tracking payloads
+- Sending custom variables along with error payloads
+  
+# Blue Triangle 2.17.0, April 7 2025
 ### New Features
 - Added support for Blue Triangle and Microsoft Clarity session mapping. Added ability to detect Clarity SDK present in host app, if present associate clarity session url with Timers.
 
