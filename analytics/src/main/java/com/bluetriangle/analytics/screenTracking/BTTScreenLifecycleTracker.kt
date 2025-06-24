@@ -25,6 +25,7 @@ internal class BTTScreenLifecycleTracker(
     fun setScreenName(screenName: String) {
         groupManager.setScreenName(screenName)
     }
+    private val pageType = "ScreenTracker"
 
     fun grouped(automated: Boolean): Boolean = groupingEnabled() && automated
 
@@ -66,7 +67,7 @@ internal class BTTScreenLifecycleTracker(
 
     @Synchronized
     private fun createTimerAndCaptureLoadTime(screen: Screen, isGrouped: Boolean) {
-        val timer = Timer(screen.pageName(isGrouped), "ScreenTracker")
+        val timer = Timer(screen.pageName(isGrouped), pageType)
         timers[screen.toString()] = timer
         if(groupingEnabled()) {
             groupManager.add(screen, timer)
@@ -102,6 +103,7 @@ internal class BTTScreenLifecycleTracker(
         val viewTm = viewTime[scr] ?: 0L
         val disappearTm = System.currentTimeMillis()
 
+        timer.setContentGroupName(pageType)
         timer.pageTimeCalculator = {
             (viewTm - loadTm).coerceAtLeast(TIMER_MIN_PGTM)
         }

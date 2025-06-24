@@ -354,6 +354,13 @@ class Tracker private constructor(
         claritySessionConnector.refreshClaritySessionUrlCustomVariable()
 
         timer.setFieldsIfAbsent(globalFields.toMap())
+        loadCustomVariables(timer)
+        timer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
+        timer.setField(FIELD_SESSION_ID, sessionManager.sessionData.sessionId)
+        trackerExecutor.submit(TimerRunnable(configuration, timer))
+    }
+
+    internal fun loadCustomVariables(timer: Timer) {
         if (customVariables.isNotEmpty()) {
             kotlin.runCatching {
                 val extendedCustomVariables = JSONObject(customVariables as Map<*, *>?).toString()
@@ -364,9 +371,6 @@ class Tracker private constructor(
                 }
             }
         }
-        timer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
-        timer.setField(FIELD_SESSION_ID, sessionManager.sessionData.sessionId)
-        trackerExecutor.submit(TimerRunnable(configuration, timer))
     }
 
     /**
