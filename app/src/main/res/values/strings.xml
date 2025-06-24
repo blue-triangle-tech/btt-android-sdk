@@ -69,4 +69,7 @@
     <string name="stop_timer">Stop Timer</string>
 
     <string name="hybrid_demo">Hybrid Demo</string>
+    <string name="idle_time">Idle Time</string>
+    <string name="grouped">Grouped</string>
+    <string name="normal">Normal</string>
 </resources>

@@ -7,6 +7,7 @@ package com.bluetriangle.analytics.dynamicconfig.model
 
 import com.bluetriangle.analytics.utility.getBooleanOrNull
 import com.bluetriangle.analytics.utility.getDoubleOrNull
+import com.bluetriangle.analytics.utility.getIntOrNull
 import com.bluetriangle.analytics.utility.getJsonArrayOrNull
 import org.json.JSONArray
 import org.json.JSONObject
@@ -17,6 +18,8 @@ internal object BTTSavedRemoteConfigurationMapper {
     private const val SAVED_DATE = "savedDate"
     private const val IGNORE_SCREENS = "ignoreScreens"
     private const val ENABLE_ALL_TRACKING = "enableAllTracking"
+    private const val GROUPING_ENABLED = "groupingEnabled"
+    private const val GROUPING_IDLE_TIME = "groupingIdleTime"
 
     fun fromJson(jsonObject: JSONObject): BTTSavedRemoteConfiguration {
         val ignoreScreens = jsonObject.getJsonArrayOrNull(IGNORE_SCREENS)?.let { array ->
@@ -34,6 +37,8 @@ internal object BTTSavedRemoteConfigurationMapper {
             ignoreScreens,
             jsonObject.getBoolean(ENABLE_REMOTE_CONFIG),
             jsonObject.getBooleanOrNull(ENABLE_ALL_TRACKING)?: true,
+            jsonObject.getBooleanOrNull(GROUPING_ENABLED)?:false,
+            jsonObject.getIntOrNull(GROUPING_IDLE_TIME)?:2,
             jsonObject.getLong(SAVED_DATE)
         )
     }
@@ -47,6 +52,8 @@ internal object BTTSavedRemoteConfigurationMapper {
         put(IGNORE_SCREENS, ignoreListArray)
         put(ENABLE_ALL_TRACKING, config.enableAllTracking)
         put(ENABLE_REMOTE_CONFIG, config.enableRemoteConfigAck)
+        put(GROUPING_ENABLED, config.groupingEnabled)
+        put(GROUPING_IDLE_TIME, config.groupingIdleTime)
         put(SAVED_DATE, config.savedDate)
     }
 }

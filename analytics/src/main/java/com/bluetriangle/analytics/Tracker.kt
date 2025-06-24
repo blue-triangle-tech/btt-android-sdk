@@ -67,6 +67,7 @@ class Tracker private constructor(
      */
     private var mostRecentTimer: WeakReference<Timer>? = null
 
+    private var timerStack = ArrayDeque<WeakReference<Timer>>()
     /**
      * The tracker's configuration
      */
@@ -85,7 +86,7 @@ class Tracker private constructor(
     /**
      * Executor service to queue and submit timers
      */
-    private val trackerExecutor: TrackerExecutor
+    internal val trackerExecutor: TrackerExecutor
 
     /**
      * Performance monitoring threads
@@ -221,7 +222,10 @@ class Tracker private constructor(
 
     private fun initializeScreenTracker() {
         screenTrackMonitor = BTTScreenLifecycleTracker(
-            configuration.isScreenTrackingEnabled, sessionManager.sessionData.ignoreScreens
+            configuration.isScreenTrackingEnabled,
+            configuration::isGroupingEnabled,
+            configuration::groupDecayInSecs,
+            sessionManager.sessionData.ignoreScreens
         ).also {
             val fragmentLifecycleTracker = FragmentLifecycleTracker(it)
             activityLifecycleTracker = ActivityLifecycleTracker(
@@ -231,6 +235,10 @@ class Tracker private constructor(
                 activityLifecycleTracker
             )
         }
+    }
+
+    fun setScreenName(screenName: String) {
+        screenTrackMonitor?.setScreenName(screenName)
     }
 
     private fun deInitializeScreenTracker() {
@@ -284,13 +292,16 @@ class Tracker private constructor(
 
     @Synchronized
     fun setMostRecentTimer(timer: Timer) {
-        mostRecentTimer = WeakReference(timer)
+        timerStack.addLast(WeakReference(timer))
+    }
+
+    @Synchronized
+    fun removeFromTimerStack(timer: Timer) {
+        timerStack.removeAll { it.get() == timer || it.get() == null }
     }
 
     fun getMostRecentTimer(): Timer? {
-        return if (mostRecentTimer != null) {
-            mostRecentTimer!!.get()
-        } else null
+        return timerStack.lastOrNull()?.get()
     }
 
     /**
@@ -941,6 +952,8 @@ class Tracker private constructor(
                 ignoreList = listOf(),
                 enableRemoteConfigAck = false,
                 enableAllTracking = true,
+                groupingEnabled = false,
+                groupingIdleTime = 2,
                 savedDate = 0L
             )
 

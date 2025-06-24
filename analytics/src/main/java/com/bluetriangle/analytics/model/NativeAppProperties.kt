@@ -9,6 +9,7 @@ import com.bluetriangle.analytics.networkstate.BTTNetworkState
 import com.bluetriangle.analytics.networkstate.data.BTTNetworkProtocol
 import com.bluetriangle.analytics.utility.value
 import kotlinx.parcelize.Parcelize
+import org.json.JSONArray
 import org.json.JSONObject
 
 @Parcelize
@@ -26,6 +27,11 @@ internal data class NativeAppProperties(
     var deviceModel: String? = null,
     var netStateSource: String? = null
 ) : Parcelable {
+
+    internal var loadStartTime: Long = 0
+    internal var loadEndTime: Long = 0
+    internal var disappearTime: Long = 0
+    internal var className: String = ""
 
     private val cellularTotal
         get() = cellular?.entries?.map { it.value }?.let {
