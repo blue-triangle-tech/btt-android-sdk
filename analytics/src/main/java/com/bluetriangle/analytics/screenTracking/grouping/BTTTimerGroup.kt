@@ -6,7 +6,7 @@ import com.bluetriangle.analytics.Constants.TIMER_MIN_PGTM
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.model.Screen
-import kotlin.concurrent.timer
+import com.bluetriangle.analytics.screenTracking.BTTScreenLifecycleTracker
 
 internal class BTTTimerGroup(
     private val namingStrategy: GroupNamingStrategy = LastTimerNameStrategy,
@@ -51,11 +51,11 @@ internal class BTTTimerGroup(
         }
 
         timers.add(screen to timer)
-        observe(timer)
+        observeTimerEnd(timer)
         resetIdleTimeout()
     }
 
-    private fun observe(timer: Timer) {
+    private fun observeTimerEnd(timer: Timer) {
         timer.onEnded = {
             logger?.info("Timer Ended: ${timer.getField(Timer.FIELD_PAGE_NAME)}")
             checkCompletion()
@@ -89,71 +89,56 @@ internal class BTTTimerGroup(
 
         if(timers.isEmpty()) return
 
+        val groupName = screenName ?: namingStrategy.getName(timers.map { it.second })
+        groupTimer.setPageName(groupName)
+        groupTimer.setTrafficSegmentName(BTTScreenLifecycleTracker.AUTOMATED_TIMERS_PAGE_TYPE)
+
+        generateGroupProperties(tracker)
+
+        groupTimer.submit()
+        logger?.debug("Group Submitted.. ${this.hashCode()}")
+        tracker.trackerExecutor.submit(
+            GroupChildRunnable(tracker.configuration, groupTimer, childViews = mapTimersToChildViews())
+        )
+    }
+
+    private fun mapTimersToChildViews(): List<BTTChildView> {
+        val groupStartTime = (groupTimer.getField(Timer.FIELD_NST)?.toLong()?:0L)
+
+        return timers.map {
+            val childPageName = it.second.getField(Timer.FIELD_PAGE_NAME)?:""
+            val childPgTm = it.second.pageTimeCalculator().toString()
+            val childNativeAppProp = it.second.nativeAppProperties
+            val childLoadStartTime = (it.second.getField(Timer.FIELD_NST)?.toLong()?:0L)
+            val childLoadEndTime = childNativeAppProp.loadEndTime
+
+            BTTChildView(
+                childNativeAppProp.className,
+                childPageName,
+                childPgTm,
+                (childLoadStartTime - groupStartTime).toString(),
+                (childLoadEndTime - groupStartTime).toString(),
+                childNativeAppProp
+            )
+        }
+    }
+
+    private fun generateGroupProperties(tracker: Tracker) {
         timers.forEach {
             tracker.screenTrackMonitor?.generateMetaData(it.first, it.second)
         }
-        val groupName = screenName ?: namingStrategy.getName(timers.map { it.second })
-        groupTimer.setPageName(groupName)
-        groupTimer.setTrafficSegmentName("ScreenTracker")
+
         groupTimer.generateNativeAppProperties()
 
         val loadStartTime = timers.minOfOrNull { it.second.nativeAppProperties.loadStartTime }?:0
-
-        val overlapTime = calculateTotalOverlap(timers.map { it.second })
         val disappearTm = timers.maxOfOrNull { it.second.nativeAppProperties.disappearTime }?:0
-        val loadTime = timers.sumOf { it.second.nativeAppProperties.loadTime?:0 } - overlapTime
+        val loadTime = timers.sumOf { it.second.nativeAppProperties.loadTime?:0 }
 
         groupTimer.pageTimeCalculator = {
             loadTime.coerceAtLeast(TIMER_MIN_PGTM)
         }
         groupTimer.nativeAppProperties.loadTime = loadTime
         groupTimer.nativeAppProperties.fullTime = disappearTm - loadStartTime
-
-        groupTimer.submit()
-        logger?.debug("Group Submitted.. ${this.hashCode()}")
-        tracker.trackerExecutor.submit(
-            GroupChildRunnable(tracker.configuration, groupTimer, childViews = timers.map {
-                BTTChildView(
-                    it.second.nativeAppProperties.className,
-                    it.second.getField(Timer.FIELD_PAGE_NAME)?:"",
-                    it.second.pageTimeCalculator().toString(),
-                    ((it.second.getField(Timer.FIELD_NST)?.toLong()?:0L) - (groupTimer.getField(Timer.FIELD_NST)?.toLong()?:0L)).toString(),
-                    (it.second.nativeAppProperties.loadEndTime - (groupTimer.getField(Timer.FIELD_NST)?.toLong()?:0L)).toString()
-                )
-            })
-        )
-    }
-
-    fun calculateTotalOverlap(timers: List<Timer>): Long {
-        if (timers.isEmpty()) return 0L
-
-        // Step 1: Convert to list of events
-        data class Event(val time: Long, val isStart: Boolean)
-
-        val events = mutableListOf<Event>()
-        for (timer in timers) {
-            events.add(Event(timer.nativeAppProperties.loadStartTime, true))  // Start of interval
-            events.add(Event(timer.nativeAppProperties.loadEndTime, false))   // End of interval
-        }
-
-        // Step 2: Sort events by time; starts come before ends when time is equal
-        events.sortWith(compareBy<Event> { it.time }.thenBy { if (it.isStart) 0 else 1 })
-
-        // Step 3: Sweep line algorithm
-        var activeCount = 0
-        var lastTime: Long? = null
-        var totalOverlap = 0L
-
-        for (event in events) {
-            if (lastTime != null && activeCount >= 2) {
-                totalOverlap += event.time - lastTime
-            }
-
-            activeCount += if (event.isStart) 1 else -1
-            lastTime = event.time
-        }
-
-        return totalOverlap
     }
 
     fun flush() {

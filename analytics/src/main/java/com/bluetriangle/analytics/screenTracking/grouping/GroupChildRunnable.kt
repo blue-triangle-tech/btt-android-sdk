@@ -19,7 +19,7 @@ import java.io.InputStreamReader
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
-class GroupChildRunnable(
+internal class GroupChildRunnable(
     private val configuration: BlueTriangleConfiguration,
     private val groupTimer: Timer,
     private val childViews: List<BTTChildView>
@@ -83,6 +83,7 @@ class GroupChildRunnable(
                 put(FIELD_START_TIME, it.startTime)
                 put(CapturedRequest.FIELD_END_TIME, it.endTime)
                 put(CapturedRequest.FIELD_URL, it.pageName)
+                put(Timer.FIELD_NATIVE_APP, it.nativeAppProperties.toJSONObject())
             }
         }).toString(indentSpaces)
     }

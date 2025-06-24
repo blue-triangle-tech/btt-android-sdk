@@ -8,22 +8,42 @@ internal class BTTTimerGroupManager(val groupDecayInSeconds: ()-> Int) {
     private val activeGroups = mutableListOf<BTTTimerGroup>()
 
     fun add(screen: Screen, timer: Timer) {
-        val lastActive = activeGroups.lastOrNull { !it.isClosed }
+        val lastActive = getLastActiveGroup()
 
         if(lastActive != null) {
             lastActive.add(screen, timer)
         } else {
-            val toBeRemoved = mutableListOf<BTTTimerGroup>()
-            activeGroups.forEach {
-                it.submit()
-                it.flush()
-                toBeRemoved.add(it)
-            }
-            activeGroups.removeAll(toBeRemoved)
-            val newGroup = BTTTimerGroup(groupDecayInSecs = groupDecayInSeconds(), onCompleted = this::onGroupCompleted)
-            newGroup.add(screen, timer)
-            activeGroups.add(newGroup)
+            createNewGroupAndAdd(screen, timer)
         }
+    }
+
+    private fun getLastActiveGroup(): BTTTimerGroup? {
+        return activeGroups.lastOrNull { !it.isClosed }
+    }
+
+    private fun createNewGroupAndAdd(
+        screen: Screen,
+        timer: Timer
+    ) {
+        submitAllExistingTimers()
+
+        val newGroup = BTTTimerGroup(groupDecayInSecs = groupDecayInSeconds(), onCompleted = this::onGroupCompleted)
+        newGroup.add(screen, timer)
+
+        addToActiveGroup(newGroup)
+    }
+
+
+    private fun addToActiveGroup(group: BTTTimerGroup) {
+        activeGroups.add(group)
+    }
+
+    private fun submitAllExistingTimers() {
+        activeGroups.forEach {
+            it.submit()
+            it.flush()
+        }
+        activeGroups.clear()
     }
 
     fun setScreenName(screenName: String) {
