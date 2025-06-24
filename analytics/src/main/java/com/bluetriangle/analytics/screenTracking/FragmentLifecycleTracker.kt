@@ -65,13 +65,9 @@ internal class FragmentLifecycleTracker(val screenTrackMonitor: ScreenLifecycleT
     }
 
     override fun onFragmentResumed(fragmentManager: FragmentManager, fragment: Fragment) {
-        val screen = fragment.screen
         logEvent("onFragmentResumed", fragment)
-        Handler(Looper.getMainLooper()).postDelayed({
-            fragment.activity?.getToolbarTitle()?.let {
-                screen.title = it
-            }
-        }, 400)
+        val screen = fragment.screen
+        screen.fetchTitle(fragment.activity)
         screenTrackMonitor.onViewStarted(screen)
     }
 
@@ -105,6 +101,6 @@ internal class FragmentLifecycleTracker(val screenTrackMonitor: ScreenLifecycleT
     }
 
     fun logEvent(event: String, fragment: Fragment) {
-        Tracker.instance?.configuration?.logger?.debug("$TAG, $event: ${fragment::class.java.simpleName}")
+        Tracker.instance?.configuration?.logger?.info("$TAG, $event: ${fragment::class.java.simpleName}")
     }
 }

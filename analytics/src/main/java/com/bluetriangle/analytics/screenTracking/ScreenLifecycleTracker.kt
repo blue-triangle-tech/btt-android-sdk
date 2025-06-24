@@ -5,13 +5,13 @@ import com.bluetriangle.analytics.model.Screen
 
 internal interface ScreenLifecycleTracker {
 
-    fun onLoadStarted(screen: Screen, automated: Boolean)
+    fun onLoadStarted(screen: Screen, automated: Boolean = false)
 
-    fun onLoadEnded(screen: Screen, automated: Boolean)
+    fun onLoadEnded(screen: Screen, automated: Boolean = false)
 
-    fun onViewStarted(screen: Screen, automated: Boolean)
+    fun onViewStarted(screen: Screen, automated: Boolean = false)
 
-    fun onViewEnded(screen: Screen, automated: Boolean)
+    fun onViewEnded(screen: Screen, automated: Boolean = false)
 
     fun generateMetaData(screen: Screen, timer: Timer)
 

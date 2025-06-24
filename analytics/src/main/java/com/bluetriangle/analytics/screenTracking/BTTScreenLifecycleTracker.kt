@@ -58,9 +58,9 @@ internal class BTTScreenLifecycleTracker(
         viewTime[screen.toString()] = System.currentTimeMillis()
 
         if(groupingEnabled()) {
-            Handler(Looper.getMainLooper()).postDelayed({
+            screen.onTitleUpdated = {
                 timers[screen.toString()]?.setPageName(screen.pageName(groupingEnabled()))
-            }, 400)
+            }
         }
     }
 

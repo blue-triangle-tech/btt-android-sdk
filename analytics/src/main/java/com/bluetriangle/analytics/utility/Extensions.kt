@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import androidx.annotation.RequiresApi
 import android.system.Os
 import android.system.OsConstants
@@ -32,7 +34,6 @@ internal val Fragment.screen: Screen
     )
 
 internal fun Activity.getToolbarTitle(): String? {
-    Log.d("ToolbarTitleExperiment", "Activity - className: ${this::class.java.simpleName}, title: ${title?.toString()}, actionBarTitle: ${this.actionBar?.title}, supportActionBarTitle: ${(this as? AppCompatActivity)?.supportActionBar?.title}")
     return if (this is AppCompatActivity) {
         title?.toString()
     } else {
@@ -112,3 +113,7 @@ internal val Context.isDebugBuild: Boolean
             false
         }
     }
+
+internal fun postDelayedMain(runnable: ()->Unit, delayInMillis: Long) {
+    Handler(Looper.getMainLooper()).postDelayed(runnable, delayInMillis)
+}
