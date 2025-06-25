@@ -149,7 +149,8 @@ class Tracker private constructor(
         setSessionId(sessionData.sessionId)
         this.configuration.sessionId = sessionData.sessionId
         this.configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
-
+        this.configuration.isGroupingEnabled = sessionData.groupingEnabled
+        this.configuration.groupingIdleTime = sessionData.groupingIdleTime
         initializeScreenTracker()
 
         if (configuration.isTrackAnrEnabled) {
@@ -223,8 +224,8 @@ class Tracker private constructor(
     private fun initializeScreenTracker() {
         screenTrackMonitor = BTTScreenLifecycleTracker(
             configuration.isScreenTrackingEnabled,
-            configuration::isGroupingEnabled,
-            configuration::groupDecayInSecs,
+            configuration.isGroupingEnabled,
+            configuration.groupingIdleTime,
             sessionManager.sessionData.ignoreScreens
         ).also {
             val fragmentLifecycleTracker = FragmentLifecycleTracker(it)
@@ -595,17 +596,21 @@ class Tracker private constructor(
 
     @Synchronized
     internal fun updateSession(sessionData: SessionData) {
-        if (configuration.sessionId == sessionData.sessionId && configuration.shouldSampleNetwork == sessionData.shouldSampleNetwork && configuration.networkSampleRate == sessionData.networkSampleRate) return
+        if (configuration.sessionId == sessionData.sessionId &&
+            configuration.shouldSampleNetwork == sessionData.shouldSampleNetwork &&
+            configuration.isGroupingEnabled == sessionData.groupingEnabled &&
+            configuration.groupingIdleTime == sessionData.groupingIdleTime &&
+            configuration.networkSampleRate == sessionData.networkSampleRate) return
 
-        if (screenTrackMonitor != null && screenTrackMonitor?.ignoreScreens?.joinToString(",") == sessionData.ignoreScreens.joinToString(
-                ","
-            )
-        ) return
+        if (screenTrackMonitor != null && screenTrackMonitor?.ignoreScreens?.joinToString(",") == sessionData.ignoreScreens.joinToString(",")) return
 
         configuration.logger?.debug("Updating session Data from ${configuration.sessionId}:${configuration.networkSampleRate}:${configuration.shouldSampleNetwork} to ${sessionData.sessionId}:${sessionData.networkSampleRate}:${sessionData.shouldSampleNetwork}")
         configuration.sessionId = sessionData.sessionId
         configuration.networkSampleRate = sessionData.networkSampleRate
         configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
+        configuration.isGroupingEnabled = sessionData.groupingEnabled
+        configuration.groupingIdleTime = sessionData.groupingIdleTime
+
         screenTrackMonitor?.ignoreScreens = sessionData.ignoreScreens
         setSessionId(sessionData.sessionId)
         BTTWebViewTracker.updateSession(sessionData.sessionId)
@@ -953,7 +958,7 @@ class Tracker private constructor(
                 enableRemoteConfigAck = false,
                 enableAllTracking = true,
                 groupingEnabled = false,
-                groupingIdleTime = 2,
+                groupingIdleTime = Constants.DEFAULT_GROUPING_IDLE_TIME,
                 savedDate = 0L
             )
 

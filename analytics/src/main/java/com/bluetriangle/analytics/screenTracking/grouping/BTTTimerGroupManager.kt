@@ -3,7 +3,7 @@ package com.bluetriangle.analytics.screenTracking.grouping
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.model.Screen
 
-internal class BTTTimerGroupManager(val groupDecayInSeconds: ()-> Int) {
+internal class BTTTimerGroupManager(val groupDecayInSeconds: Int) {
 
     private val activeGroups = mutableListOf<BTTTimerGroup>()
 
@@ -27,7 +27,7 @@ internal class BTTTimerGroupManager(val groupDecayInSeconds: ()-> Int) {
     ) {
         submitAllExistingTimers()
 
-        val newGroup = BTTTimerGroup(groupDecayInSecs = groupDecayInSeconds(), onCompleted = this::onGroupCompleted)
+        val newGroup = BTTTimerGroup(groupDecayInSecs = groupDecayInSeconds, onCompleted = this::onGroupCompleted)
         newGroup.add(screen, timer)
 
         addToActiveGroup(newGroup)

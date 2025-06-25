@@ -3,6 +3,7 @@ package com.bluetriangle.analytics.sessionmanager
 import android.app.Activity
 import android.app.Application
 import com.bluetriangle.analytics.BlueTriangleConfiguration
+import com.bluetriangle.analytics.Constants
 import com.bluetriangle.analytics.dynamicconfig.updater.IBTTConfigurationUpdater
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +25,8 @@ internal class DisabledModeSessionManager(
         isConfigApplied = isConfigApplied,
         networkSampleRate = 0.0,
         ignoreScreens = listOf(),
+        groupingEnabled = false,
+        groupingIdleTime = Constants.DEFAULT_GROUPING_IDLE_TIME,
         expiration = 0L
     )
 

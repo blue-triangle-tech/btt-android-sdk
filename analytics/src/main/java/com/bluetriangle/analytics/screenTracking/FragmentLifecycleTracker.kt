@@ -47,7 +47,7 @@ internal class FragmentLifecycleTracker(val screenTrackMonitor: ScreenLifecycleT
         savedInstanceState: Bundle?
     ) {
         logEvent("onFragmentCreated", fragment)
-        screenTrackMonitor.onLoadStarted(fragment.screen)
+        screenTrackMonitor.onLoadStarted(fragment.screen, automated = true)
     }
 
     override fun onFragmentViewCreated(
@@ -61,19 +61,19 @@ internal class FragmentLifecycleTracker(val screenTrackMonitor: ScreenLifecycleT
 
     override fun onFragmentStarted(fragmentManager: FragmentManager, fragment: Fragment) {
         logEvent("onFragmentStarted", fragment)
-        screenTrackMonitor.onLoadEnded(fragment.screen)
+        screenTrackMonitor.onLoadEnded(fragment.screen, automated = true)
     }
 
     override fun onFragmentResumed(fragmentManager: FragmentManager, fragment: Fragment) {
         logEvent("onFragmentResumed", fragment)
         val screen = fragment.screen
         screen.fetchTitle(fragment.activity)
-        screenTrackMonitor.onViewStarted(screen)
+        screenTrackMonitor.onViewStarted(screen, automated = true)
     }
 
     override fun onFragmentPaused(fragmentManager: FragmentManager, fragment: Fragment) {
         logEvent("onFragmentPaused", fragment)
-        screenTrackMonitor.onViewEnded(fragment.screen)
+        screenTrackMonitor.onViewEnded(fragment.screen, automated = true)
     }
 
     override fun onFragmentStopped(fragmentManager: FragmentManager, fragment: Fragment) {

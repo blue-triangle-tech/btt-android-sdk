@@ -5,6 +5,7 @@
  */
 package com.bluetriangle.analytics.dynamicconfig.model
 
+import com.bluetriangle.analytics.Constants
 import com.bluetriangle.analytics.utility.getBooleanOrNull
 import com.bluetriangle.analytics.utility.getDoubleOrNull
 import com.bluetriangle.analytics.utility.getIntOrNull
@@ -38,7 +39,7 @@ internal object BTTSavedRemoteConfigurationMapper {
             jsonObject.getBoolean(ENABLE_REMOTE_CONFIG),
             jsonObject.getBooleanOrNull(ENABLE_ALL_TRACKING)?: true,
             jsonObject.getBooleanOrNull(GROUPING_ENABLED)?:false,
-            jsonObject.getIntOrNull(GROUPING_IDLE_TIME)?:2,
+            jsonObject.getIntOrNull(GROUPING_IDLE_TIME)?: Constants.DEFAULT_GROUPING_IDLE_TIME,
             jsonObject.getLong(SAVED_DATE)
         )
     }

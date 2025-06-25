@@ -94,6 +94,8 @@ internal class SessionManager(
             false,
             config.networkSampleRate?:defaultConfig.networkSampleRate!!,
             config.ignoreScreens,
+            config.groupingEnabled,
+            config.groupingIdleTime,
             getNewExpiration()
         )
     }
@@ -121,6 +123,8 @@ internal class SessionManager(
                 it.isConfigApplied,
                 it.networkSampleRate,
                 it.ignoreScreens,
+                it.groupingEnabled,
+                it.groupingIdleTime,
                 getNewExpiration()
             )
             sessionStore.storeSessionData(
@@ -161,6 +165,8 @@ internal class SessionManager(
                                 true,
                                 config.networkSampleRate?:defaultConfig.networkSampleRate!!,
                                 config.ignoreScreens,
+                                config.groupingEnabled,
+                                config.groupingIdleTime,
                                 session.expiration
                             )
                             Tracker.instance?.updateSession(sessionData)

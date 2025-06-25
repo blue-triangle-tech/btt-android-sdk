@@ -14,9 +14,6 @@ import com.bluetriangle.android.demo.R
 import com.bluetriangle.android.demo.groupingpoc.GroupingConfig
 import com.bluetriangle.android.demo.groupingpoc.QuoteRequestHelper
 import com.google.android.material.chip.Chip
-import com.google.android.material.chip.ChipGroup
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class FirstTabFragment : Fragment() {
 
@@ -58,7 +55,7 @@ class FirstTabFragment : Fragment() {
                 fromUser: Boolean
             ) {
                 val idleTime = progress + 1
-                Tracker.instance?.configuration?.groupDecayInSecs = idleTime
+                Tracker.instance?.configuration?.groupingIdleTime = idleTime
                 idleValue.text = idleTime.toString()
                 GroupingConfig.setIdleTime(idleTime)
             }

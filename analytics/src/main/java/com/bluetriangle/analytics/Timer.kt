@@ -746,8 +746,13 @@ class Timer : Parcelable {
         fields[FIELD_ERR] = if (err) "1" else "0"
     }
 
-    fun startDummy(): Timer {
+    internal fun startSilent(): Timer {
         if(!isTrackingEnabled()) return this
+
+        if (performanceMonitor != null) {
+            tracker?.clearPerformanceMonitor(performanceMonitor!!.id)
+            performanceMonitor = null
+        }
 
         if (start == 0L) {
             start = System.currentTimeMillis()

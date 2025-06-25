@@ -29,4 +29,6 @@ object Constants {
     const val EXTENDED_CUSTOM_VARIABLE_MAX_PAYLOAD = 1024 * 1024 * 3  // 3 MB
     const val BUFFER_REPOSITORY = "Buffer"
     const val DEFAULT_NETWORK_SAMPLE_RATE = 0.05
+
+    internal const val DEFAULT_GROUPING_IDLE_TIME = 2
 }

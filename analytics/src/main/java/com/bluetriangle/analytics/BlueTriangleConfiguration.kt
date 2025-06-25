@@ -164,7 +164,7 @@ class BlueTriangleConfiguration {
 
     var isGroupingEnabled: Boolean = false
 
-    var groupDecayInSecs: Int = 2
+    var groupingIdleTime: Int = Constants.DEFAULT_GROUPING_IDLE_TIME
 
     companion object {
         const val DEFAULT_TRACKER_URL = "https://d.btttag.com/analytics.rcv"
@@ -204,7 +204,9 @@ class BlueTriangleConfiguration {
             isLaunchTimeEnabled : $isLaunchTimeEnabled
             cacheExpiryDuration : $cacheExpiryDuration
             cacheMemoryLimit : $cacheMemoryLimit
-            isTrackNetworkStateEnabled : $isTrackNetworkStateEnabled
+            isTrackNetworkStateEnabled : $isTrackNetworkStateEnabled,
+            isGroupingEnabled : $isGroupingEnabled,
+            groupingIdleTime : $groupingIdleTime
         }
         """.trimIndent()
     }

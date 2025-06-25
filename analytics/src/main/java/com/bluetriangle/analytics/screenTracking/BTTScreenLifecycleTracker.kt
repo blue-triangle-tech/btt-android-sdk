@@ -1,8 +1,5 @@
 package com.bluetriangle.analytics.screenTracking
 
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
 import com.bluetriangle.analytics.Constants.TIMER_MIN_PGTM
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.model.Screen
@@ -11,8 +8,8 @@ import com.bluetriangle.analytics.utility.logD
 
 internal class BTTScreenLifecycleTracker(
     private val screenTrackingEnabled: Boolean,
-    private val groupingEnabled: ()-> Boolean,
-    groupDecayInSecs: () -> Int,
+    private val groupingEnabled: Boolean,
+    groupDecayInSecs: Int,
     internal var ignoreScreens: List<String>
 ) : ScreenLifecycleTracker {
 
@@ -30,7 +27,7 @@ internal class BTTScreenLifecycleTracker(
         const val AUTOMATED_TIMERS_PAGE_TYPE = "ScreenTracker"
     }
 
-    fun grouped(automated: Boolean): Boolean = groupingEnabled() && automated
+    fun grouped(automated: Boolean): Boolean = groupingEnabled && automated
 
     override fun onLoadStarted(screen: Screen, automated: Boolean) {
         if (!screenTrackingEnabled) return
@@ -44,7 +41,7 @@ internal class BTTScreenLifecycleTracker(
         if (!screenTrackingEnabled) return
         if (shouldIgnore(screen.pageName(grouped(automated)))) return
 
-        timers[screen.toString()]?.setPageName(screen.pageName(groupingEnabled()))
+        timers[screen.toString()]?.setPageName(screen.pageName(grouped(automated)))
         logD(TAG, "onLoadEnded: $screen")
         if (timers[screen.toString()] == null) {
             createTimerAndCaptureLoadTime(screen, grouped(automated))
@@ -61,9 +58,9 @@ internal class BTTScreenLifecycleTracker(
         logD(TAG, "onViewStarted: $screen")
         viewTime[screen.toString()] = System.currentTimeMillis()
 
-        if(groupingEnabled()) {
+        if(grouped(automated)) {
             screen.onTitleUpdated = {
-                timers[screen.toString()]?.setPageName(screen.pageName(groupingEnabled()))
+                timers[screen.toString()]?.setPageName(screen.pageName(grouped(automated)))
             }
         }
     }
@@ -72,9 +69,9 @@ internal class BTTScreenLifecycleTracker(
     private fun createTimerAndCaptureLoadTime(screen: Screen, isGrouped: Boolean) {
         val timer = Timer(screen.pageName(isGrouped), AUTOMATED_TIMERS_PAGE_TYPE)
         timers[screen.toString()] = timer
-        if(groupingEnabled()) {
+        if(isGrouped) {
             groupManager.add(screen, timer)
-            timer.startDummy()
+            timer.startSilent()
         } else {
             timer.start()
         }
@@ -86,13 +83,12 @@ internal class BTTScreenLifecycleTracker(
         if (shouldIgnore(screen.pageName(grouped(automated)))) return
 
         logD(TAG, "onViewEnded: $screen")
-        Log.d("ToolbarTitleExperiment", "screen: ${screen} : ${screen.title}")
         val scr = screen.toString()
         val timer = timers[scr] ?: return
 
         generateMetaData(screen, timer)
 
-        if(groupingEnabled()) {
+        if(grouped(automated)) {
             timer.end()
         } else {
             timer.end().submit()
