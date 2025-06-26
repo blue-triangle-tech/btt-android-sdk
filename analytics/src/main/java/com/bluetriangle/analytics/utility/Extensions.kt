@@ -35,9 +35,9 @@ internal val Fragment.screen: Screen
 
 internal fun Activity.getToolbarTitle(): String? {
     return if (this is AppCompatActivity) {
-        title?.toString()
+        supportActionBar?.title?.toString() ?: title?.toString()
     } else {
-        title?.toString()
+        actionBar?.title?.toString() ?: title?.toString()
     }
 }
 
