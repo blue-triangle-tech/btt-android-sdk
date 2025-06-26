@@ -37,8 +37,8 @@ internal object BTTSavedRemoteConfigurationMapper {
             jsonObject.getDoubleOrNull(NETWORK_SAMPLE_RATE),
             ignoreScreens,
             jsonObject.getBoolean(ENABLE_REMOTE_CONFIG),
-            jsonObject.getBooleanOrNull(ENABLE_ALL_TRACKING)?: true,
-            jsonObject.getBooleanOrNull(GROUPING_ENABLED)?:false,
+            jsonObject.getBooleanOrNull(ENABLE_ALL_TRACKING) != false,
+            jsonObject.getBooleanOrNull(GROUPING_ENABLED) == true,
             jsonObject.getIntOrNull(GROUPING_IDLE_TIME)?: Constants.DEFAULT_GROUPING_IDLE_TIME,
             jsonObject.getLong(SAVED_DATE)
         )
