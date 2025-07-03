@@ -10,6 +10,7 @@ internal open class BTTRemoteConfiguration(
     val ignoreScreens:List<String>,
     val enableAllTracking: Boolean,
     val enableRemoteConfigAck: Boolean,
+    val enableScreenTracking: Boolean,
     val groupingEnabled: Boolean,
     val groupingIdleTime: Int
 ) {
@@ -19,6 +20,7 @@ internal open class BTTRemoteConfiguration(
                     other.enableRemoteConfigAck == this.enableRemoteConfigAck &&
                     other.ignoreScreens.joinToString() == ignoreScreens.joinToString() &&
                     other.enableAllTracking == enableAllTracking &&
+                    other.enableScreenTracking == enableScreenTracking &&
                     other.groupingEnabled == groupingEnabled &&
                     other.groupingIdleTime == groupingIdleTime
         }
@@ -26,12 +28,18 @@ internal open class BTTRemoteConfiguration(
     }
 
     override fun toString(): String {
-        return "RemoteConfig { networkSampleRate: $networkSampleRate, ignoreList: ${ignoreScreens}, enableRemoteConfigAck: $enableRemoteConfigAck, enableAllTracking: $enableAllTracking,  groupingEnabled: $groupingEnabled, groupingIdleTime: $groupingIdleTime }"
+        return "RemoteConfig { networkSampleRate: $networkSampleRate, ignoreList: ${ignoreScreens}, enableRemoteConfigAck: $enableRemoteConfigAck, enableAllTracking: $enableAllTracking,  enableScreenTracking: $enableScreenTracking, groupingEnabled: $groupingEnabled, groupingIdleTime: $groupingIdleTime }"
     }
 
     override fun hashCode(): Int {
         var result = networkSampleRate?.hashCode() ?: 0
+        result = 31 * result + enableAllTracking.hashCode()
         result = 31 * result + enableRemoteConfigAck.hashCode()
+        result = 31 * result + enableScreenTracking.hashCode()
+        result = 31 * result + groupingEnabled.hashCode()
+        result = 31 * result + groupingIdleTime
+        result = 31 * result + ignoreScreens.hashCode()
         return result
     }
+
 }

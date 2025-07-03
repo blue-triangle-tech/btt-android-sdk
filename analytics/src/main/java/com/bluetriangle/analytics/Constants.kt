@@ -31,4 +31,18 @@ object Constants {
     const val DEFAULT_NETWORK_SAMPLE_RATE = 0.05
 
     internal const val DEFAULT_GROUPING_IDLE_TIME = 2
+
+    internal const val SDK_VERSION = "sdkVersion"
+    internal const val APP_VERSION = "appVersion"
+    internal const val NUMBER_OF_CPU_CORES = "numberOfCPUCores"
+    internal const val SCREEN_TYPE = "screenType"
+    internal const val MAX_MAIN_THREAD_USAGE = "maxMainThreadUsage"
+    internal const val FULL_TIME = "fullTime"
+    internal const val LOAD_TIME = "loadTime"
+    internal const val LAUNCH_SCREEN_NAME = "launchScreenName"
+
+    internal const val NETWORK_TYPE_WIFI = "wifi"
+    internal const val NETWORK_TYPE_CELLULAR = "cellular"
+    internal const val NETWORK_TYPE_ETHERNET = "ethernet"
+    internal const val NETWORK_TYPE_OFFLINE = "offline"
 }

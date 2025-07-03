@@ -113,11 +113,14 @@ class Tracker private constructor(
     private var deviceInfoProvider: IDeviceInfoProvider
 
     private val claritySessionConnector:ClaritySessionConnector
+    internal val appVersion: String
 
     init {
         this.context = WeakReference(application.applicationContext)
         this.configuration = configuration
         this.deviceInfoProvider = DeviceInfoProvider
+
+        appVersion = Utils.getAppVersion(application.applicationContext)
 
         trackerExecutor = TrackerExecutor(configuration)
 
@@ -151,6 +154,7 @@ class Tracker private constructor(
         this.configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
         this.configuration.isGroupingEnabled = sessionData.groupingEnabled
         this.configuration.groupingIdleTime = sessionData.groupingIdleTime
+        this.configuration.isScreenTrackingEnabled = sessionData.enableScreenTracking
         initializeScreenTracker()
 
         if (configuration.isTrackAnrEnabled) {
@@ -195,7 +199,6 @@ class Tracker private constructor(
 
     private fun initializeGlobalFields() {
         val appContext = context.get()?.applicationContext ?: return
-        val appVersion = Utils.getAppVersion(appContext)
         val isTablet = Utils.isTablet(appContext)
 
         globalFields.apply {
@@ -222,6 +225,8 @@ class Tracker private constructor(
     }
 
     private fun initializeScreenTracker() {
+        if(screenTrackMonitor != null) return
+
         screenTrackMonitor = BTTScreenLifecycleTracker(
             configuration.isScreenTrackingEnabled,
             configuration.isGroupingEnabled,
@@ -374,6 +379,11 @@ class Tracker private constructor(
         }
     }
 
+    internal var lastTouchEventTimestamp = 0L
+
+    internal fun registerTouchEvent() {
+        lastTouchEventTimestamp = System.currentTimeMillis()
+    }
     /**
      * Submit a captured network request to the tracker to send to
      *
@@ -600,7 +610,8 @@ class Tracker private constructor(
             configuration.shouldSampleNetwork == sessionData.shouldSampleNetwork &&
             configuration.isGroupingEnabled == sessionData.groupingEnabled &&
             configuration.groupingIdleTime == sessionData.groupingIdleTime &&
-            configuration.networkSampleRate == sessionData.networkSampleRate) return
+            configuration.networkSampleRate == sessionData.networkSampleRate &&
+            configuration.isScreenTrackingEnabled == sessionData.enableScreenTracking) return
 
         if (screenTrackMonitor != null && screenTrackMonitor?.ignoreScreens?.joinToString(",") == sessionData.ignoreScreens.joinToString(",")) return
 
@@ -608,9 +619,15 @@ class Tracker private constructor(
         configuration.sessionId = sessionData.sessionId
         configuration.networkSampleRate = sessionData.networkSampleRate
         configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
+        configuration.isScreenTrackingEnabled = sessionData.enableScreenTracking
         configuration.isGroupingEnabled = sessionData.groupingEnabled
         configuration.groupingIdleTime = sessionData.groupingIdleTime
 
+        if(configuration.isScreenTrackingEnabled) {
+            initializeScreenTracker()
+        } else {
+            deInitializeScreenTracker()
+        }
         screenTrackMonitor?.ignoreScreens = sessionData.ignoreScreens
         setSessionId(sessionData.sessionId)
         BTTWebViewTracker.updateSession(sessionData.sessionId)
@@ -957,7 +974,8 @@ class Tracker private constructor(
                 ignoreList = listOf(),
                 enableRemoteConfigAck = false,
                 enableAllTracking = true,
-                groupingEnabled = false,
+                enableScreenTracking = isScreenTrackingEnabled,
+                groupingEnabled = isGroupingEnabled,
                 groupingIdleTime = Constants.DEFAULT_GROUPING_IDLE_TIME,
                 savedDate = 0L
             )

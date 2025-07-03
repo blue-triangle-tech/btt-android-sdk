@@ -94,6 +94,7 @@ internal class SessionManager(
             false,
             config.networkSampleRate?:defaultConfig.networkSampleRate!!,
             config.ignoreScreens,
+            config.enableScreenTracking,
             config.groupingEnabled,
             config.groupingIdleTime,
             getNewExpiration()
@@ -123,6 +124,7 @@ internal class SessionManager(
                 it.isConfigApplied,
                 it.networkSampleRate,
                 it.ignoreScreens,
+                it.enableScreenTracking,
                 it.groupingEnabled,
                 it.groupingIdleTime,
                 getNewExpiration()
@@ -159,15 +161,9 @@ internal class SessionManager(
                     currentSession?.let { session ->
                         if (!session.isConfigApplied) {
                             Tracker.instance?.configuration?.logger?.debug("Applied new configuration $savedConfig to session $session")
-                            val sessionData = SessionData(
-                                session.sessionId,
-                                Utils.shouldSample(config.networkSampleRate?:defaultConfig.networkSampleRate!!),
-                                true,
-                                config.networkSampleRate?:defaultConfig.networkSampleRate!!,
-                                config.ignoreScreens,
-                                config.groupingEnabled,
-                                config.groupingIdleTime,
-                                session.expiration
+                            val sessionData = session.copy(
+                                shouldSampleNetwork = Utils.shouldSample(config.networkSampleRate?:defaultConfig.networkSampleRate!!),
+                                isConfigApplied = true
                             )
                             Tracker.instance?.updateSession(sessionData)
                             sessionStore.storeSessionData(

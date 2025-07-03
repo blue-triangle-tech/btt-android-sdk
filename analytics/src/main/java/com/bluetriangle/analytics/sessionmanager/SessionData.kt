@@ -21,6 +21,7 @@ internal data class SessionData(
     val isConfigApplied: Boolean,
     val networkSampleRate: Double,
     val ignoreScreens: List<String>,
+    val enableScreenTracking: Boolean,
     val groupingEnabled: Boolean,
     val groupingIdleTime: Int,
     val expiration: Long
@@ -32,6 +33,7 @@ internal data class SessionData(
         private const val IS_CONFIG_APPLIED = "isConfigApplied"
         private const val NETWORK_SAMPLE_RATE = "networkSampleRate"
         private const val IGNORE_SCREENS = "ignoreScreens"
+        private const val ENABLE_SCREEN_TRACKING = "enableScreenTracking"
         private const val GROUPING_ENABLED = "groupingEnabled"
         private const val GROUPING_IDLE_TIME = "groupingIdleTime"
 
@@ -49,6 +51,7 @@ internal data class SessionData(
                             }
                         }
                     } ?: listOf(),
+                    enableScreenTracking = getBooleanOrNull(ENABLE_SCREEN_TRACKING) != false,
                     groupingEnabled = getBooleanOrNull(GROUPING_ENABLED) == true,
                     groupingIdleTime = getIntOrNull(GROUPING_IDLE_TIME) ?: Constants.DEFAULT_GROUPING_IDLE_TIME,
                     expiration = getLong(EXPIRATION)
@@ -65,6 +68,7 @@ internal data class SessionData(
             put(IS_CONFIG_APPLIED, isConfigApplied)
             put(NETWORK_SAMPLE_RATE, networkSampleRate)
             put(IGNORE_SCREENS, JSONArray(ignoreScreens))
+            put(ENABLE_SCREEN_TRACKING, enableScreenTracking)
             put(GROUPING_ENABLED, groupingEnabled)
             put(GROUPING_IDLE_TIME, groupingIdleTime)
             put(EXPIRATION, expiration)

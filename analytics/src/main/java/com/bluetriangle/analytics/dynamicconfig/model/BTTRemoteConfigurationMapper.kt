@@ -19,6 +19,7 @@ internal object BTTRemoteConfigurationMapper {
     private const val ENABLE_ALL_TRACKING = "enableAllTracking"
     private const val GROUPING_ENABLED = "groupingEnabled"
     private const val GROUPING_IDLE_TIME = "groupingIdleTime"
+    private const val ENABLE_SCREEN_TRACKING = "enableScreenTracking"
 
     fun fromJson(remoteConfigJson: JSONObject): BTTRemoteConfiguration {
         val networkSampleRate = remoteConfigJson.getIntOrNull(NETWORK_SAMPLE_RATE)?.div(100.0)
@@ -33,6 +34,7 @@ internal object BTTRemoteConfigurationMapper {
             }
         } ?: listOf()
         val enableAllTracking = remoteConfigJson.getBooleanOrNull(ENABLE_ALL_TRACKING) != false
+        val enableScreenTracking = remoteConfigJson.getBooleanOrNull(ENABLE_SCREEN_TRACKING) != false
         val groupingEnabled = remoteConfigJson.getBooleanOrNull(GROUPING_ENABLED) == true
         val groupingIdleTime = remoteConfigJson.getIntOrNull(GROUPING_IDLE_TIME) ?: Constants.DEFAULT_GROUPING_IDLE_TIME
 
@@ -41,6 +43,7 @@ internal object BTTRemoteConfigurationMapper {
             ignoreScreens,
             enableAllTracking,
             enableRemoteConfig,
+            enableScreenTracking,
             groupingEnabled,
             groupingIdleTime
         )

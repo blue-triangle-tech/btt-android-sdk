@@ -1,6 +1,19 @@
 package com.bluetriangle.analytics.model
 
 import android.os.Parcelable
+import com.bluetriangle.analytics.Constants
+import com.bluetriangle.analytics.Constants.APP_VERSION
+import com.bluetriangle.analytics.Constants.FULL_TIME
+import com.bluetriangle.analytics.Constants.LAUNCH_SCREEN_NAME
+import com.bluetriangle.analytics.Constants.LOAD_TIME
+import com.bluetriangle.analytics.Constants.MAX_MAIN_THREAD_USAGE
+import com.bluetriangle.analytics.Constants.NETWORK_TYPE_CELLULAR
+import com.bluetriangle.analytics.Constants.NETWORK_TYPE_ETHERNET
+import com.bluetriangle.analytics.Constants.NETWORK_TYPE_OFFLINE
+import com.bluetriangle.analytics.Constants.NETWORK_TYPE_WIFI
+import com.bluetriangle.analytics.Constants.NUMBER_OF_CPU_CORES
+import com.bluetriangle.analytics.Constants.SCREEN_TYPE
+import com.bluetriangle.analytics.Constants.SDK_VERSION
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.deviceinfo.DeviceInfo
 import com.bluetriangle.analytics.networkcapture.CapturedRequest
@@ -25,7 +38,9 @@ internal data class NativeAppProperties(
     var offline: Long? = null,
     var launchScreenName: String? = null,
     var deviceModel: String? = null,
-    var netStateSource: String? = null
+    var netStateSource: String? = null,
+    var appVersion: String? = null,
+    var sdkVersion: String? = null
 ) : Parcelable {
 
     internal var loadStartTime: Long = 0
@@ -40,11 +55,13 @@ internal data class NativeAppProperties(
 
     fun toJSONObject(): JSONObject {
         val obj = JSONObject()
-        obj.put("loadTime", loadTime)
-        obj.put("fullTime", fullTime)
-        obj.put("maxMainThreadUsage", maxMainThreadUsage)
-        obj.put("screenType", screenType?.value)
-        obj.put("numberOfCPUCores", numberOfCPUCores)
+        obj.put(LOAD_TIME, loadTime)
+        obj.put(FULL_TIME, fullTime)
+        obj.put(MAX_MAIN_THREAD_USAGE, maxMainThreadUsage)
+        obj.put(SCREEN_TYPE, screenType?.value)
+        obj.put(NUMBER_OF_CPU_CORES, numberOfCPUCores)
+        obj.put(APP_VERSION, appVersion)
+        obj.put(SDK_VERSION, sdkVersion)
 
         networkStates.apply {
             forEach { obj.put(it) }
@@ -55,7 +72,7 @@ internal data class NativeAppProperties(
             obj.put(Timer.FIELD_NET_STATE_SOURCE, netStateSource)
         }
 
-        obj.put("launchScreenName", launchScreenName)
+        obj.put(LAUNCH_SCREEN_NAME, launchScreenName)
         obj.put(FIELD_DEVICE_MODEL, deviceModel)
 
         return obj
@@ -70,10 +87,10 @@ internal data class NativeAppProperties(
     private val networkStates: Array<Pair<String, Long?>>
         get() {
             return arrayOf(
-                "wifi" to wifi,
-                "cellular" to cellularTotal,
-                "ethernet" to ethernet,
-                "offline" to offline
+                NETWORK_TYPE_WIFI to wifi,
+                NETWORK_TYPE_CELLULAR to cellularTotal,
+                NETWORK_TYPE_ETHERNET to ethernet,
+                NETWORK_TYPE_OFFLINE to offline
             )
         }
 
@@ -87,7 +104,7 @@ internal data class NativeAppProperties(
         val maxField = netStateFields.maxByOrNull { it.second ?: 0L }
 
         maxField?.let { max ->
-            if (max.first == "cellular") {
+            if (max.first == NETWORK_TYPE_CELLULAR) {
                 getMaxCellularProtocol().also { protocol ->
                     put(
                         CapturedRequest.FIELD_NETWORK_STATE,

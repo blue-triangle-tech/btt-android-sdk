@@ -1,19 +1,22 @@
 package com.bluetriangle.analytics.screenTracking.grouping
 
 import com.bluetriangle.analytics.Timer
+import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.model.Screen
 
 internal class BTTTimerGroupManager(val groupDecayInSeconds: Int) {
 
     private val activeGroups = mutableListOf<BTTTimerGroup>()
+    private val shouldRegisterTap = true
 
     fun add(screen: Screen, timer: Timer) {
         val lastActive = getLastActiveGroup()
+        val lastUserAction = Tracker.instance?.lastTouchEventTimestamp?:0L
 
-        if(lastActive != null) {
-            lastActive.add(screen, timer)
-        } else {
+        if(lastActive == null || (shouldRegisterTap && lastUserAction > lastActive.startTime)) {
             createNewGroupAndAdd(screen, timer)
+        } else {
+            lastActive.add(screen, timer)
         }
     }
 

@@ -10,6 +10,7 @@ internal class BTTSavedRemoteConfiguration(
     ignoreList: List<String>,
     enableRemoteConfigAck: Boolean,
     enableAllTracking: Boolean,
+    enableScreenTracking: Boolean,
     groupingEnabled: Boolean,
     groupingIdleTime: Int,
     val savedDate: Long
@@ -18,9 +19,23 @@ internal class BTTSavedRemoteConfiguration(
     ignoreList,
     enableAllTracking,
     enableRemoteConfigAck,
+    enableScreenTracking,
     groupingEnabled,
     groupingIdleTime
 ) {
+
+    companion object {
+        fun from(remoteConfig: BTTRemoteConfiguration) = BTTSavedRemoteConfiguration(
+            remoteConfig.networkSampleRate,
+            remoteConfig.ignoreScreens,
+            remoteConfig.enableRemoteConfigAck,
+            remoteConfig.enableAllTracking,
+            remoteConfig.enableScreenTracking,
+            remoteConfig.groupingEnabled,
+            remoteConfig.groupingIdleTime,
+            System.currentTimeMillis()
+        )
+    }
 
     override fun equals(other: Any?): Boolean {
         if(other is BTTSavedRemoteConfiguration) {

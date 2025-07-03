@@ -27,6 +27,9 @@ internal class BTTTimerGroup(
         close()
     }
 
+    val startTime: Long
+        get() = groupTimer.start
+
     private var screenName: String? = null
 
     fun setScreenName(name: String) {

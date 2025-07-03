@@ -18,6 +18,8 @@ internal class ActivityLifecycleTracker(private val screenTracker: ScreenLifecyc
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
         logEvent("onActivityCreated", activity)
         (activity as? FragmentActivity)?.registerFragmentLifecycleCallback(fragmentLifecycleTracker)
+        val originalCallback = activity.window.callback
+        activity.window.callback = TouchEventInterceptor(originalCallback)
         screenTracker.onLoadStarted(activity.screen, automated = true)
     }
 

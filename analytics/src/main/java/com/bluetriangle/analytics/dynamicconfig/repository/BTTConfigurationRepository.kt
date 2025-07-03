@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
 import org.json.JSONObject
+import androidx.core.content.edit
 
 internal class BTTConfigurationRepository(
     private val logger: Logger?,
@@ -35,19 +36,14 @@ internal class BTTConfigurationRepository(
         SAVED_CONFIG_PREFS, Context.MODE_PRIVATE)
 
     override fun save(config: BTTRemoteConfiguration) {
-        val savedConfig = BTTSavedRemoteConfiguration(
-            config.networkSampleRate,
-            config.ignoreScreens,
-            config.enableRemoteConfigAck,
-            config.enableAllTracking,
-            config.groupingEnabled,
-            config.groupingIdleTime,
-            System.currentTimeMillis()
-        )
+        val savedConfig = BTTSavedRemoteConfiguration.from(config)
 
-        sharedPreferences.edit()
-            .putString(configKey, BTTSavedRemoteConfigurationMapper.toJSONObject(savedConfig).toString())
-            .apply()
+        sharedPreferences.edit {
+            putString(
+                configKey,
+                BTTSavedRemoteConfigurationMapper.toJSONObject(savedConfig).toString()
+            )
+        }
     }
 
     private val configKey: String = "${REMOTE_CONFIG}_$siteId"
