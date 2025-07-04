@@ -19,10 +19,6 @@ internal class BTTScreenLifecycleTracker(
     private val TAG = this::class.java.simpleName
     private val groupManager = BTTTimerGroupManager(groupDecayInSecs)
 
-    fun setScreenName(screenName: String) {
-        groupManager.setScreenName(screenName)
-    }
-
     companion object {
         const val AUTOMATED_TIMERS_PAGE_TYPE = "ScreenTracker"
     }
@@ -121,6 +117,14 @@ internal class BTTScreenLifecycleTracker(
 
     private fun shouldIgnore(name: String): Boolean {
         return ignoreScreens.contains(name)
+    }
+
+    override fun setScreenName(screenName: String) {
+        groupManager.setScreenName(screenName)
+    }
+
+    override fun startNewGroup(groupName: String) {
+        groupManager.startNewGroup(groupName)
     }
 
 }

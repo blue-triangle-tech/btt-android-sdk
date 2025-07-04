@@ -247,6 +247,10 @@ class Tracker private constructor(
         screenTrackMonitor?.setScreenName(screenName)
     }
 
+    fun startNewGroup(groupName: String) {
+        screenTrackMonitor?.startNewGroup(groupName)
+    }
+
     private fun deInitializeScreenTracker() {
         activityLifecycleTracker?.let {
             (context.get()?.applicationContext as? Application)?.unregisterActivityLifecycleCallbacks(

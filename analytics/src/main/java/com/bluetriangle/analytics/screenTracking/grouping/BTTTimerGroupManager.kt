@@ -24,16 +24,21 @@ internal class BTTTimerGroupManager(val groupDecayInSeconds: Int) {
         return activeGroups.lastOrNull { !it.isClosed }
     }
 
+    private fun createNewGroup(): BTTTimerGroup {
+        submitAllExistingTimers()
+
+        val newGroup = BTTTimerGroup(groupDecayInSecs = groupDecayInSeconds, onCompleted = this::onGroupCompleted)
+        addToActiveGroup(newGroup)
+        return newGroup
+    }
+
     private fun createNewGroupAndAdd(
         screen: Screen,
         timer: Timer
     ) {
-        submitAllExistingTimers()
-
-        val newGroup = BTTTimerGroup(groupDecayInSecs = groupDecayInSeconds, onCompleted = this::onGroupCompleted)
-        newGroup.add(screen, timer)
-
-        addToActiveGroup(newGroup)
+        createNewGroup().apply {
+            add(screen, timer)
+        }
     }
 
 
@@ -57,5 +62,9 @@ internal class BTTTimerGroupManager(val groupDecayInSeconds: Int) {
         group.submit()
         group.flush()
         activeGroups.remove(group)
+    }
+
+    fun startNewGroup(groupName: String) {
+        createNewGroup().setScreenName(groupName)
     }
 }
