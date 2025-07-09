@@ -7,6 +7,7 @@ import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.model.Screen
 import com.bluetriangle.analytics.screenTracking.BTTScreenLifecycleTracker
+import com.bluetriangle.analytics.screenTracking.BTTScreenLifecycleTracker.Companion.AUTOMATED_TIMERS_PAGE_TYPE
 
 internal class BTTTimerGroup(
     private val namingStrategy: GroupNamingStrategy = LastTimerNameStrategy,
@@ -54,7 +55,8 @@ internal class BTTTimerGroup(
     init {
         logger?.debug("Group Started.. ${this.hashCode()}")
         groupTimer.start()
-        groupTimer.setTrafficSegmentName(BTTScreenLifecycleTracker.AUTOMATED_TIMERS_PAGE_TYPE)
+        groupTimer.setTrafficSegmentName(AUTOMATED_TIMERS_PAGE_TYPE)
+        groupTimer.setContentGroupName(AUTOMATED_TIMERS_PAGE_TYPE)
         resetIdleTimeout()
     }
 
