@@ -4,7 +4,7 @@ import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.model.Screen
 
-internal class BTTTimerGroupManager(val groupDecayInSeconds: Int) {
+internal class BTTTimerGroupManager(val groupIdleTime: Int) {
 
     private val activeGroups = mutableListOf<BTTTimerGroup>()
     private val shouldRegisterTap = true
@@ -27,7 +27,7 @@ internal class BTTTimerGroupManager(val groupDecayInSeconds: Int) {
     private fun createNewGroup(): BTTTimerGroup {
         submitAllExistingTimers()
 
-        val newGroup = BTTTimerGroup(groupDecayInSecs = groupDecayInSeconds, onCompleted = this::onGroupCompleted)
+        val newGroup = BTTTimerGroup(groupIdleTime = groupIdleTime, onCompleted = this::onGroupCompleted)
         addToActiveGroup(newGroup)
         return newGroup
     }
@@ -54,8 +54,8 @@ internal class BTTTimerGroupManager(val groupDecayInSeconds: Int) {
         activeGroups.clear()
     }
 
-    fun setScreenName(screenName: String) {
-        activeGroups.lastOrNull { !it.isSubmitted }?.setScreenName(screenName)
+    fun setGroupName(groupName: String) {
+        activeGroups.lastOrNull { !it.isSubmitted }?.setGroupName(groupName)
     }
 
     fun onGroupCompleted(group: BTTTimerGroup) {
@@ -64,7 +64,7 @@ internal class BTTTimerGroupManager(val groupDecayInSeconds: Int) {
         activeGroups.remove(group)
     }
 
-    fun startNewGroup(groupName: String) {
-        createNewGroup().setScreenName(groupName)
+    fun setNewGroup(groupName: String) {
+        createNewGroup().setManualGroupName(groupName)
     }
 }

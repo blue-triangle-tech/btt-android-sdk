@@ -243,12 +243,12 @@ class Tracker private constructor(
         }
     }
 
-    fun setScreenName(screenName: String) {
-        screenTrackMonitor?.setScreenName(screenName)
+    fun setGroupName(groupName: String) {
+        screenTrackMonitor?.setGroupName(groupName)
     }
 
-    fun startNewGroup(groupName: String) {
-        screenTrackMonitor?.startNewGroup(groupName)
+    fun setNewGroup(groupName: String) {
+        screenTrackMonitor?.setNewGroup(groupName)
     }
 
     private fun deInitializeScreenTracker() {

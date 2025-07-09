@@ -10,7 +10,7 @@ import com.bluetriangle.analytics.screenTracking.BTTScreenLifecycleTracker
 
 internal class BTTTimerGroup(
     private val namingStrategy: GroupNamingStrategy = LastTimerNameStrategy,
-    groupDecayInSecs: Int,
+    groupIdleTime: Int,
     private val onCompleted: (BTTTimerGroup)-> Unit
 ) {
     private var timers = mutableListOf<Pair<Screen, Timer>>()
@@ -20,7 +20,9 @@ internal class BTTTimerGroup(
     var isSubmitted = false
         private set
     private var logger = Tracker.instance?.configuration?.logger
-    private val idleTime = groupDecayInSecs * 1000L
+    private val idleTime = groupIdleTime * 1000L
+
+    private var manualGroupName: String? = null
 
     private var handler = Handler(Looper.getMainLooper())
     private val closeGroupRunnable: Runnable = Runnable {
@@ -30,10 +32,18 @@ internal class BTTTimerGroup(
     val startTime: Long
         get() = groupTimer.start
 
-    private var screenName: String? = null
+    private var groupName: String? = null
 
-    fun setScreenName(name: String) {
-        this.screenName = name
+    fun setGroupName(name: String) {
+        this.groupName = name
+        if(manualGroupName == null) {
+            groupTimer.setPageName(name)
+        }
+    }
+
+    fun setManualGroupName(groupName: String) {
+        this.manualGroupName = groupName
+        groupTimer.setPageName(groupName)
     }
 
     private fun resetIdleTimeout() {
@@ -44,6 +54,7 @@ internal class BTTTimerGroup(
     init {
         logger?.debug("Group Started.. ${this.hashCode()}")
         groupTimer.start()
+        groupTimer.setTrafficSegmentName(BTTScreenLifecycleTracker.AUTOMATED_TIMERS_PAGE_TYPE)
         resetIdleTimeout()
     }
 
@@ -51,6 +62,10 @@ internal class BTTTimerGroup(
         if(isClosed) {
             logger?.info("Tried to add timer to closed group.")
             return
+        }
+
+        if(groupName == null && manualGroupName == null) {
+            groupTimer.setPageName(screen.name)
         }
 
         timers.add(screen to timer)
@@ -92,9 +107,8 @@ internal class BTTTimerGroup(
 
         if(timers.isEmpty()) return
 
-        val groupName = screenName ?: namingStrategy.getName(timers.map { it.second })
-        groupTimer.setPageName(groupName)
-        groupTimer.setTrafficSegmentName(BTTScreenLifecycleTracker.AUTOMATED_TIMERS_PAGE_TYPE)
+        val groupPageName = manualGroupName ?: (groupName ?: namingStrategy.getName(timers.map { it.second }))
+        groupTimer.setPageName(groupPageName)
 
         generateGroupProperties(tracker)
 

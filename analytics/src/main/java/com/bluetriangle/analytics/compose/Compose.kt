@@ -35,22 +35,6 @@ fun BttTimerEffect(screenName: String) {
     }
 }
 
-@Composable
-fun BTTTrackNavigation(
-    navController: NavHostController
-) {
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-
-    // Only trigger side effect on route change
-    LaunchedEffect(currentRoute) {
-        currentRoute?.let { route ->
-            Log.d("ComposeNavigation", "route: $route")
-        }
-    }
-}
-
-
 internal class ComposableLifecycleObserver(
     private val screenTracker: ScreenLifecycleTracker?,
     screenName: String

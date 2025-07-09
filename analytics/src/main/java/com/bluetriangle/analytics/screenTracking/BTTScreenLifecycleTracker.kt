@@ -119,12 +119,12 @@ internal class BTTScreenLifecycleTracker(
         return ignoreScreens.contains(name)
     }
 
-    override fun setScreenName(screenName: String) {
-        groupManager.setScreenName(screenName)
+    override fun setGroupName(groupName: String) {
+        groupManager.setGroupName(groupName)
     }
 
-    override fun startNewGroup(groupName: String) {
-        groupManager.startNewGroup(groupName)
+    override fun setNewGroup(groupName: String) {
+        groupManager.setNewGroup(groupName)
     }
 
 }
