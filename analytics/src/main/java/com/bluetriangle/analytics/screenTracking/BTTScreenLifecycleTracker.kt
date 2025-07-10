@@ -32,6 +32,10 @@ internal class BTTScreenLifecycleTracker(
 
     fun grouped(automated: Boolean): Boolean = groupingEnabled && automated
 
+    override fun destroy() {
+        groupManager.destroy()
+    }
+
     override fun onLoadStarted(screen: Screen, automated: Boolean) {
         if (!screenTrackingEnabled) return
         if (shouldIgnore(screen.pageName(grouped(automated)))) return

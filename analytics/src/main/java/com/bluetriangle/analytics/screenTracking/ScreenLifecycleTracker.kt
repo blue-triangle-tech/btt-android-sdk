@@ -18,4 +18,6 @@ internal interface ScreenLifecycleTracker {
     fun setGroupName(screenName: String)
 
     fun setNewGroup(groupName: String)
+
+    fun destroy()
 }

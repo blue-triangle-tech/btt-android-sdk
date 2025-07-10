@@ -259,7 +259,9 @@ class Tracker private constructor(
             (context.get()?.applicationContext as? Application)?.unregisterActivityLifecycleCallbacks(
                 it
             )
+            it.unregister()
         }
+        screenTrackMonitor?.destroy()
         screenTrackMonitor = null
         activityLifecycleTracker = null
     }

@@ -67,4 +67,12 @@ internal class BTTTimerGroupManager(var groupIdleTime: Int) {
     fun setNewGroup(groupName: String) {
         createNewGroup().setManualGroupName(groupName)
     }
+
+    fun destroy() {
+        activeGroups.forEach {
+            it.flush()
+            it.end()
+        }
+        activeGroups.clear()
+    }
 }

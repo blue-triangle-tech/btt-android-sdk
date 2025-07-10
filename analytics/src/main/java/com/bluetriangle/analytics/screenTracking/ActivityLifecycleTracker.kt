@@ -15,8 +15,17 @@ internal class ActivityLifecycleTracker(private val screenTracker: ScreenLifecyc
         const val TAG = "ActivityLifecycleTracker"
     }
 
+    private var activities = arrayListOf<Activity>()
+
+    fun unregister() {
+        activities.forEach {
+            (it as? FragmentActivity)?.unregisterFragmentLifecycleCallback(fragmentLifecycleTracker)
+        }
+    }
+
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
         logEvent("onActivityCreated", activity)
+        activities.add(activity)
         (activity as? FragmentActivity)?.registerFragmentLifecycleCallback(fragmentLifecycleTracker)
         val originalCallback = activity.window.callback
         activity.window.callback = TouchEventInterceptor(originalCallback)
@@ -55,6 +64,7 @@ internal class ActivityLifecycleTracker(private val screenTracker: ScreenLifecyc
 
     override fun onActivityDestroyed(activity: Activity) {
         logEvent("onActivityDestroyed", activity)
+        activities.remove(activity)
         (activity as? FragmentActivity)?.unregisterFragmentLifecycleCallback(fragmentLifecycleTracker)
     }
 

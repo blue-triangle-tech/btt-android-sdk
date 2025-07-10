@@ -104,6 +104,10 @@ internal class BTTTimerGroup(
         }
     }
 
+    fun end() {
+        groupTimer.end()
+    }
+
     fun submit() {
         val tracker = Tracker.instance?:return
 
