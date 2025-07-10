@@ -155,7 +155,10 @@ class Tracker private constructor(
         this.configuration.isGroupingEnabled = sessionData.groupingEnabled
         this.configuration.groupingIdleTime = sessionData.groupingIdleTime
         this.configuration.isScreenTrackingEnabled = sessionData.enableScreenTracking
-        initializeScreenTracker()
+
+        if(configuration.isScreenTrackingEnabled) {
+            initializeScreenTracker()
+        }
 
         if (configuration.isTrackAnrEnabled) {
             initializeANRMonitor()
@@ -610,31 +613,54 @@ class Tracker private constructor(
 
     @Synchronized
     internal fun updateSession(sessionData: SessionData) {
-        if (configuration.sessionId == sessionData.sessionId &&
-            configuration.shouldSampleNetwork == sessionData.shouldSampleNetwork &&
-            configuration.isGroupingEnabled == sessionData.groupingEnabled &&
-            configuration.groupingIdleTime == sessionData.groupingIdleTime &&
-            configuration.networkSampleRate == sessionData.networkSampleRate &&
-            configuration.isScreenTrackingEnabled == sessionData.enableScreenTracking) return
+        val changes = StringBuilder()
 
-        if (screenTrackMonitor != null && screenTrackMonitor?.ignoreScreens?.joinToString(",") == sessionData.ignoreScreens.joinToString(",")) return
-
-        configuration.logger?.debug("Updating session Data from ${configuration.sessionId}:${configuration.networkSampleRate}:${configuration.shouldSampleNetwork} to ${sessionData.sessionId}:${sessionData.networkSampleRate}:${sessionData.shouldSampleNetwork}")
-        configuration.sessionId = sessionData.sessionId
-        configuration.networkSampleRate = sessionData.networkSampleRate
-        configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
-        configuration.isScreenTrackingEnabled = sessionData.enableScreenTracking
-        configuration.isGroupingEnabled = sessionData.groupingEnabled
-        configuration.groupingIdleTime = sessionData.groupingIdleTime
-
-        if(configuration.isScreenTrackingEnabled) {
-            initializeScreenTracker()
-        } else {
-            deInitializeScreenTracker()
+        if(configuration.sessionId != sessionData.sessionId) {
+            changes.append("\nsessionId: ${configuration.sessionId} -> ${sessionData.sessionId}")
+            configuration.sessionId = sessionData.sessionId
         }
-        screenTrackMonitor?.ignoreScreens = sessionData.ignoreScreens
-        setSessionId(sessionData.sessionId)
-        BTTWebViewTracker.updateSession(sessionData.sessionId)
+
+        if(configuration.networkSampleRate != sessionData.networkSampleRate) {
+            changes.append("\nnetworkSampleRate: ${configuration.networkSampleRate} -> ${sessionData.networkSampleRate}")
+            configuration.networkSampleRate = sessionData.networkSampleRate
+        }
+
+        if(configuration.shouldSampleNetwork != sessionData.shouldSampleNetwork) {
+            changes.append("\nshouldSampleNetwork: ${configuration.shouldSampleNetwork} -> ${sessionData.shouldSampleNetwork}")
+            configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
+        }
+
+        if(configuration.isScreenTrackingEnabled != sessionData.enableScreenTracking) {
+            changes.append("\nisScreenTrackingEnabled: ${configuration.isScreenTrackingEnabled} -> ${sessionData.enableScreenTracking}")
+            configuration.isScreenTrackingEnabled = sessionData.enableScreenTracking
+
+            if(configuration.isScreenTrackingEnabled) {
+                initializeScreenTracker()
+            } else {
+                deInitializeScreenTracker()
+            }
+        } else if(screenTrackMonitor?.ignoreScreens != sessionData.ignoreScreens) {
+            screenTrackMonitor?.ignoreScreens = sessionData.ignoreScreens
+        }
+
+        if(configuration.isGroupingEnabled != sessionData.groupingEnabled) {
+            changes.append("\nisGroupingEnabled: ${configuration.isGroupingEnabled} -> ${sessionData.groupingEnabled}")
+            configuration.isGroupingEnabled = sessionData.groupingEnabled
+            screenTrackMonitor?.groupingEnabled = configuration.isGroupingEnabled
+        }
+
+        if(configuration.groupingIdleTime != sessionData.groupingIdleTime) {
+            changes.append("\ngroupingIdleTime: ${configuration.groupingIdleTime} -> ${sessionData.groupingIdleTime}")
+            configuration.groupingIdleTime = sessionData.groupingIdleTime
+            screenTrackMonitor?.groupIdleTime = configuration.groupingIdleTime
+        }
+
+        val changesString = changes.toString()
+        if(changesString.isNotEmpty()) {
+            configuration.logger?.debug("Updated configuration $changesString")
+            setSessionId(sessionData.sessionId)
+            BTTWebViewTracker.updateSession(sessionData.sessionId)
+        }
     }
 
     /**

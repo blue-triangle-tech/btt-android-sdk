@@ -4,7 +4,7 @@ import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.model.Screen
 
-internal class BTTTimerGroupManager(val groupIdleTime: Int) {
+internal class BTTTimerGroupManager(var groupIdleTime: Int) {
 
     private val activeGroups = mutableListOf<BTTTimerGroup>()
     private val shouldRegisterTap = true

@@ -8,8 +8,8 @@ import com.bluetriangle.analytics.utility.logD
 
 internal class BTTScreenLifecycleTracker(
     private val screenTrackingEnabled: Boolean,
-    private val groupingEnabled: Boolean,
-    groupDecayInSecs: Int,
+    var groupingEnabled: Boolean,
+    idleTime: Int,
     internal var ignoreScreens: List<String>
 ) : ScreenLifecycleTracker {
 
@@ -17,7 +17,14 @@ internal class BTTScreenLifecycleTracker(
     private var viewTime = hashMapOf<String, Long>()
     private val timers = hashMapOf<String, Timer>()
     private val TAG = this::class.java.simpleName
-    private val groupManager = BTTTimerGroupManager(groupDecayInSecs)
+
+    var groupIdleTime = idleTime
+        set(value) {
+            field = value
+            groupManager.groupIdleTime = value
+        }
+
+    private val groupManager = BTTTimerGroupManager(groupIdleTime)
 
     companion object {
         const val AUTOMATED_TIMERS_PAGE_TYPE = "ScreenTracker"
