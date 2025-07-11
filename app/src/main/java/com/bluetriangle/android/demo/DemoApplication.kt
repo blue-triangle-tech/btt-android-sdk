@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import com.bluetriangle.analytics.BlueTriangleConfiguration
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.Tracker.Companion.init
+import com.bluetriangle.android.demo.groupingpoc.GroupingConfig
 import com.bluetriangle.android.demo.tests.ANRTest
 import com.bluetriangle.android.demo.tests.ANRTestFactory
 import com.bluetriangle.android.demo.tests.ANRTestScenario
@@ -77,6 +78,7 @@ class DemoApplication : Application() {
         configuration.isLaunchTimeEnabled = true
         configuration.isTrackNetworkStateEnabled = true
         configuration.isMemoryWarningEnabled = true
+        configuration.isGroupingEnabled = GroupingConfig.getGrouping()
         tracker = init(this, configuration)
 
         tracker?.setSessionTrafficSegmentName("Demo Traffic Segment")

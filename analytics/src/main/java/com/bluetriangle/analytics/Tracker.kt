@@ -67,6 +67,7 @@ class Tracker private constructor(
      */
     private var mostRecentTimer: WeakReference<Timer>? = null
 
+    private var timerStack = ArrayDeque<WeakReference<Timer>>()
     /**
      * The tracker's configuration
      */
@@ -85,7 +86,7 @@ class Tracker private constructor(
     /**
      * Executor service to queue and submit timers
      */
-    private val trackerExecutor: TrackerExecutor
+    internal val trackerExecutor: TrackerExecutor
 
     /**
      * Performance monitoring threads
@@ -112,11 +113,14 @@ class Tracker private constructor(
     private var deviceInfoProvider: IDeviceInfoProvider
 
     private val claritySessionConnector:ClaritySessionConnector
+    internal val appVersion: String
 
     init {
         this.context = WeakReference(application.applicationContext)
         this.configuration = configuration
         this.deviceInfoProvider = DeviceInfoProvider
+
+        appVersion = Utils.getAppVersion(application.applicationContext)
 
         trackerExecutor = TrackerExecutor(configuration)
 
@@ -148,8 +152,13 @@ class Tracker private constructor(
         setSessionId(sessionData.sessionId)
         this.configuration.sessionId = sessionData.sessionId
         this.configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
+        this.configuration.isGroupingEnabled = sessionData.groupingEnabled
+        this.configuration.groupingIdleTime = sessionData.groupingIdleTime
+        this.configuration.isScreenTrackingEnabled = sessionData.enableScreenTracking
 
-        initializeScreenTracker()
+        if(configuration.isScreenTrackingEnabled) {
+            initializeScreenTracker()
+        }
 
         if (configuration.isTrackAnrEnabled) {
             initializeANRMonitor()
@@ -193,7 +202,6 @@ class Tracker private constructor(
 
     private fun initializeGlobalFields() {
         val appContext = context.get()?.applicationContext ?: return
-        val appVersion = Utils.getAppVersion(appContext)
         val isTablet = Utils.isTablet(appContext)
 
         globalFields.apply {
@@ -220,8 +228,13 @@ class Tracker private constructor(
     }
 
     private fun initializeScreenTracker() {
+        if(screenTrackMonitor != null) return
+
         screenTrackMonitor = BTTScreenLifecycleTracker(
-            configuration.isScreenTrackingEnabled, sessionManager.sessionData.ignoreScreens
+            configuration.isScreenTrackingEnabled,
+            configuration.isGroupingEnabled,
+            configuration.groupingIdleTime,
+            sessionManager.sessionData.ignoreScreens
         ).also {
             val fragmentLifecycleTracker = FragmentLifecycleTracker(it)
             activityLifecycleTracker = ActivityLifecycleTracker(
@@ -233,12 +246,22 @@ class Tracker private constructor(
         }
     }
 
+    fun setGroupName(groupName: String) {
+        screenTrackMonitor?.setGroupName(groupName)
+    }
+
+    fun setNewGroup(groupName: String) {
+        screenTrackMonitor?.setNewGroup(groupName)
+    }
+
     private fun deInitializeScreenTracker() {
         activityLifecycleTracker?.let {
             (context.get()?.applicationContext as? Application)?.unregisterActivityLifecycleCallbacks(
                 it
             )
+            it.unregister()
         }
+        screenTrackMonitor?.destroy()
         screenTrackMonitor = null
         activityLifecycleTracker = null
     }
@@ -284,13 +307,16 @@ class Tracker private constructor(
 
     @Synchronized
     fun setMostRecentTimer(timer: Timer) {
-        mostRecentTimer = WeakReference(timer)
+        timerStack.addLast(WeakReference(timer))
+    }
+
+    @Synchronized
+    fun removeFromTimerStack(timer: Timer) {
+        timerStack.removeAll { it.get() == timer || it.get() == null }
     }
 
     fun getMostRecentTimer(): Timer? {
-        return if (mostRecentTimer != null) {
-            mostRecentTimer!!.get()
-        } else null
+        return timerStack.lastOrNull()?.get()
     }
 
     /**
@@ -362,6 +388,11 @@ class Tracker private constructor(
         }
     }
 
+    internal var lastTouchEventTimestamp = 0L
+
+    internal fun registerTouchEvent() {
+        lastTouchEventTimestamp = System.currentTimeMillis()
+    }
     /**
      * Submit a captured network request to the tracker to send to
      *
@@ -584,20 +615,54 @@ class Tracker private constructor(
 
     @Synchronized
     internal fun updateSession(sessionData: SessionData) {
-        if (configuration.sessionId == sessionData.sessionId && configuration.shouldSampleNetwork == sessionData.shouldSampleNetwork && configuration.networkSampleRate == sessionData.networkSampleRate) return
+        val changes = StringBuilder()
 
-        if (screenTrackMonitor != null && screenTrackMonitor?.ignoreScreens?.joinToString(",") == sessionData.ignoreScreens.joinToString(
-                ","
-            )
-        ) return
+        if(configuration.sessionId != sessionData.sessionId) {
+            changes.append("\nsessionId: ${configuration.sessionId} -> ${sessionData.sessionId}")
+            configuration.sessionId = sessionData.sessionId
+        }
 
-        configuration.logger?.debug("Updating session Data from ${configuration.sessionId}:${configuration.networkSampleRate}:${configuration.shouldSampleNetwork} to ${sessionData.sessionId}:${sessionData.networkSampleRate}:${sessionData.shouldSampleNetwork}")
-        configuration.sessionId = sessionData.sessionId
-        configuration.networkSampleRate = sessionData.networkSampleRate
-        configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
-        screenTrackMonitor?.ignoreScreens = sessionData.ignoreScreens
-        setSessionId(sessionData.sessionId)
-        BTTWebViewTracker.updateSession(sessionData.sessionId)
+        if(configuration.networkSampleRate != sessionData.networkSampleRate) {
+            changes.append("\nnetworkSampleRate: ${configuration.networkSampleRate} -> ${sessionData.networkSampleRate}")
+            configuration.networkSampleRate = sessionData.networkSampleRate
+        }
+
+        if(configuration.shouldSampleNetwork != sessionData.shouldSampleNetwork) {
+            changes.append("\nshouldSampleNetwork: ${configuration.shouldSampleNetwork} -> ${sessionData.shouldSampleNetwork}")
+            configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
+        }
+
+        if(configuration.isScreenTrackingEnabled != sessionData.enableScreenTracking) {
+            changes.append("\nisScreenTrackingEnabled: ${configuration.isScreenTrackingEnabled} -> ${sessionData.enableScreenTracking}")
+            configuration.isScreenTrackingEnabled = sessionData.enableScreenTracking
+
+            if(configuration.isScreenTrackingEnabled) {
+                initializeScreenTracker()
+            } else {
+                deInitializeScreenTracker()
+            }
+        } else if(screenTrackMonitor?.ignoreScreens != sessionData.ignoreScreens) {
+            screenTrackMonitor?.ignoreScreens = sessionData.ignoreScreens
+        }
+
+        if(configuration.isGroupingEnabled != sessionData.groupingEnabled) {
+            changes.append("\nisGroupingEnabled: ${configuration.isGroupingEnabled} -> ${sessionData.groupingEnabled}")
+            configuration.isGroupingEnabled = sessionData.groupingEnabled
+            screenTrackMonitor?.groupingEnabled = configuration.isGroupingEnabled
+        }
+
+        if(configuration.groupingIdleTime != sessionData.groupingIdleTime) {
+            changes.append("\ngroupingIdleTime: ${configuration.groupingIdleTime} -> ${sessionData.groupingIdleTime}")
+            configuration.groupingIdleTime = sessionData.groupingIdleTime
+            screenTrackMonitor?.groupIdleTime = configuration.groupingIdleTime
+        }
+
+        val changesString = changes.toString()
+        if(changesString.isNotEmpty()) {
+            configuration.logger?.debug("Updated configuration $changesString")
+            setSessionId(sessionData.sessionId)
+            BTTWebViewTracker.updateSession(sessionData.sessionId)
+        }
     }
 
     /**
@@ -941,6 +1006,9 @@ class Tracker private constructor(
                 ignoreList = listOf(),
                 enableRemoteConfigAck = false,
                 enableAllTracking = true,
+                enableScreenTracking = isScreenTrackingEnabled,
+                groupingEnabled = isGroupingEnabled,
+                groupingIdleTime = Constants.DEFAULT_GROUPING_IDLE_TIME,
                 savedDate = 0L
             )
 

@@ -5,8 +5,10 @@
  */
 package com.bluetriangle.analytics.dynamicconfig.model
 
+import com.bluetriangle.analytics.Constants
 import com.bluetriangle.analytics.utility.getBooleanOrNull
 import com.bluetriangle.analytics.utility.getDoubleOrNull
+import com.bluetriangle.analytics.utility.getIntOrNull
 import com.bluetriangle.analytics.utility.getJsonArrayOrNull
 import org.json.JSONArray
 import org.json.JSONObject
@@ -17,6 +19,9 @@ internal object BTTSavedRemoteConfigurationMapper {
     private const val SAVED_DATE = "savedDate"
     private const val IGNORE_SCREENS = "ignoreScreens"
     private const val ENABLE_ALL_TRACKING = "enableAllTracking"
+    private const val GROUPING_ENABLED = "groupingEnabled"
+    private const val GROUPING_IDLE_TIME = "groupingIdleTime"
+    private const val ENABLE_SCREEN_TRACKING = "enableScreenTracking"
 
     fun fromJson(jsonObject: JSONObject): BTTSavedRemoteConfiguration {
         val ignoreScreens = jsonObject.getJsonArrayOrNull(IGNORE_SCREENS)?.let { array ->
@@ -33,7 +38,10 @@ internal object BTTSavedRemoteConfigurationMapper {
             jsonObject.getDoubleOrNull(NETWORK_SAMPLE_RATE),
             ignoreScreens,
             jsonObject.getBoolean(ENABLE_REMOTE_CONFIG),
-            jsonObject.getBooleanOrNull(ENABLE_ALL_TRACKING)?: true,
+            jsonObject.getBooleanOrNull(ENABLE_ALL_TRACKING) != false,
+            jsonObject.getBooleanOrNull(ENABLE_SCREEN_TRACKING) != false,
+            jsonObject.getBooleanOrNull(GROUPING_ENABLED) == true,
+            jsonObject.getIntOrNull(GROUPING_IDLE_TIME)?: Constants.DEFAULT_GROUPING_IDLE_TIME,
             jsonObject.getLong(SAVED_DATE)
         )
     }
@@ -47,6 +55,9 @@ internal object BTTSavedRemoteConfigurationMapper {
         put(IGNORE_SCREENS, ignoreListArray)
         put(ENABLE_ALL_TRACKING, config.enableAllTracking)
         put(ENABLE_REMOTE_CONFIG, config.enableRemoteConfigAck)
+        put(ENABLE_SCREEN_TRACKING, config.enableScreenTracking)
+        put(GROUPING_ENABLED, config.groupingEnabled)
+        put(GROUPING_IDLE_TIME, config.groupingIdleTime)
         put(SAVED_DATE, config.savedDate)
     }
 }
