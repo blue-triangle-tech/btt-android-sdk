@@ -112,11 +112,14 @@ class Tracker private constructor(
     private var deviceInfoProvider: IDeviceInfoProvider
 
     private val claritySessionConnector:ClaritySessionConnector
+    internal val appVersion: String
 
     init {
         this.context = WeakReference(application.applicationContext)
         this.configuration = configuration
         this.deviceInfoProvider = DeviceInfoProvider
+
+        appVersion = Utils.getAppVersion(application.applicationContext)
 
         trackerExecutor = TrackerExecutor(configuration)
 
@@ -193,7 +196,6 @@ class Tracker private constructor(
 
     private fun initializeGlobalFields() {
         val appContext = context.get()?.applicationContext ?: return
-        val appVersion = Utils.getAppVersion(appContext)
         val isTablet = Utils.isTablet(appContext)
 
         globalFields.apply {
