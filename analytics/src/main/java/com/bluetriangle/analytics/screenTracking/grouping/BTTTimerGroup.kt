@@ -118,21 +118,29 @@ internal class BTTTimerGroup(
 
         generateGroupProperties(tracker)
 
-        groupTimer.submit()
-        logger?.debug("Group Submitted.. ${this.hashCode()}")
-        tracker.trackerExecutor.submit(
-            GroupChildRunnable(tracker.configuration, groupTimer, childViews = mapTimersToChildViews())
+        val groupedDataCollection = GroupedDataCollection(
+            tracker.configuration.siteId.toString(),
+            groupTimer.start.toString(),
+            tracker.getTimerValue(Timer.FIELD_PAGE_NAME, groupTimer),
+            tracker.getTimerValue(Timer.FIELD_CONTENT_GROUP_NAME, groupTimer),
+            tracker.getTimerValue(Timer.FIELD_TRAFFIC_SEGMENT_NAME, groupTimer),
+            tracker.configuration.sessionId.toString(),
+            tracker.globalFields[Timer.FIELD_BROWSER_VERSION]!!,
+            tracker.globalFields[Timer.FIELD_DEVICE]!!,
+            mapTimersToChildViews()
         )
+        groupTimer.submitInternal(groupedDataCollection)
+        logger?.debug("Group Submitted.. ${this.hashCode()}")
     }
 
     private fun mapTimersToChildViews(): List<BTTChildView> {
-        val groupStartTime = (groupTimer.getField(Timer.FIELD_NST)?.toLong()?:0L)
+        val groupStartTime = groupTimer.start
 
         return timers.map {
             val childPageName = it.second.getField(Timer.FIELD_PAGE_NAME)?:""
             val childPgTm = it.second.pageTimeCalculator().toString()
             val childNativeAppProp = it.second.nativeAppProperties
-            val childLoadStartTime = (it.second.getField(Timer.FIELD_NST)?.toLong()?:0L)
+            val childLoadStartTime = it.second.start
             val childLoadEndTime = childNativeAppProp.loadEndTime
 
             BTTChildView(
@@ -149,6 +157,7 @@ internal class BTTTimerGroup(
     private fun generateGroupProperties(tracker: Tracker) {
         timers.forEach {
             tracker.screenTrackMonitor?.generateMetaData(it.first, it.second)
+            it.second.nativeAppProperties.grouped = true
         }
 
         groupTimer.generateNativeAppProperties()
@@ -162,6 +171,7 @@ internal class BTTTimerGroup(
         }
         groupTimer.nativeAppProperties.loadTime = loadTime
         groupTimer.nativeAppProperties.fullTime = disappearTm - loadStartTime
+        groupTimer.nativeAppProperties.grouped = true
     }
 
     fun flush() {

@@ -5,33 +5,46 @@ import com.bluetriangle.analytics.Constants
 import com.bluetriangle.analytics.Payload
 import com.bluetriangle.analytics.Utils
 import com.bluetriangle.analytics.caching.classifier.CacheType
+import com.bluetriangle.analytics.screenTracking.grouping.GroupedDataCollection
+import org.json.JSONArray
 import java.io.BufferedReader
 import java.io.DataOutputStream
 import java.io.InputStreamReader
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
-class CapturedRequestRunnable(
+internal class CapturedRequestRunnable(
     private val configuration: BlueTriangleConfiguration,
-    private val capturedRequestCollections: List<CapturedRequestCollection>
+    private val capturedRequestCollections: List<CapturedRequestCollection>,
+    private var groupedDataCollection: GroupedDataCollection?
 ) : Runnable {
     override fun run() {
         try {
-            capturedRequestCollections.forEach {
-                submitCapturedRequestCollection(it)
+            if(capturedRequestCollections.isEmpty()) {
+                submitCapturedRequestCollection(null, groupedDataCollection)
+            } else {
+                capturedRequestCollections.forEach {
+                    submitCapturedRequestCollection(it, groupedDataCollection)
+                }
             }
         } catch (e: Exception) {
             configuration.logger?.error("Error while submitting captured requests: ${e.message}")
         }
     }
 
-    private fun submitCapturedRequestCollection(capturedRequestCollection: CapturedRequestCollection) {
+    private fun submitCapturedRequestCollection(capturedRequestCollection: CapturedRequestCollection?, groupedDataCollection: GroupedDataCollection?) {
+        if(capturedRequestCollection == null && groupedDataCollection == null) return
+
         var connection: HttpsURLConnection? = null
-        val payloadData =
-            capturedRequestCollection.buildCapturedRequestData(if (configuration.isDebug) 2 else 0)
+
+        val payloadData = JSONArray(buildList {
+            addAll(capturedRequestCollection?.buildCapturedRequestData()?:emptyList())
+            addAll(groupedDataCollection?.buildChildViewsData()?:emptyList())
+        }).toString(if (configuration.isDebug) 2 else 0)
+
         var url = configuration.networkCaptureUrl
         try {
-            url = capturedRequestCollection.buildUrl(configuration.networkCaptureUrl)
+            url = (capturedRequestCollection?.buildUrl(configuration.networkCaptureUrl)?:groupedDataCollection?.buildUrl(configuration.networkCaptureUrl))?:return
             configuration.logger?.debug("Submitting $capturedRequestCollection to $url")
             configuration.logger?.debug("$capturedRequestCollection payload: $payloadData")
             val requestUrl = URL(url)

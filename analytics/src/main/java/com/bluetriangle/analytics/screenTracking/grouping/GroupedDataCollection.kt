@@ -1,12 +1,16 @@
-package com.bluetriangle.analytics.networkcapture
+package com.bluetriangle.analytics.screenTracking.grouping
 
 import android.net.Uri
 import com.bluetriangle.analytics.Constants
 import com.bluetriangle.analytics.Timer
-import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
+import com.bluetriangle.analytics.networkcapture.CapturedRequest
+import com.bluetriangle.analytics.networkcapture.CapturedRequest.Companion.FIELD_DURATION
+import com.bluetriangle.analytics.networkcapture.CapturedRequest.Companion.FIELD_ENTRY_TYPE
+import com.bluetriangle.analytics.networkcapture.CapturedRequest.Companion.FIELD_FILE
+import com.bluetriangle.analytics.networkcapture.CapturedRequest.Companion.FIELD_START_TIME
 import org.json.JSONObject
 
-class CapturedRequestCollection(
+internal class GroupedDataCollection(
     private var siteId: String,
     private var nStart: String,
     private var pageName: String,
@@ -15,14 +19,20 @@ class CapturedRequestCollection(
     private var sessionId: String,
     private var browserVersion: String,
     private var device: String,
-    private var deviceInfoProvider: IDeviceInfoProvider,
-    capturedRequest: CapturedRequest
+    private var children: List<BTTChildView>
 ) {
-    private val capturedRequests: MutableList<CapturedRequest> = mutableListOf(capturedRequest)
-
-    @Synchronized
-    fun add(capturedRequest: CapturedRequest) {
-        capturedRequests.add(capturedRequest)
+    fun buildChildViewsData(): List<JSONObject> {
+        return children.map {
+            JSONObject().apply {
+                put(FIELD_FILE, it.className)
+                put(FIELD_DURATION, it.pageTime)
+                put(FIELD_START_TIME, it.startTime)
+                put(FIELD_ENTRY_TYPE, BTTChildView.ENTRY_TYPE)
+                put(CapturedRequest.FIELD_END_TIME, it.endTime)
+                put(CapturedRequest.FIELD_URL, it.pageName)
+                put(Timer.FIELD_NATIVE_APP, it.nativeAppProperties.toJSONObject())
+            }
+        }
     }
 
     fun buildUrl(baseUrl: String): String {
@@ -39,18 +49,5 @@ class CapturedRequestCollection(
             .appendQueryParameter(Timer.FIELD_BROWSER_VERSION, browserVersion)
             .appendQueryParameter(Timer.FIELD_DEVICE, device)
             .build().toString()
-    }
-
-    @Synchronized
-    fun buildCapturedRequestData(): List<JSONObject> {
-        val requests = capturedRequests.map {
-            it.nativeAppProperties?.add(deviceInfoProvider.getDeviceInfo())
-            it.payload
-        }
-        return requests
-    }
-
-    override fun toString(): String {
-        return "Captured Request Collection $nStart (${capturedRequests.size})"
     }
 }

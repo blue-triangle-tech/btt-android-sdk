@@ -34,6 +34,7 @@ import com.bluetriangle.analytics.networkstate.NetworkTimelineTracker
 import com.bluetriangle.analytics.screenTracking.ActivityLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.BTTScreenLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.FragmentLifecycleTracker
+import com.bluetriangle.analytics.screenTracking.grouping.GroupedDataCollection
 import com.bluetriangle.analytics.sessionmanager.DisabledModeSessionManager
 import com.bluetriangle.analytics.sessionmanager.ISessionManager
 import com.bluetriangle.analytics.sessionmanager.SessionData
@@ -110,7 +111,7 @@ class Tracker private constructor(
     internal var networkStateMonitor: NetworkStateMonitor? = null
         @Synchronized set
 
-    private var deviceInfoProvider: IDeviceInfoProvider
+    internal var deviceInfoProvider: IDeviceInfoProvider
 
     private val claritySessionConnector:ClaritySessionConnector
     internal val appVersion: String
@@ -152,7 +153,7 @@ class Tracker private constructor(
         setSessionId(sessionData.sessionId)
         this.configuration.sessionId = sessionData.sessionId
         this.configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
-        this.configuration.isGroupingEnabled = sessionData.groupingEnabled
+        this.configuration.isGroupingEnabled = sessionData.enableGrouping
         this.configuration.groupingIdleTime = sessionData.groupingIdleTime
         this.configuration.isScreenTrackingEnabled = sessionData.enableScreenTracking
 
@@ -363,6 +364,10 @@ class Tracker private constructor(
      * @param timer The timer to submit
      */
     fun submitTimer(timer: Timer) {
+        submitTimerInternal(timer)
+    }
+
+    internal fun submitTimerInternal(timer: Timer, groupedDataCollection: GroupedDataCollection? = null) {
         if (!timer.hasEnded()) {
             timer.end()
         }
@@ -372,7 +377,7 @@ class Tracker private constructor(
         loadCustomVariables(timer)
         timer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
         timer.setField(FIELD_SESSION_ID, sessionManager.sessionData.sessionId)
-        trackerExecutor.submit(TimerRunnable(configuration, timer))
+        trackerExecutor.submit(TimerRunnable(configuration, timer, if(configuration.shouldSampleGroupedView) groupedDataCollection else null))
     }
 
     internal fun loadCustomVariables(timer: Timer) {
@@ -440,7 +445,7 @@ class Tracker private constructor(
         return capturedRequestCollections.toList()
     }
 
-    private fun getTimerValue(fieldName: String, timer: Timer?): String {
+    internal fun getTimerValue(fieldName: String, timer: Timer?): String {
         if (timer != null) {
             val value = timer.getField(fieldName)
             if (value != null && !TextUtils.isEmpty(value)) {
@@ -631,7 +636,14 @@ class Tracker private constructor(
             changes.append("\nshouldSampleNetwork: ${configuration.shouldSampleNetwork} -> ${sessionData.shouldSampleNetwork}")
             configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
         }
-
+        if(configuration.groupedViewSampleRate != sessionData.groupedViewSampleRate) {
+            changes.append("\ngroupedViewSampleRate: ${configuration.groupedViewSampleRate} -> ${sessionData.groupedViewSampleRate}")
+            configuration.groupedViewSampleRate = sessionData.groupedViewSampleRate
+        }
+        if(configuration.shouldSampleGroupedView != sessionData.shouldSampleGroupedView) {
+            changes.append("\ngroupedViewSampleRate: ${configuration.groupedViewSampleRate} -> ${sessionData.groupedViewSampleRate}")
+            configuration.shouldSampleGroupedView = sessionData.shouldSampleGroupedView
+        }
         if(configuration.isScreenTrackingEnabled != sessionData.enableScreenTracking) {
             changes.append("\nisScreenTrackingEnabled: ${configuration.isScreenTrackingEnabled} -> ${sessionData.enableScreenTracking}")
             configuration.isScreenTrackingEnabled = sessionData.enableScreenTracking
@@ -645,9 +657,9 @@ class Tracker private constructor(
             screenTrackMonitor?.ignoreScreens = sessionData.ignoreScreens
         }
 
-        if(configuration.isGroupingEnabled != sessionData.groupingEnabled) {
-            changes.append("\nisGroupingEnabled: ${configuration.isGroupingEnabled} -> ${sessionData.groupingEnabled}")
-            configuration.isGroupingEnabled = sessionData.groupingEnabled
+        if(configuration.isGroupingEnabled != sessionData.enableGrouping) {
+            changes.append("\nisGroupingEnabled: ${configuration.isGroupingEnabled} -> ${sessionData.enableGrouping}")
+            configuration.isGroupingEnabled = sessionData.enableGrouping
             screenTrackMonitor?.groupingEnabled = configuration.isGroupingEnabled
         }
 
@@ -1007,8 +1019,9 @@ class Tracker private constructor(
                 enableRemoteConfigAck = false,
                 enableAllTracking = true,
                 enableScreenTracking = isScreenTrackingEnabled,
-                groupingEnabled = isGroupingEnabled,
+                enableGrouping = isGroupingEnabled,
                 groupingIdleTime = Constants.DEFAULT_GROUPING_IDLE_TIME,
+                groupedViewSampleRate = groupedViewSampleRate,
                 savedDate = 0L
             )
 
