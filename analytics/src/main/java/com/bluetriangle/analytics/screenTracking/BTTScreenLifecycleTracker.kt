@@ -76,6 +76,8 @@ internal class BTTScreenLifecycleTracker(
         timer.nativeAppProperties.loadTime = viewTm - loadTm
         timer.nativeAppProperties.fullTime = disappearTm - loadTm
         timer.nativeAppProperties.screenType = screen.type
+        timer.nativeAppProperties.confidenceRate = confidenceRate
+        timer.nativeAppProperties.confidenceMsg = confidenceMsg
         timer.end().submit()
         timers.remove(scr)
     }

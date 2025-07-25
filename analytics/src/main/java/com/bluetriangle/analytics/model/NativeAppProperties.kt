@@ -1,8 +1,9 @@
 package com.bluetriangle.analytics.model
 
 import android.os.Parcelable
-import com.bluetriangle.analytics.Constants
 import com.bluetriangle.analytics.Constants.APP_VERSION
+import com.bluetriangle.analytics.Constants.CONFIDENCE_MSG
+import com.bluetriangle.analytics.Constants.CONFIDENCE_RATE
 import com.bluetriangle.analytics.Constants.FULL_TIME
 import com.bluetriangle.analytics.Constants.LAUNCH_SCREEN_NAME
 import com.bluetriangle.analytics.Constants.LOAD_TIME
@@ -39,7 +40,9 @@ internal data class NativeAppProperties(
     var deviceModel: String? = null,
     var netStateSource: String? = null,
     var appVersion: String? = null,
-    var sdkVersion: String? = null
+    var sdkVersion: String? = null,
+    var confidenceRate: Int? = null,
+    var confidenceMsg: String? = null
 ) : Parcelable {
 
     private val cellularTotal
@@ -68,6 +71,8 @@ internal data class NativeAppProperties(
 
         obj.put(LAUNCH_SCREEN_NAME, launchScreenName)
         obj.put(FIELD_DEVICE_MODEL, deviceModel)
+        obj.put(CONFIDENCE_RATE, confidenceRate)
+        obj.put(CONFIDENCE_MSG, confidenceMsg)
 
         return obj
     }

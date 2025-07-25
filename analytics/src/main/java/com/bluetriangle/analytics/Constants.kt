@@ -43,4 +43,7 @@ object Constants {
     internal const val NETWORK_TYPE_CELLULAR = "cellular"
     internal const val NETWORK_TYPE_ETHERNET = "ethernet"
     internal const val NETWORK_TYPE_OFFLINE = "offline"
+
+    internal const val CONFIDENCE_RATE = "confidenceRate"
+    internal const val CONFIDENCE_MSG = "confidenceMsg"
 }
