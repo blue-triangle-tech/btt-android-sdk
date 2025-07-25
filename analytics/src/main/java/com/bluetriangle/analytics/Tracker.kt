@@ -151,6 +151,7 @@ class Tracker private constructor(
         setSessionId(sessionData.sessionId)
         this.configuration.sessionId = sessionData.sessionId
         this.configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
+        this.configuration.isScreenTrackingEnabled = sessionData.enableScreenTracking
 
         initializeScreenTracker()
 
@@ -240,6 +241,7 @@ class Tracker private constructor(
             (context.get()?.applicationContext as? Application)?.unregisterActivityLifecycleCallbacks(
                 it
             )
+            it.unregister()
         }
         screenTrackMonitor = null
         activityLifecycleTracker = null
@@ -586,20 +588,42 @@ class Tracker private constructor(
 
     @Synchronized
     internal fun updateSession(sessionData: SessionData) {
-        if (configuration.sessionId == sessionData.sessionId && configuration.shouldSampleNetwork == sessionData.shouldSampleNetwork && configuration.networkSampleRate == sessionData.networkSampleRate) return
+        val changes = StringBuilder()
 
-        if (screenTrackMonitor != null && screenTrackMonitor?.ignoreScreens?.joinToString(",") == sessionData.ignoreScreens.joinToString(
-                ","
-            )
-        ) return
+        if(configuration.sessionId != sessionData.sessionId) {
+            changes.append("\nsessionId: ${configuration.sessionId} -> ${sessionData.sessionId}")
+            configuration.sessionId = sessionData.sessionId
+        }
 
-        configuration.logger?.debug("Updating session Data from ${configuration.sessionId}:${configuration.networkSampleRate}:${configuration.shouldSampleNetwork} to ${sessionData.sessionId}:${sessionData.networkSampleRate}:${sessionData.shouldSampleNetwork}")
-        configuration.sessionId = sessionData.sessionId
-        configuration.networkSampleRate = sessionData.networkSampleRate
-        configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
-        screenTrackMonitor?.ignoreScreens = sessionData.ignoreScreens
-        setSessionId(sessionData.sessionId)
-        BTTWebViewTracker.updateSession(sessionData.sessionId)
+        if(configuration.networkSampleRate != sessionData.networkSampleRate) {
+            changes.append("\nnetworkSampleRate: ${configuration.networkSampleRate} -> ${sessionData.networkSampleRate}")
+            configuration.networkSampleRate = sessionData.networkSampleRate
+        }
+
+        if(configuration.shouldSampleNetwork != sessionData.shouldSampleNetwork) {
+            changes.append("\nshouldSampleNetwork: ${configuration.shouldSampleNetwork} -> ${sessionData.shouldSampleNetwork}")
+            configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
+        }
+
+        if(configuration.isScreenTrackingEnabled != sessionData.enableScreenTracking) {
+            changes.append("\nisScreenTrackingEnabled: ${configuration.isScreenTrackingEnabled} -> ${sessionData.enableScreenTracking}")
+            configuration.isScreenTrackingEnabled = sessionData.enableScreenTracking
+
+            if(configuration.isScreenTrackingEnabled) {
+                initializeScreenTracker()
+            } else {
+                deInitializeScreenTracker()
+            }
+        } else if(screenTrackMonitor?.ignoreScreens != sessionData.ignoreScreens) {
+            screenTrackMonitor?.ignoreScreens = sessionData.ignoreScreens
+        }
+
+        val changesString = changes.toString()
+        if(changesString.isNotEmpty()) {
+            configuration.logger?.debug("Updated configuration $changesString")
+            setSessionId(sessionData.sessionId)
+            BTTWebViewTracker.updateSession(sessionData.sessionId)
+        }
     }
 
     /**
@@ -943,6 +967,7 @@ class Tracker private constructor(
                 ignoreList = listOf(),
                 enableRemoteConfigAck = false,
                 enableAllTracking = true,
+                enableScreenTracking = isScreenTrackingEnabled,
                 savedDate = 0L
             )
 
@@ -956,11 +981,11 @@ class Tracker private constructor(
                 defaultConfig = configuration.defaultRemoteConfig
             )
 
-            val configUrl = "https://${configuration.siteId}.btttag.com/config.php"
+            val configUrl = "https://d.btttag.com/config.php?siteID=${configuration.siteId}&os=${Constants.OS}&osver=${Build.VERSION.RELEASE}&app=${Utils.getAppVersion(application)}&sdk=${BuildConfig.SDK_VERSION}"
             configurationUpdater = BTTConfigurationUpdater(
                 logger = configuration.logger,
                 repository = this.configurationRepository,
-                fetcher = BTTConfigurationFetcher(configUrl),
+                fetcher = BTTConfigurationFetcher(configuration.logger, configUrl),
                 60 * 60 * 1000,
                 reporter = BTTConfigUpdateReporter(
                     configuration, DeviceInfoProvider

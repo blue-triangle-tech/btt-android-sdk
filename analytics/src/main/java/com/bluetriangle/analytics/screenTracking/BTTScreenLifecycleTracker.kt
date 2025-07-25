@@ -3,6 +3,7 @@ package com.bluetriangle.analytics.screenTracking
 import com.bluetriangle.analytics.Constants.TIMER_MIN_PGTM
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.model.Screen
+import com.bluetriangle.analytics.model.ScreenType
 import com.bluetriangle.analytics.utility.logD
 
 internal class BTTScreenLifecycleTracker(
@@ -53,6 +54,18 @@ internal class BTTScreenLifecycleTracker(
         val timer = timers[scr] ?: return
         val loadTm = loadTime[scr] ?: 0L
         val viewTm = viewTime[scr] ?: 0L
+
+        var confidenceRate = 100
+        var confidenceMsg: String? = null
+
+        if(loadTm == 0L) {
+            confidenceRate = 0
+            confidenceMsg = when(screen.type) {
+                ScreenType.Activity, ScreenType.Fragment -> "onCreate/onStart not called on ${screen.name}"
+                ScreenType.Composable -> "Composable load time could not be calculated"
+                is ScreenType.Custom -> "onLoadStarted/onLoadEnded methods were not called"
+            }
+        }
         val disappearTm = System.currentTimeMillis()
 
         timer.setContentGroupName(pageType)

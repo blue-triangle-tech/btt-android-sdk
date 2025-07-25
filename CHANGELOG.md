@@ -1,4 +1,11 @@
-# Blue Triangle 2.17.1 Latest, June 6 2025
+# Blue Triangle 2.17.2 Latest, July 25 2025
+### Feature Improvements
+- Sending separate values for sdkVersion and appVersion
+- Added confidenceRate and confidenceMsg fields for denoting the reliability of the pgTm
+- Added remote configuration support for enabling/disabling automatic screen tracking
+- Sending app version, OS, OS version and SDK version while fetching remote configuration
+
+# Blue Triangle 2.17.1, June 6 2025
 ### Bug Fixes
 - Fixed Launch Time issue on later configuration
 - Changed Traffic Segment name and Page type to "ScreenTracker" for Automatic Screen Tracking payloads

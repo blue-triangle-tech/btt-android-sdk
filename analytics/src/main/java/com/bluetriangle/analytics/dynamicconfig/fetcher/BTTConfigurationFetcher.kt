@@ -5,8 +5,7 @@
  */
 package com.bluetriangle.analytics.dynamicconfig.fetcher
 
-import android.annotation.SuppressLint
-import com.bluetriangle.analytics.Tracker
+import com.bluetriangle.analytics.Logger
 import com.bluetriangle.analytics.dynamicconfig.model.BTTRemoteConfigurationMapper
 import com.bluetriangle.analytics.dynamicconfig.reporter.BTTConfigFetchError
 import kotlinx.coroutines.Dispatchers
@@ -19,12 +18,12 @@ import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
 
-internal class BTTConfigurationFetcher(private val remoteConfigUrl: String) :
+internal class BTTConfigurationFetcher(private val logger: Logger?, private val remoteConfigUrl: String) :
     IBTTConfigurationFetcher {
 
     @Throws
     override suspend fun fetch(): BTTConfigFetchResult {
-        Tracker.instance?.configuration?.logger?.debug("Fetching remote config from $remoteConfigUrl")
+        logger?.debug("Fetching remote config from $remoteConfigUrl")
         var remoteConfigJSONString = ""
         try {
             remoteConfigJSONString = URL(remoteConfigUrl).fetchJSON()

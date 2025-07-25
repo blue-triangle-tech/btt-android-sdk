@@ -24,6 +24,7 @@ internal class DisabledModeSessionManager(
         isConfigApplied = isConfigApplied,
         networkSampleRate = 0.0,
         ignoreScreens = listOf(),
+        enableScreenTracking = false,
         expiration = 0L
     )
 

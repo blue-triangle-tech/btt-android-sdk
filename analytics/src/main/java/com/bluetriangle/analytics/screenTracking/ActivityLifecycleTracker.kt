@@ -10,7 +10,16 @@ import com.bluetriangle.analytics.utility.unregisterFragmentLifecycleCallback
 
 internal class ActivityLifecycleTracker(private val screenTracker: ScreenLifecycleTracker, private val fragmentLifecycleTracker: FragmentLifecycleTracker):Application.ActivityLifecycleCallbacks {
 
+    private var activities = arrayListOf<Activity>()
+
+    fun unregister() {
+        activities.forEach {
+            (it as? FragmentActivity)?.unregisterFragmentLifecycleCallback(fragmentLifecycleTracker)
+        }
+    }
+
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+        activities.add(activity)
         (activity as? FragmentActivity)?.registerFragmentLifecycleCallback(fragmentLifecycleTracker)
         screenTracker.onLoadStarted(activity.screen)
     }
@@ -38,6 +47,7 @@ internal class ActivityLifecycleTracker(private val screenTracker: ScreenLifecyc
     }
 
     override fun onActivityDestroyed(activity: Activity) {
+        activities.remove(activity)
         (activity as? FragmentActivity)?.unregisterFragmentLifecycleCallback(fragmentLifecycleTracker)
     }
 

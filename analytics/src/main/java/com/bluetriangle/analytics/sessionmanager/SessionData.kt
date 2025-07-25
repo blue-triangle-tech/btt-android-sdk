@@ -19,6 +19,7 @@ internal data class SessionData(
     val isConfigApplied: Boolean,
     val networkSampleRate: Double,
     val ignoreScreens: List<String>,
+    val enableScreenTracking: Boolean,
     val expiration: Long
 ) {
     companion object {
@@ -28,6 +29,7 @@ internal data class SessionData(
         private const val IS_CONFIG_APPLIED = "isConfigApplied"
         private const val NETWORK_SAMPLE_RATE = "networkSampleRate"
         private const val IGNORE_SCREENS = "ignoreScreens"
+        private const val ENABLE_SCREEN_TRACKING = "enableScreenTracking"
 
         internal fun JSONObject.toSessionData(): SessionData? {
             try {
@@ -43,6 +45,7 @@ internal data class SessionData(
                             }
                         }
                     } ?: listOf(),
+                    enableScreenTracking = getBooleanOrNull(ENABLE_SCREEN_TRACKING) != false,
                     expiration = getLong(EXPIRATION)
                 )
             } catch (e: Exception) {
@@ -57,6 +60,7 @@ internal data class SessionData(
             put(IS_CONFIG_APPLIED, isConfigApplied)
             put(NETWORK_SAMPLE_RATE, networkSampleRate)
             put(IGNORE_SCREENS, JSONArray(ignoreScreens))
+            put(ENABLE_SCREEN_TRACKING, enableScreenTracking)
             put(EXPIRATION, expiration)
         }
     }
