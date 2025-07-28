@@ -364,10 +364,6 @@ class Tracker private constructor(
      * @param timer The timer to submit
      */
     fun submitTimer(timer: Timer) {
-        submitTimerInternal(timer)
-    }
-
-    internal fun submitTimerInternal(timer: Timer, groupedDataCollection: GroupedDataCollection? = null) {
         if (!timer.hasEnded()) {
             timer.end()
         }
@@ -377,7 +373,7 @@ class Tracker private constructor(
         loadCustomVariables(timer)
         timer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
         timer.setField(FIELD_SESSION_ID, sessionManager.sessionData.sessionId)
-        trackerExecutor.submit(TimerRunnable(configuration, timer, if(configuration.shouldSampleGroupedView) groupedDataCollection else null))
+        trackerExecutor.submit(TimerRunnable(configuration, timer))
     }
 
     internal fun loadCustomVariables(timer: Timer) {
@@ -1035,7 +1031,7 @@ class Tracker private constructor(
                 defaultConfig = configuration.defaultRemoteConfig
             )
 
-            val configUrl = "https://${configuration.siteId}.btttag.com/config.php"
+            val configUrl = "https://d.btttag.com/config.php?siteID=${configuration.siteId}&os=${Constants.OS}&osver=${Build.VERSION.RELEASE}&app=${Utils.getAppVersion(application)}&sdk=${BuildConfig.SDK_VERSION}"
             configurationUpdater = BTTConfigurationUpdater(
                 logger = configuration.logger,
                 repository = this.configurationRepository,

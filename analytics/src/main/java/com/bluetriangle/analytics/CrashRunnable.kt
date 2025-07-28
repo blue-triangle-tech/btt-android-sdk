@@ -77,7 +77,7 @@ internal class CrashRunnable(
         }
         crashHitsTimer.setFieldsIfAbsent(tracker?.globalFields?.toMap() ?: emptyMap())
         tracker?.loadCustomVariables(crashHitsTimer)
-        val timerRunnable = TimerRunnable(configuration, crashHitsTimer, null, false)
+        val timerRunnable = TimerRunnable(configuration, crashHitsTimer, false)
         timerRunnable.run()
     }
 

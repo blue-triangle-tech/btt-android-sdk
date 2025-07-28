@@ -117,20 +117,13 @@ internal class BTTTimerGroup(
         groupTimer.setPageName(groupPageName)
 
         generateGroupProperties(tracker)
-
-        val groupedDataCollection = GroupedDataCollection(
-            tracker.configuration.siteId.toString(),
-            groupTimer.start.toString(),
-            tracker.getTimerValue(Timer.FIELD_PAGE_NAME, groupTimer),
-            tracker.getTimerValue(Timer.FIELD_CONTENT_GROUP_NAME, groupTimer),
-            tracker.getTimerValue(Timer.FIELD_TRAFFIC_SEGMENT_NAME, groupTimer),
-            tracker.configuration.sessionId.toString(),
-            tracker.globalFields[Timer.FIELD_BROWSER_VERSION]!!,
-            tracker.globalFields[Timer.FIELD_DEVICE]!!,
-            mapTimersToChildViews()
-        )
-        groupTimer.submitInternal(groupedDataCollection)
+        groupTimer.submit()
         logger?.debug("Group Submitted.. ${this.hashCode()}")
+        if(tracker.configuration.shouldSampleGroupedView) {
+            tracker.trackerExecutor.submit(
+                GroupChildRunnable(tracker.configuration, groupTimer, childViews = mapTimersToChildViews())
+            )
+        }
     }
 
     private fun mapTimersToChildViews(): List<BTTChildView> {

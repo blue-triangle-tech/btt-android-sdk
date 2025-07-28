@@ -4,7 +4,6 @@ import androidx.core.net.toUri
 import com.bluetriangle.analytics.Timer.Companion.FIELD_NATIVE_APP
 import com.bluetriangle.analytics.caching.classifier.CacheType
 import com.bluetriangle.analytics.networkcapture.CapturedRequestRunnable
-import com.bluetriangle.analytics.screenTracking.grouping.GroupedDataCollection
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.DataOutputStream
@@ -27,7 +26,6 @@ internal class TimerRunnable(
      * The timer to submit
      */
     val timer: Timer,
-    var groupedDataCollection: GroupedDataCollection?,
     val shouldSendCapturedRequests: Boolean = true
 ) : Runnable {
     override fun run() {
@@ -42,7 +40,7 @@ internal class TimerRunnable(
             }
             timer.onSubmit()
             try {
-                val url = URL(buildTrackerUrl(timer))
+                val url = URL(configuration.trackerUrl)
                 connection = url.openConnection() as HttpsURLConnection
                 connection.requestMethod = Constants.METHOD_POST
                 connection.setRequestProperty(
@@ -53,10 +51,9 @@ internal class TimerRunnable(
                 connection.doOutput = true
                 DataOutputStream(connection.outputStream).use { it.write(Utils.b64encode(payloadData)) }
                 val statusCode = connection.responseCode
-                if (!capturedRequestCollections.isNullOrEmpty() || groupedDataCollection != null) {
-                    CapturedRequestRunnable(configuration, capturedRequestCollections?:emptyList(), groupedDataCollection).run()
+                if (!capturedRequestCollections.isNullOrEmpty()) {
+                    CapturedRequestRunnable(configuration, capturedRequestCollections).run()
                     capturedRequestCollections = null
-                    groupedDataCollection = null
                 }
                 if (statusCode >= 300) {
                     val responseBody =
@@ -78,8 +75,8 @@ internal class TimerRunnable(
                 }
                 connection.getHeaderField(0)
             } catch (e: Exception) {
-                if (!capturedRequestCollections.isNullOrEmpty() || groupedDataCollection != null) {
-                    CapturedRequestRunnable(configuration, capturedRequestCollections?:emptyList(), groupedDataCollection).run()
+                if (!capturedRequestCollections.isNullOrEmpty()) {
+                    CapturedRequestRunnable(configuration, capturedRequestCollections).run()
                 }
                 configuration.logger?.error(e, "Android Error submitting $timer: ${e.message}")
                 cachePayload(configuration.trackerUrl, payloadData)
@@ -89,14 +86,6 @@ internal class TimerRunnable(
         } catch(e: Exception) {
             configuration.logger?.error("Error while submitting timer: ${e.message}")
         }
-    }
-
-    private fun buildTrackerUrl(timer: Timer): String {
-        return configuration.trackerUrl.toUri().buildUpon()
-            .appendQueryParameter("pgNm", timer.getField(Timer.FIELD_PAGE_NAME))
-            .appendQueryParameter("trSeg", timer.getField(Timer.FIELD_TRAFFIC_SEGMENT_NAME))
-            .appendQueryParameter("navStart", timer.getField(Timer.FIELD_NST))
-            .build().toString()
     }
 
     /**

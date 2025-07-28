@@ -4,7 +4,6 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
 import com.bluetriangle.analytics.model.NativeAppProperties
-import com.bluetriangle.analytics.screenTracking.grouping.GroupedDataCollection
 import com.bluetriangle.analytics.utility.getNumberOfCPUCores
 
 /**
@@ -357,10 +356,6 @@ class Timer : Parcelable {
      * Convenience method to submit this timer to the global tracker
      */
     fun submit() {
-        submitInternal()
-    }
-
-    internal fun submitInternal(groupedDataCollection: GroupedDataCollection?=null) {
         if(!isTrackingEnabled()) return
 
         val tracker = Tracker.instance
@@ -368,7 +363,7 @@ class Timer : Parcelable {
             if (nativeAppProperties.loadTime == null) {
                 generateNativeAppProperties()
             }
-            tracker.submitTimerInternal(this, groupedDataCollection)
+            tracker.submitTimer(this)
         } else {
             Log.e("BlueTriangle", "Tracker not initialized")
         }

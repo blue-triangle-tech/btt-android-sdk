@@ -4,7 +4,7 @@ import android.net.Uri
 import com.bluetriangle.analytics.Constants
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
-import org.json.JSONObject
+import org.json.JSONArray
 
 class CapturedRequestCollection(
     private var siteId: String,
@@ -42,12 +42,12 @@ class CapturedRequestCollection(
     }
 
     @Synchronized
-    fun buildCapturedRequestData(): List<JSONObject> {
-        val requests = capturedRequests.map {
+    fun buildCapturedRequestData(indentSpaces: Int): String {
+        val requests = JSONArray(capturedRequests.map {
             it.nativeAppProperties?.add(deviceInfoProvider.getDeviceInfo())
             it.payload
-        }
-        return requests
+        })
+        return requests.toString(indentSpaces)
     }
 
     override fun toString(): String {
