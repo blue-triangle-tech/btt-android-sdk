@@ -31,6 +31,8 @@ object Constants {
     const val DEFAULT_NETWORK_SAMPLE_RATE = 0.05
 
     internal const val DEFAULT_GROUPING_IDLE_TIME = 2
+    internal const val DEFAULT_ENABLE_GROUPING = true
+    internal const val DEFAULT_GROUPED_VIEW_SAMPLE_RATE = 0.05
 
     internal const val SDK_VERSION = "sdkVersion"
     internal const val APP_VERSION = "appVersion"
@@ -45,4 +47,5 @@ object Constants {
     internal const val NETWORK_TYPE_CELLULAR = "cellular"
     internal const val NETWORK_TYPE_ETHERNET = "ethernet"
     internal const val NETWORK_TYPE_OFFLINE = "offline"
+    internal const val GROUPED = "grouped"
 }

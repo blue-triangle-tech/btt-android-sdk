@@ -5,7 +5,6 @@
  */
 package com.bluetriangle.analytics.dynamicconfig.fetcher
 
-import android.annotation.SuppressLint
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.dynamicconfig.model.BTTRemoteConfigurationMapper
 import com.bluetriangle.analytics.dynamicconfig.reporter.BTTConfigFetchError

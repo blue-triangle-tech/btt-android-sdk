@@ -26,8 +26,10 @@ internal class DisabledModeSessionManager(
         networkSampleRate = 0.0,
         ignoreScreens = listOf(),
         enableScreenTracking = true,
-        groupingEnabled = false,
+        enableGrouping = false,
         groupingIdleTime = Constants.DEFAULT_GROUPING_IDLE_TIME,
+        groupedViewSampleRate = 0.0,
+        shouldSampleGroupedView = false,
         expiration = 0L
     )
 

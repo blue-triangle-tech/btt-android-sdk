@@ -40,7 +40,7 @@ internal class TimerRunnable(
             }
             timer.onSubmit()
             try {
-                val url = URL(buildTrackerUrl(timer))
+                val url = URL(configuration.trackerUrl)
                 connection = url.openConnection() as HttpsURLConnection
                 connection.requestMethod = Constants.METHOD_POST
                 connection.setRequestProperty(
@@ -86,14 +86,6 @@ internal class TimerRunnable(
         } catch(e: Exception) {
             configuration.logger?.error("Error while submitting timer: ${e.message}")
         }
-    }
-
-    private fun buildTrackerUrl(timer: Timer): String {
-        return configuration.trackerUrl.toUri().buildUpon()
-            .appendQueryParameter("pgNm", timer.getField(Timer.FIELD_PAGE_NAME))
-            .appendQueryParameter("trSeg", timer.getField(Timer.FIELD_TRAFFIC_SEGMENT_NAME))
-            .appendQueryParameter("navStart", timer.getField(Timer.FIELD_NST))
-            .build().toString()
     }
 
     /**

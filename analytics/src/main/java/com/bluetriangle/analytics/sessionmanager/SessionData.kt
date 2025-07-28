@@ -6,6 +6,9 @@
 package com.bluetriangle.analytics.sessionmanager
 
 import com.bluetriangle.analytics.Constants
+import com.bluetriangle.analytics.Constants.DEFAULT_GROUPED_VIEW_SAMPLE_RATE
+import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_GROUPING
+import com.bluetriangle.analytics.Constants.DEFAULT_NETWORK_SAMPLE_RATE
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.utility.getBooleanOrNull
 import com.bluetriangle.analytics.utility.getDoubleOrNull
@@ -22,8 +25,10 @@ internal data class SessionData(
     val networkSampleRate: Double,
     val ignoreScreens: List<String>,
     val enableScreenTracking: Boolean,
-    val groupingEnabled: Boolean,
+    val enableGrouping: Boolean,
     val groupingIdleTime: Int,
+    val groupedViewSampleRate: Double,
+    val shouldSampleGroupedView: Boolean,
     val expiration: Long
 ) {
     companion object {
@@ -34,8 +39,10 @@ internal data class SessionData(
         private const val NETWORK_SAMPLE_RATE = "networkSampleRate"
         private const val IGNORE_SCREENS = "ignoreScreens"
         private const val ENABLE_SCREEN_TRACKING = "enableScreenTracking"
-        private const val GROUPING_ENABLED = "groupingEnabled"
+        private const val ENABLE_GROUPING = "enableGrouping"
         private const val GROUPING_IDLE_TIME = "groupingIdleTime"
+        private const val GROUPED_VIEW_SAMPLE_RATE = "groupedViewSampleRate"
+        private const val SHOULD_SAMPLE_GROUPED_VIEW = "shouldSampleGroupedView"
 
         internal fun JSONObject.toSessionData(): SessionData? {
             try {
@@ -43,7 +50,7 @@ internal data class SessionData(
                     sessionId = getStringOrNull(SESSION_ID)?:return null,
                     shouldSampleNetwork = getBooleanOrNull(SHOULD_SAMPLE_NETWORK)?:false,
                     isConfigApplied = getBooleanOrNull(IS_CONFIG_APPLIED)?:false,
-                    networkSampleRate = getDoubleOrNull(NETWORK_SAMPLE_RATE)?:0.0,
+                    networkSampleRate = getDoubleOrNull(NETWORK_SAMPLE_RATE)?:DEFAULT_NETWORK_SAMPLE_RATE,
                     ignoreScreens = getJsonArrayOrNull(IGNORE_SCREENS)?.let { array ->
                         buildList {
                             repeat(array.length()) {
@@ -52,8 +59,10 @@ internal data class SessionData(
                         }
                     } ?: listOf(),
                     enableScreenTracking = getBooleanOrNull(ENABLE_SCREEN_TRACKING) != false,
-                    groupingEnabled = getBooleanOrNull(GROUPING_ENABLED) == true,
+                    enableGrouping = getBooleanOrNull(ENABLE_GROUPING)?:DEFAULT_ENABLE_GROUPING,
                     groupingIdleTime = getIntOrNull(GROUPING_IDLE_TIME) ?: Constants.DEFAULT_GROUPING_IDLE_TIME,
+                    groupedViewSampleRate = getDoubleOrNull(GROUPED_VIEW_SAMPLE_RATE)?:DEFAULT_GROUPED_VIEW_SAMPLE_RATE,
+                    shouldSampleGroupedView = getBooleanOrNull(SHOULD_SAMPLE_GROUPED_VIEW) == true,
                     expiration = getLong(EXPIRATION)
                 )
             } catch (e: Exception) {
@@ -69,8 +78,10 @@ internal data class SessionData(
             put(NETWORK_SAMPLE_RATE, networkSampleRate)
             put(IGNORE_SCREENS, JSONArray(ignoreScreens))
             put(ENABLE_SCREEN_TRACKING, enableScreenTracking)
-            put(GROUPING_ENABLED, groupingEnabled)
+            put(ENABLE_GROUPING, enableGrouping)
             put(GROUPING_IDLE_TIME, groupingIdleTime)
+            put(GROUPED_VIEW_SAMPLE_RATE, groupedViewSampleRate)
+            put(SHOULD_SAMPLE_GROUPED_VIEW, shouldSampleGroupedView)
             put(EXPIRATION, expiration)
         }
     }

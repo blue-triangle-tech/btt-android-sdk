@@ -39,7 +39,7 @@ class BlueTriangleConfiguration {
      */
     var networkSampleRate = Constants.DEFAULT_NETWORK_SAMPLE_RATE
         set(networkSampleRate) {
-            field = Math.min(Math.max(networkSampleRate, 0.0), 1.0)
+            field = networkSampleRate.coerceAtLeast(0.0).coerceAtMost(1.0)
         }
 
     /**
@@ -165,6 +165,16 @@ class BlueTriangleConfiguration {
     var isGroupingEnabled: Boolean = false
 
     var groupingIdleTime: Int = Constants.DEFAULT_GROUPING_IDLE_TIME
+        set(value) {
+            field = value.coerceAtLeast(1)
+        }
+
+    var groupedViewSampleRate = Constants.DEFAULT_GROUPED_VIEW_SAMPLE_RATE
+        set(value) {
+            field = value.coerceAtLeast(0.0).coerceAtMost(1.0)
+        }
+
+    internal var shouldSampleGroupedView = false
 
     companion object {
         const val DEFAULT_TRACKER_URL = "https://d.btttag.com/analytics.rcv"
@@ -206,7 +216,9 @@ class BlueTriangleConfiguration {
             cacheMemoryLimit : $cacheMemoryLimit
             isTrackNetworkStateEnabled : $isTrackNetworkStateEnabled,
             isGroupingEnabled : $isGroupingEnabled,
-            groupingIdleTime : $groupingIdleTime
+            groupingIdleTime : $groupingIdleTime,
+            groupedViewSampleRate: $groupedViewSampleRate,
+            shouldSampleGroupedView: $shouldSampleGroupedView
         }
         """.trimIndent()
     }

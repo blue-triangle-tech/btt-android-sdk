@@ -11,8 +11,9 @@ internal open class BTTRemoteConfiguration(
     val enableAllTracking: Boolean,
     val enableRemoteConfigAck: Boolean,
     val enableScreenTracking: Boolean,
-    val groupingEnabled: Boolean,
-    val groupingIdleTime: Int
+    val enableGrouping: Boolean,
+    val groupingIdleTime: Int,
+    val groupedViewSampleRate: Double?
 ) {
     override fun equals(other: Any?): Boolean {
         if(other is BTTRemoteConfiguration) {
@@ -21,14 +22,15 @@ internal open class BTTRemoteConfiguration(
                     other.ignoreScreens.joinToString() == ignoreScreens.joinToString() &&
                     other.enableAllTracking == enableAllTracking &&
                     other.enableScreenTracking == enableScreenTracking &&
-                    other.groupingEnabled == groupingEnabled &&
-                    other.groupingIdleTime == groupingIdleTime
+                    other.enableGrouping == enableGrouping &&
+                    other.groupingIdleTime == groupingIdleTime &&
+                    other.groupedViewSampleRate == groupedViewSampleRate
         }
         return false
     }
 
     override fun toString(): String {
-        return "RemoteConfig { networkSampleRate: $networkSampleRate, ignoreList: ${ignoreScreens}, enableRemoteConfigAck: $enableRemoteConfigAck, enableAllTracking: $enableAllTracking,  enableScreenTracking: $enableScreenTracking, groupingEnabled: $groupingEnabled, groupingIdleTime: $groupingIdleTime }"
+        return "RemoteConfig { networkSampleRate: $networkSampleRate, ignoreList: ${ignoreScreens}, enableRemoteConfigAck: $enableRemoteConfigAck, enableAllTracking: $enableAllTracking,  enableScreenTracking: $enableScreenTracking, enableGrouping: $enableGrouping, groupingIdleTime: $groupingIdleTime, groupedViewSampleRate: $groupedViewSampleRate }"
     }
 
     override fun hashCode(): Int {
@@ -36,9 +38,10 @@ internal open class BTTRemoteConfiguration(
         result = 31 * result + enableAllTracking.hashCode()
         result = 31 * result + enableRemoteConfigAck.hashCode()
         result = 31 * result + enableScreenTracking.hashCode()
-        result = 31 * result + groupingEnabled.hashCode()
+        result = 31 * result + enableGrouping.hashCode()
         result = 31 * result + groupingIdleTime
         result = 31 * result + ignoreScreens.hashCode()
+        result = 31 * result + groupedViewSampleRate.hashCode()
         return result
     }
 

@@ -9,4 +9,8 @@ internal class BTTChildView(
     val startTime: String,
     val endTime: String,
     val nativeAppProperties: NativeAppProperties
-)
+) {
+    companion object{
+        const val ENTRY_TYPE = "screen"
+    }
+}

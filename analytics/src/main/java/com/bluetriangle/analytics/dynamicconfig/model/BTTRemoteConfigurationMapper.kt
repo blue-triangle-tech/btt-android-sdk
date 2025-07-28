@@ -7,6 +7,7 @@ package com.bluetriangle.analytics.dynamicconfig.model
 
 import com.bluetriangle.analytics.Constants
 import com.bluetriangle.analytics.utility.getBooleanOrNull
+import com.bluetriangle.analytics.utility.getDoubleOrNull
 import com.bluetriangle.analytics.utility.getIntOrNull
 import com.bluetriangle.analytics.utility.getJsonArrayOrNull
 import org.json.JSONObject
@@ -17,9 +18,10 @@ internal object BTTRemoteConfigurationMapper {
     private const val ENABLE_REMOTE_CONFIG = "enableRemoteConfigAck"
     private const val IGNORE_SCREENS = "ignoreScreens"
     private const val ENABLE_ALL_TRACKING = "enableAllTracking"
-    private const val GROUPING_ENABLED = "groupingEnabled"
+    private const val ENABLE_GROUPING = "enableGrouping"
     private const val GROUPING_IDLE_TIME = "groupingIdleTime"
     private const val ENABLE_SCREEN_TRACKING = "enableScreenTracking"
+    private const val GROUPED_VIEW_SAMPLE_RATE = "groupedViewSampleRate"
 
     fun fromJson(remoteConfigJson: JSONObject): BTTRemoteConfiguration {
         val networkSampleRate = remoteConfigJson.getIntOrNull(NETWORK_SAMPLE_RATE)?.div(100.0)
@@ -35,8 +37,9 @@ internal object BTTRemoteConfigurationMapper {
         } ?: listOf()
         val enableAllTracking = remoteConfigJson.getBooleanOrNull(ENABLE_ALL_TRACKING) != false
         val enableScreenTracking = remoteConfigJson.getBooleanOrNull(ENABLE_SCREEN_TRACKING) != false
-        val groupingEnabled = remoteConfigJson.getBooleanOrNull(GROUPING_ENABLED) == true
+        val enableGrouping = remoteConfigJson.getBooleanOrNull(ENABLE_GROUPING) == true
         val groupingIdleTime = remoteConfigJson.getIntOrNull(GROUPING_IDLE_TIME) ?: Constants.DEFAULT_GROUPING_IDLE_TIME
+        val groupedViewSampleRate = remoteConfigJson.getDoubleOrNull(GROUPED_VIEW_SAMPLE_RATE)
 
         return BTTRemoteConfiguration(
             networkSampleRate,
@@ -44,8 +47,9 @@ internal object BTTRemoteConfigurationMapper {
             enableAllTracking,
             enableRemoteConfig,
             enableScreenTracking,
-            groupingEnabled,
-            groupingIdleTime
+            enableGrouping,
+            groupingIdleTime,
+            groupedViewSampleRate
         )
     }
 }

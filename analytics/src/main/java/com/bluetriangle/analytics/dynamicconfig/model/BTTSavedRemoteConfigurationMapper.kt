@@ -19,9 +19,10 @@ internal object BTTSavedRemoteConfigurationMapper {
     private const val SAVED_DATE = "savedDate"
     private const val IGNORE_SCREENS = "ignoreScreens"
     private const val ENABLE_ALL_TRACKING = "enableAllTracking"
-    private const val GROUPING_ENABLED = "groupingEnabled"
+    private const val ENABLE_GROUPING = "enableGrouping"
     private const val GROUPING_IDLE_TIME = "groupingIdleTime"
     private const val ENABLE_SCREEN_TRACKING = "enableScreenTracking"
+    private const val GROUPED_VIEW_SAMPLE_RATE = "groupedViewSampleRate"
 
     fun fromJson(jsonObject: JSONObject): BTTSavedRemoteConfiguration {
         val ignoreScreens = jsonObject.getJsonArrayOrNull(IGNORE_SCREENS)?.let { array ->
@@ -40,8 +41,9 @@ internal object BTTSavedRemoteConfigurationMapper {
             jsonObject.getBoolean(ENABLE_REMOTE_CONFIG),
             jsonObject.getBooleanOrNull(ENABLE_ALL_TRACKING) != false,
             jsonObject.getBooleanOrNull(ENABLE_SCREEN_TRACKING) != false,
-            jsonObject.getBooleanOrNull(GROUPING_ENABLED) == true,
+            jsonObject.getBooleanOrNull(ENABLE_GROUPING) == true,
             jsonObject.getIntOrNull(GROUPING_IDLE_TIME)?: Constants.DEFAULT_GROUPING_IDLE_TIME,
+            jsonObject.getDoubleOrNull(GROUPED_VIEW_SAMPLE_RATE),
             jsonObject.getLong(SAVED_DATE)
         )
     }
@@ -56,7 +58,7 @@ internal object BTTSavedRemoteConfigurationMapper {
         put(ENABLE_ALL_TRACKING, config.enableAllTracking)
         put(ENABLE_REMOTE_CONFIG, config.enableRemoteConfigAck)
         put(ENABLE_SCREEN_TRACKING, config.enableScreenTracking)
-        put(GROUPING_ENABLED, config.groupingEnabled)
+        put(ENABLE_GROUPING, config.enableGrouping)
         put(GROUPING_IDLE_TIME, config.groupingIdleTime)
         put(SAVED_DATE, config.savedDate)
     }

@@ -4,6 +4,7 @@ import android.os.Parcelable
 import com.bluetriangle.analytics.Constants
 import com.bluetriangle.analytics.Constants.APP_VERSION
 import com.bluetriangle.analytics.Constants.FULL_TIME
+import com.bluetriangle.analytics.Constants.GROUPED
 import com.bluetriangle.analytics.Constants.LAUNCH_SCREEN_NAME
 import com.bluetriangle.analytics.Constants.LOAD_TIME
 import com.bluetriangle.analytics.Constants.MAX_MAIN_THREAD_USAGE
@@ -40,7 +41,8 @@ internal data class NativeAppProperties(
     var deviceModel: String? = null,
     var netStateSource: String? = null,
     var appVersion: String? = null,
-    var sdkVersion: String? = null
+    var sdkVersion: String? = null,
+    var grouped: Boolean = false
 ) : Parcelable {
 
     internal var loadStartTime: Long = 0
@@ -62,6 +64,7 @@ internal data class NativeAppProperties(
         obj.put(NUMBER_OF_CPU_CORES, numberOfCPUCores)
         obj.put(APP_VERSION, appVersion)
         obj.put(SDK_VERSION, sdkVersion)
+        obj.put(GROUPED, grouped)
 
         networkStates.apply {
             forEach { obj.put(it) }
