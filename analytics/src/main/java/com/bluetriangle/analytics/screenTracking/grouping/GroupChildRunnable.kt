@@ -11,6 +11,7 @@ import com.bluetriangle.analytics.networkcapture.CapturedRequest
 import com.bluetriangle.analytics.networkcapture.CapturedRequest.Companion.FIELD_DURATION
 import com.bluetriangle.analytics.networkcapture.CapturedRequest.Companion.FIELD_FILE
 import com.bluetriangle.analytics.networkcapture.CapturedRequest.Companion.FIELD_START_TIME
+import com.bluetriangle.analytics.screenTracking.grouping.BTTChildView.Companion.ENTRY_TYPE
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -81,6 +82,7 @@ internal class GroupChildRunnable(
                 put(FIELD_FILE, it.className)
                 put(FIELD_DURATION, it.pageTime)
                 put(FIELD_START_TIME, it.startTime)
+                put(CapturedRequest.FIELD_ENTRY_TYPE, ENTRY_TYPE)
                 put(CapturedRequest.FIELD_END_TIME, it.endTime)
                 put(CapturedRequest.FIELD_URL, it.pageName)
                 put(Timer.FIELD_NATIVE_APP, it.nativeAppProperties.toJSONObject())
