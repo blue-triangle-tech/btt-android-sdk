@@ -1,9 +1,9 @@
-# Blue Triangle 2.17.2 Latest, July 25 2025
-### Feature Improvements
-- Sending separate values for sdkVersion and appVersion
-- Added confidenceRate and confidenceMsg fields for denoting the reliability of the pgTm
-- Added remote configuration support for enabling/disabling automatic screen tracking
-- Sending app version, OS, OS version and SDK version while fetching remote configuration
+# Blue Triangle 2.17.2 Latest, July 30 2025
+### New Features
+- Added the ability to remotely enable or disable screen tracking through the remote configuration system, allowing dynamic control over this feature in real-time for tracking both Compose and Layout views.
+- Improved sdkVersion and appVersion reporting.
+- Include confidenceRate and confidenceMsg to show the trust level in pgTM.
+- Update the remote configuration URL to include siteID, os, app, and osVersion parameters. This will enable to apply configuration for selective audiences.
 
 # Blue Triangle 2.17.1, June 6 2025
 ### Bug Fixes
