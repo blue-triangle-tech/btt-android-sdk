@@ -7,18 +7,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.view.children
+import com.bluetriangle.analytics.Tracker
 
-enum class TouchEventType(
-    val eventName: String,
-) {
-    TOUCH_BEGAN("Touch Began"),
-    TOUCH_ENDED("Touch Ended"),
-    CLICK("click"),
+enum class TouchEventType {
+    TAP,
+    DOUBLE_TAP
 }
 
 private class ViewAttributes(
     activity: Activity,
     view: View,
+    val contentText: String? = null
 ) {
     val className: String? = view.javaClass.canonicalName
 
@@ -35,8 +34,23 @@ private class ViewAttributes(
 
     val idPackage: String? = id?.let { activity.resources.getResourcePackageName(it) }
     val idEntry: String? = id?.let { activity.resources.getResourceEntryName(it) }
+    val accessibilityTitle: String? = view.accessibilityNodeProvider?.createAccessibilityNodeInfo(0)?.text?.toString()
 
     val name: String? get() = idEntry ?: text
+
+    fun log(touchEvent: TouchEventType) {
+        Tracker.instance?.configuration?.logger?.debug("""User Interaction -> 
+            |touchEvent: $touchEvent
+            |className: $className
+            |accessibilityClassName: $accessibilityClassName
+            |accessibilityTitle: $accessibilityTitle
+            |idPackage: $idPackage
+            |idEntry: $idEntry
+            |id: $id
+            |name: $name
+            |text: $text
+            |firstText: $contentText""".trimMargin())
+    }
 }
 
 fun recordTouchEvent(
@@ -47,9 +61,66 @@ fun recordTouchEvent(
 ) {
     val contentView = activity.findViewById<View>(android.R.id.content)
     val textView = findTextViewAtPosition(contentView, x, y)
+    val clickableView = findClickableViewAtPosition(contentView, x, y)
     if (textView != null) {
-        ViewAttributes(activity, textView)
+        ViewAttributes(activity, textView).log(type)
     }
+    if(clickableView != null) {
+        val firstText = findTextChild(clickableView)
+        ViewAttributes(activity, clickableView, firstText).log(type)
+    }
+}
+
+fun findTextChild(view: View): String? {
+    if(view is ViewGroup) {
+        for(child in view.children.toList().reversed()) {
+            if(child is TextView) {
+                return child.text?.toString()
+            } else {
+                val text = findTextChild(child)
+                if(text != null) {
+                    return text
+                }
+            }
+        }
+    }
+    return null
+}
+
+fun findClickableViewAtPosition(view: View, x: Int, y: Int): View? {
+    if(view.isShown && view.isClickable) {
+        val hitRect = Rect()
+        view.getHitRect(hitRect)
+
+        val location = IntArray(2)
+        view.getLocationInWindow(location)
+
+        val left = location[0]
+        val top = location[1]
+        val right = left + hitRect.width()
+        val bottom = top + hitRect.height()
+
+        val rect = Rect(left, top, right, bottom)
+
+        if (rect.contains(x, y)) {
+            return view
+        }
+    }
+    if (view is ViewGroup) {
+        if (view.isShown) {
+            // Empirically, this seems to be the order that Android uses to find the touch target,
+            // even if the developer has used setZ to override the render order.
+            for (child in view.children.toList().reversed()) {
+                if (child.isShown) {
+                    val view = findClickableViewAtPosition(child, x, y)
+                    if (view != null) {
+                        return view
+                    }
+                }
+            }
+        }
+    }
+    return null
 }
 
 private fun findTextViewAtPosition(
@@ -85,7 +156,7 @@ private fun findTextViewAtPosition(
 
         val rect = Rect(left, top, right, bottom)
 
-        if (rect.contains(x, y)) {
+        if (content.isClickable && rect.contains(x, y)) {
             return content
         }
     }

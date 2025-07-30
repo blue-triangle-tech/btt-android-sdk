@@ -13,6 +13,7 @@ import android.view.View
 import android.view.Window
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
+import com.bluetriangle.analytics.Tracker
 import kotlin.math.roundToInt
 
 class InteractionWindowCallback(
@@ -30,23 +31,26 @@ class InteractionWindowCallback(
     }
 
     override fun dispatchTouchEvent(event:  MotionEvent?): Boolean {
+        val result = wrapped.dispatchTouchEvent(event)
+
         if (event != null) {
-            val type =
-                when (event.action) {
-                    MotionEvent.ACTION_DOWN -> TouchEventType.TOUCH_BEGAN
-                    MotionEvent.ACTION_UP -> TouchEventType.TOUCH_ENDED
-                    MotionEvent.ACTION_POINTER_DOWN -> TouchEventType.TOUCH_BEGAN
-                    MotionEvent.ACTION_POINTER_UP -> TouchEventType.TOUCH_ENDED
-                    else -> null
-                }
-            if (type != null) {
-                val x = event.x.roundToInt()
-                val y = event.y.roundToInt()
-                recordTouchEvent(type, activity, x, y)
-            }
+//            val type =
+//                when (event.action) {
+//                    MotionEvent.ACTION_DOWN -> TouchEventType.TOUCH_BEGAN
+//                    MotionEvent.ACTION_UP -> TouchEventType.TOUCH_ENDED
+//                    MotionEvent.ACTION_POINTER_DOWN -> TouchEventType.TOUCH_BEGAN
+//                    MotionEvent.ACTION_POINTER_UP -> TouchEventType.TOUCH_ENDED
+//                    else -> null
+//                }
+//            if (type != null) {
+//                val x = event.x.roundToInt()
+//                val y = event.y.roundToInt()
+//                recordTouchEvent(type, activity, x, y)
+//            }
+            Tracker.instance?.configuration?.logger?.debug("User Interaction -> dispatchTouchEvent($event) -> $result")
             gestureDetector.onTouchEvent(event)
         }
-        return wrapped.dispatchTouchEvent(event)
+        return result
     }
 
     override fun dispatchTrackballEvent(event: MotionEvent?): Boolean {

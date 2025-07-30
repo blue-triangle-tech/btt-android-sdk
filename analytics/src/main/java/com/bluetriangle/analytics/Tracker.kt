@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat
 import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
 import com.bluetriangle.analytics.appeventhub.AppEventHub
+import com.bluetriangle.analytics.breadcrumbs.InteractionListener
 import com.bluetriangle.analytics.deviceinfo.DeviceInfoProvider
 import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 import com.bluetriangle.analytics.dynamicconfig.fetcher.BTTConfigurationFetcher
@@ -115,6 +116,8 @@ class Tracker private constructor(
     private val claritySessionConnector:ClaritySessionConnector
     internal val appVersion: String
 
+    private val interactionListener = InteractionListener()
+
     init {
         this.context = WeakReference(application.applicationContext)
         this.configuration = configuration
@@ -160,6 +163,10 @@ class Tracker private constructor(
             initializeScreenTracker()
         }
 
+        (context.get()?.applicationContext as Application?)?.let {
+            interactionListener.install(it)
+        }
+
         if (configuration.isTrackAnrEnabled) {
             initializeANRMonitor()
         }
@@ -176,6 +183,9 @@ class Tracker private constructor(
     private fun disable() {
         performanceMonitors.forEach {
             it.value.stopRunning()
+        }
+        (context.get()?.applicationContext as Application?)?.let {
+            interactionListener.uninstall(it)
         }
         deInitializeScreenTracker()
         deInitializeANRMonitor()

@@ -11,7 +11,15 @@ class InteractionGestureListener(
     override fun onSingleTapUp(event: MotionEvent): Boolean {
         val x = event.x.roundToInt()
         val y = event.y.roundToInt()
-        recordTouchEvent(TouchEventType.CLICK, activity, x, y)
+        recordTouchEvent(TouchEventType.TAP, activity, x, y)
         return super.onSingleTapUp(event)
+    }
+
+    override fun onDoubleTap(e: MotionEvent?): Boolean {
+        if(e == null) return super.onDoubleTap(e)
+        val x = e.x.roundToInt()
+        val y = e.y.roundToInt()
+        recordTouchEvent(TouchEventType.DOUBLE_TAP, activity, x, y)
+        return super.onDoubleTap(e)
     }
 }

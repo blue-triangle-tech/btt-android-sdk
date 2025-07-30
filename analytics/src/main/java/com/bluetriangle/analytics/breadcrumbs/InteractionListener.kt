@@ -4,7 +4,16 @@ import android.app.Activity
 import android.app.Application
 import android.os.Bundle
 
-class InteractionLifecycleCallbacks : Application.ActivityLifecycleCallbacks {
+class InteractionListener : Application.ActivityLifecycleCallbacks {
+
+    fun install(application: Application) {
+        application.registerActivityLifecycleCallbacks(this)
+    }
+
+    fun uninstall(application: Application) {
+        application.unregisterActivityLifecycleCallbacks(this)
+    }
+
     override fun onActivityCreated(
         activity: Activity,
         bundle: Bundle?,
