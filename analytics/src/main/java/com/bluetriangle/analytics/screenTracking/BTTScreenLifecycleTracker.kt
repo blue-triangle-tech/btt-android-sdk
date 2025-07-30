@@ -58,6 +58,8 @@ internal class BTTScreenLifecycleTracker(
         var confidenceRate = 100
         var confidenceMsg: String? = null
 
+        var pgTm = viewTm - loadTm
+
         if(loadTm == 0L) {
             confidenceRate = 0
             confidenceMsg = when(screen.type) {
@@ -65,15 +67,26 @@ internal class BTTScreenLifecycleTracker(
                 ScreenType.Composable -> "Composable load time could not be calculated"
                 is ScreenType.Custom -> "onLoadStarted/onLoadEnded methods were not called"
             }
+        } else if(viewTm == 0L) {
+            confidenceRate = 0
+            confidenceMsg = when(screen.type) {
+                ScreenType.Activity, ScreenType.Fragment -> "onResume not called on ${screen.name}"
+                ScreenType.Composable -> "Composable load time could not be calculated"
+                is ScreenType.Custom -> "onViewStarted method was not called"
+            }
+        } else if(pgTm > 20_000) {
+            pgTm = 20_000
+            confidenceRate = 50
+            confidenceMsg = "load time calculation gone out of bounds"
         }
         val disappearTm = System.currentTimeMillis()
 
         timer.setContentGroupName(pageType)
         timer.pageTimeCalculator = {
-            (viewTm - loadTm).coerceAtLeast(TIMER_MIN_PGTM)
+            (pgTm).coerceAtLeast(TIMER_MIN_PGTM)
         }
         timer.generateNativeAppProperties()
-        timer.nativeAppProperties.loadTime = viewTm - loadTm
+        timer.nativeAppProperties.loadTime = pgTm
         timer.nativeAppProperties.fullTime = disappearTm - loadTm
         timer.nativeAppProperties.screenType = screen.type
         timer.nativeAppProperties.confidenceRate = confidenceRate

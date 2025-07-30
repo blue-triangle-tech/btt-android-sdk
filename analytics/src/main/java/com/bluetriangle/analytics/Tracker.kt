@@ -18,7 +18,7 @@ import com.bluetriangle.analytics.appeventhub.AppEventHub
 import com.bluetriangle.analytics.deviceinfo.DeviceInfoProvider
 import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 import com.bluetriangle.analytics.dynamicconfig.fetcher.BTTConfigurationFetcher
-import com.bluetriangle.analytics.dynamicconfig.model.BTTSavedRemoteConfiguration
+import com.bluetriangle.analytics.dynamicconfig.model.BTTRemoteConfiguration
 import com.bluetriangle.analytics.dynamicconfig.reporter.BTTConfigUpdateReporter
 import com.bluetriangle.analytics.dynamicconfig.repository.BTTConfigurationRepository
 import com.bluetriangle.analytics.dynamicconfig.repository.IBTTConfigurationRepository
@@ -47,6 +47,7 @@ import org.json.JSONObject
 import java.io.File
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
+import androidx.core.content.edit
 
 /**
  * The tracker is a global object responsible for taking submitted timers and reporting them to the cloud server via a
@@ -313,7 +314,7 @@ class Tracker private constructor(
             }
             if (globalUserId.isNullOrBlank()) {
                 globalUserId = Utils.generateRandomId()
-                sharedPreferences.edit().putString(Timer.FIELD_GLOBAL_USER_ID, globalUserId).apply()
+                sharedPreferences.edit { putString(Timer.FIELD_GLOBAL_USER_ID, globalUserId) }
             }
             return globalUserId
         }
@@ -847,17 +848,25 @@ class Tracker private constructor(
                 return null
             }
 
-            initializeConfigurationUpdater(application, configuration)
+            val defaultConfig = BTTRemoteConfiguration(
+                networkSampleRate = configuration.networkSampleRate,
+                ignoreScreens = listOf(),
+                enableRemoteConfigAck = false,
+                enableAllTracking = true,
+                enableScreenTracking = configuration.isScreenTrackingEnabled
+            )
+
+            initializeConfigurationUpdater(application, configuration, defaultConfig)
 
             if (configurationRepository.get().enableAllTracking) {
-                initializeSessionManager(application, configuration)
+                initializeSessionManager(application, configuration, defaultConfig)
                 instance = Tracker(application, configuration)
             } else {
                 deInitializeSessionManager(configuration)
                 configuration.logger?.debug("enableAllTracking is false, no need to initialize SDK")
             }
 
-            observeEnableDisableSDK(application, configuration)
+            observeEnableDisableSDK(application, configuration, defaultConfig)
             return instance
         }
 
@@ -936,14 +945,15 @@ class Tracker private constructor(
         @Suppress("OPT_IN_USAGE")
         private fun observeEnableDisableSDK(
             application: Application,
-            configuration: BlueTriangleConfiguration
+            configuration: BlueTriangleConfiguration,
+            defaultConfig: BTTRemoteConfiguration
         ) {
             repositoryUpdatesJob?.cancel()
             repositoryUpdatesJob = GlobalScope.launch(Dispatchers.IO) {
                 configurationRepository.getLiveUpdates(notifyCurrent = false).collect {
                     if (it?.enableAllTracking == true) {
                         if(instance == null) {
-                            initializeSessionManager(application, configuration)
+                            initializeSessionManager(application, configuration, defaultConfig = defaultConfig)
                             instance = init(application, configuration)
                         }
                     } else {
@@ -961,24 +971,14 @@ class Tracker private constructor(
         private lateinit var configurationUpdater: IBTTConfigurationUpdater
         private lateinit var sessionManager: ISessionManager
 
-        private val BlueTriangleConfiguration.defaultRemoteConfig: BTTSavedRemoteConfiguration
-            get() = BTTSavedRemoteConfiguration(
-                networkSampleRate = networkSampleRate,
-                ignoreList = listOf(),
-                enableRemoteConfigAck = false,
-                enableAllTracking = true,
-                enableScreenTracking = isScreenTrackingEnabled,
-                savedDate = 0L
-            )
-
         private fun initializeConfigurationUpdater(
-            application: Application, configuration: BlueTriangleConfiguration
+            application: Application, configuration: BlueTriangleConfiguration, defaultConfig: BTTRemoteConfiguration
         ) {
             configurationRepository = BTTConfigurationRepository(
                 configuration.logger,
                 application,
                 configuration.siteId ?: "",
-                defaultConfig = configuration.defaultRemoteConfig
+                defaultConfig = defaultConfig
             )
 
             val configUrl = "https://d.btttag.com/config.php?siteID=${configuration.siteId}&os=${Constants.OS}&osver=${Build.VERSION.RELEASE}&app=${Utils.getAppVersion(application)}&sdk=${BuildConfig.SDK_VERSION}"
@@ -995,7 +995,8 @@ class Tracker private constructor(
 
         private fun initializeSessionManager(
             application: Application,
-            configuration: BlueTriangleConfiguration
+            configuration: BlueTriangleConfiguration,
+            defaultConfig: BTTRemoteConfiguration
         ) {
             if (::sessionManager.isInitialized) {
                 AppEventHub.instance.removeConsumer(sessionManager)
@@ -1006,7 +1007,7 @@ class Tracker private constructor(
                 configuration.sessionExpiryDuration,
                 configurationRepository,
                 configurationUpdater,
-                defaultConfig = configuration.defaultRemoteConfig
+                defaultConfig = defaultConfig
             )
             AppEventHub.instance.addConsumer(this.sessionManager)
         }
