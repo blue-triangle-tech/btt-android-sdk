@@ -168,7 +168,9 @@ class Timer : Parcelable {
             null,
             performanceMonitor?.maxMainThreadUsage,
             null,
-            getNumberOfCPUCores()
+            getNumberOfCPUCores(),
+            appVersion = tracker?.appVersion,
+            sdkVersion = BuildConfig.SDK_VERSION
         )
         Tracker.instance?.networkTimelineTracker?.let {
             val networkSlice = it.sliceStats(

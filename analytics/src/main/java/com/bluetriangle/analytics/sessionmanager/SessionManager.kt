@@ -94,6 +94,7 @@ internal class SessionManager(
             false,
             config.networkSampleRate?:defaultConfig.networkSampleRate!!,
             config.ignoreScreens,
+            config.enableScreenTracking,
             getNewExpiration()
         )
     }
@@ -121,6 +122,7 @@ internal class SessionManager(
                 it.isConfigApplied,
                 it.networkSampleRate,
                 it.ignoreScreens,
+                it.enableScreenTracking,
                 getNewExpiration()
             )
             sessionStore.storeSessionData(
@@ -161,6 +163,7 @@ internal class SessionManager(
                                 true,
                                 config.networkSampleRate?:defaultConfig.networkSampleRate!!,
                                 config.ignoreScreens,
+                                config.enableScreenTracking,
                                 session.expiration
                             )
                             Tracker.instance?.updateSession(sessionData)

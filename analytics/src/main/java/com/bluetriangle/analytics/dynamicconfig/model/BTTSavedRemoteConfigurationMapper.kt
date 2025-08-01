@@ -17,8 +17,9 @@ internal object BTTSavedRemoteConfigurationMapper {
     private const val SAVED_DATE = "savedDate"
     private const val IGNORE_SCREENS = "ignoreScreens"
     private const val ENABLE_ALL_TRACKING = "enableAllTracking"
+    private const val ENABLE_SCREEN_TRACKING = "enableScreenTracking"
 
-    fun fromJson(jsonObject: JSONObject): BTTSavedRemoteConfiguration {
+    fun fromJson(jsonObject: JSONObject, defaultConfig: BTTRemoteConfiguration): BTTSavedRemoteConfiguration {
         val ignoreScreens = jsonObject.getJsonArrayOrNull(IGNORE_SCREENS)?.let { array ->
             buildList {
                 for (i in 0 until array.length()) {
@@ -33,7 +34,8 @@ internal object BTTSavedRemoteConfigurationMapper {
             jsonObject.getDoubleOrNull(NETWORK_SAMPLE_RATE),
             ignoreScreens,
             jsonObject.getBoolean(ENABLE_REMOTE_CONFIG),
-            jsonObject.getBooleanOrNull(ENABLE_ALL_TRACKING)?: true,
+            jsonObject.getBooleanOrNull(ENABLE_ALL_TRACKING)?:defaultConfig.enableAllTracking,
+            jsonObject.getBooleanOrNull(ENABLE_SCREEN_TRACKING)?:defaultConfig.enableScreenTracking,
             jsonObject.getLong(SAVED_DATE)
         )
     }
@@ -47,6 +49,18 @@ internal object BTTSavedRemoteConfigurationMapper {
         put(IGNORE_SCREENS, ignoreListArray)
         put(ENABLE_ALL_TRACKING, config.enableAllTracking)
         put(ENABLE_REMOTE_CONFIG, config.enableRemoteConfigAck)
+        put(ENABLE_SCREEN_TRACKING, config.enableScreenTracking)
         put(SAVED_DATE, config.savedDate)
+    }
+
+    fun fromRemoteConfig(remoteConfig: BTTRemoteConfiguration): BTTSavedRemoteConfiguration {
+        return BTTSavedRemoteConfiguration(
+            remoteConfig.networkSampleRate,
+            remoteConfig.ignoreScreens,
+            remoteConfig.enableRemoteConfigAck,
+            remoteConfig.enableAllTracking,
+            remoteConfig.enableScreenTracking,
+            0L
+        )
     }
 }
