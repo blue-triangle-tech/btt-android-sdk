@@ -24,7 +24,7 @@ internal object BTTSavedRemoteConfigurationMapper {
     private const val ENABLE_SCREEN_TRACKING = "enableScreenTracking"
     private const val GROUPED_VIEW_SAMPLE_RATE = "groupedViewSampleRate"
 
-    fun fromJson(jsonObject: JSONObject): BTTSavedRemoteConfiguration {
+    fun fromJson(jsonObject: JSONObject, defaultConfig: BTTRemoteConfiguration): BTTSavedRemoteConfiguration {
         val ignoreScreens = jsonObject.getJsonArrayOrNull(IGNORE_SCREENS)?.let { array ->
             buildList {
                 for (i in 0 until array.length()) {
@@ -39,8 +39,8 @@ internal object BTTSavedRemoteConfigurationMapper {
             jsonObject.getDoubleOrNull(NETWORK_SAMPLE_RATE),
             ignoreScreens,
             jsonObject.getBoolean(ENABLE_REMOTE_CONFIG),
-            jsonObject.getBooleanOrNull(ENABLE_ALL_TRACKING) != false,
-            jsonObject.getBooleanOrNull(ENABLE_SCREEN_TRACKING) != false,
+            jsonObject.getBooleanOrNull(ENABLE_ALL_TRACKING)?:defaultConfig.enableAllTracking,
+            jsonObject.getBooleanOrNull(ENABLE_SCREEN_TRACKING)?:defaultConfig.enableScreenTracking,
             jsonObject.getBooleanOrNull(ENABLE_GROUPING) == true,
             jsonObject.getIntOrNull(GROUPING_IDLE_TIME)?: Constants.DEFAULT_GROUPING_IDLE_TIME,
             jsonObject.getDoubleOrNull(GROUPED_VIEW_SAMPLE_RATE),
@@ -61,5 +61,19 @@ internal object BTTSavedRemoteConfigurationMapper {
         put(ENABLE_GROUPING, config.enableGrouping)
         put(GROUPING_IDLE_TIME, config.groupingIdleTime)
         put(SAVED_DATE, config.savedDate)
+    }
+
+    fun fromRemoteConfig(remoteConfig: BTTRemoteConfiguration): BTTSavedRemoteConfiguration {
+        return BTTSavedRemoteConfiguration(
+            remoteConfig.networkSampleRate,
+            remoteConfig.ignoreScreens,
+            remoteConfig.enableRemoteConfigAck,
+            remoteConfig.enableAllTracking,
+            remoteConfig.enableScreenTracking,
+            remoteConfig.enableGrouping,
+            remoteConfig.groupingIdleTime,
+            remoteConfig.groupedViewSampleRate,
+            0L
+        )
     }
 }

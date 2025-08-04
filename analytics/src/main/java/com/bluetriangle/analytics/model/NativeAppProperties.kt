@@ -1,8 +1,9 @@
 package com.bluetriangle.analytics.model
 
 import android.os.Parcelable
-import com.bluetriangle.analytics.Constants
 import com.bluetriangle.analytics.Constants.APP_VERSION
+import com.bluetriangle.analytics.Constants.CONFIDENCE_MSG
+import com.bluetriangle.analytics.Constants.CONFIDENCE_RATE
 import com.bluetriangle.analytics.Constants.FULL_TIME
 import com.bluetriangle.analytics.Constants.GROUPED
 import com.bluetriangle.analytics.Constants.LAUNCH_SCREEN_NAME
@@ -23,7 +24,6 @@ import com.bluetriangle.analytics.networkstate.BTTNetworkState
 import com.bluetriangle.analytics.networkstate.data.BTTNetworkProtocol
 import com.bluetriangle.analytics.utility.value
 import kotlinx.parcelize.Parcelize
-import org.json.JSONArray
 import org.json.JSONObject
 
 @Parcelize
@@ -42,7 +42,9 @@ internal data class NativeAppProperties(
     var netStateSource: String? = null,
     var appVersion: String? = null,
     var sdkVersion: String? = null,
-    var grouped: Boolean = false
+    var grouped: Boolean = false,
+    var confidenceRate: Int? = null,
+    var confidenceMsg: String? = null
 ) : Parcelable {
 
     internal var loadStartTime: Long = 0
@@ -77,6 +79,8 @@ internal data class NativeAppProperties(
 
         obj.put(LAUNCH_SCREEN_NAME, launchScreenName)
         obj.put(FIELD_DEVICE_MODEL, deviceModel)
+        obj.put(CONFIDENCE_RATE, confidenceRate)
+        obj.put(CONFIDENCE_MSG, confidenceMsg)
 
         return obj
     }
