@@ -44,6 +44,7 @@ internal class BTTConfigurationUpdater(
                         result.config.ignoreScreens,
                         result.config.enableRemoteConfigAck,
                         result.config.enableAllTracking,
+                        result.config.enableScreenTracking,
                         System.currentTimeMillis()
                     )
                 )
