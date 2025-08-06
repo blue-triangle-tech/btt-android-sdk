@@ -647,7 +647,7 @@ class Tracker private constructor(
             configuration.groupedViewSampleRate = sessionData.groupedViewSampleRate
         }
         if(configuration.shouldSampleGroupedView != sessionData.shouldSampleGroupedView) {
-            changes.append("\ngroupedViewSampleRate: ${configuration.groupedViewSampleRate} -> ${sessionData.groupedViewSampleRate}")
+            changes.append("\nshouldSampleGroupedView: ${configuration.shouldSampleGroupedView} -> ${sessionData.shouldSampleGroupedView}")
             configuration.shouldSampleGroupedView = sessionData.shouldSampleGroupedView
         }
         if(configuration.isScreenTrackingEnabled != sessionData.enableScreenTracking) {
