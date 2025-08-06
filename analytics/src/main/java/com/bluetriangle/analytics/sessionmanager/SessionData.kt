@@ -29,7 +29,6 @@ internal data class SessionData(
     val groupingIdleTime: Int,
     val groupedViewSampleRate: Double,
     val shouldSampleGroupedView: Boolean,
-    val enableScreenTracking: Boolean,
     val expiration: Long
 ) {
     companion object {

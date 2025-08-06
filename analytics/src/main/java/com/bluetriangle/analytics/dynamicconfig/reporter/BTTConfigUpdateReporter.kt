@@ -6,6 +6,7 @@
 package com.bluetriangle.analytics.dynamicconfig.reporter
 
 import com.bluetriangle.analytics.BlueTriangleConfiguration
+import com.bluetriangle.analytics.Constants.EVENT_SUFFIX
 import com.bluetriangle.analytics.CrashRunnable
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Tracker
@@ -22,7 +23,7 @@ internal class BTTConfigUpdateReporter(
 
     override fun reportSuccess() {
         val timer = Timer()
-        timer.setPageName(CONFIG_UPDATE_PAGE_NAME)
+        timer.setPageName(CONFIG_UPDATE_PAGE_NAME + EVENT_SUFFIX)
         timer.setTrafficSegmentName(CONFIG_UPDATE_PAGE_NAME)
         timer.setContentGroupName(CONFIG_UPDATE_PAGE_NAME)
         timer.startWithoutPerformanceMonitor()

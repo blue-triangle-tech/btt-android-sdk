@@ -39,7 +39,7 @@ internal object BTTRemoteConfigurationMapper {
         val enableScreenTracking = remoteConfigJson.getBooleanOrNull(ENABLE_SCREEN_TRACKING) != false
         val enableGrouping = remoteConfigJson.getBooleanOrNull(ENABLE_GROUPING) == true
         val groupingIdleTime = remoteConfigJson.getIntOrNull(GROUPING_IDLE_TIME) ?: Constants.DEFAULT_GROUPING_IDLE_TIME
-        val groupedViewSampleRate = remoteConfigJson.getDoubleOrNull(GROUPED_VIEW_SAMPLE_RATE)
+        val groupedViewSampleRate = remoteConfigJson.getDoubleOrNull(GROUPED_VIEW_SAMPLE_RATE)?.div(100.0)
 
         return BTTRemoteConfiguration(
             networkSampleRate,

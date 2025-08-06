@@ -60,6 +60,7 @@ internal object BTTSavedRemoteConfigurationMapper {
         put(ENABLE_SCREEN_TRACKING, config.enableScreenTracking)
         put(ENABLE_GROUPING, config.enableGrouping)
         put(GROUPING_IDLE_TIME, config.groupingIdleTime)
+        put(GROUPED_VIEW_SAMPLE_RATE, config.groupedViewSampleRate)
         put(SAVED_DATE, config.savedDate)
     }
 

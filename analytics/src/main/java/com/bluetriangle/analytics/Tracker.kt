@@ -12,6 +12,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.text.TextUtils
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
 import com.bluetriangle.analytics.appeventhub.AppEventHub
@@ -48,7 +49,6 @@ import org.json.JSONObject
 import java.io.File
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
-import androidx.core.content.edit
 
 /**
  * The tracker is a global object responsible for taking submitted timers and reporting them to the cloud server via a
@@ -909,7 +909,10 @@ class Tracker private constructor(
                 ignoreScreens = listOf(),
                 enableRemoteConfigAck = false,
                 enableAllTracking = true,
-                enableScreenTracking = configuration.isScreenTrackingEnabled
+                enableScreenTracking = configuration.isScreenTrackingEnabled,
+                enableGrouping = configuration.isGroupingEnabled,
+                groupingIdleTime = configuration.groupingIdleTime,
+                groupedViewSampleRate = configuration.groupedViewSampleRate
             )
 
             initializeConfigurationUpdater(application, configuration, defaultConfig)
@@ -1026,19 +1029,6 @@ class Tracker private constructor(
         private lateinit var configurationRepository: IBTTConfigurationRepository
         private lateinit var configurationUpdater: IBTTConfigurationUpdater
         private lateinit var sessionManager: ISessionManager
-
-        private val BlueTriangleConfiguration.defaultRemoteConfig: BTTSavedRemoteConfiguration
-            get() = BTTSavedRemoteConfiguration(
-                networkSampleRate = networkSampleRate,
-                ignoreList = listOf(),
-                enableRemoteConfigAck = false,
-                enableAllTracking = true,
-                enableScreenTracking = isScreenTrackingEnabled,
-                enableGrouping = isGroupingEnabled,
-                groupingIdleTime = Constants.DEFAULT_GROUPING_IDLE_TIME,
-                groupedViewSampleRate = groupedViewSampleRate,
-                savedDate = 0L
-            )
 
         private fun initializeConfigurationUpdater(
             application: Application, configuration: BlueTriangleConfiguration, defaultConfig: BTTRemoteConfiguration

@@ -29,5 +29,9 @@ class FourthTabFragment : Fragment() {
         view.findViewById<Button>(R.id.crash_button).setOnClickListener {
             throw AndroidRuntimeException("Manual Crash")
         }
+
+        view.findViewById<Button>(R.id.anr_button).setOnClickListener {
+            Thread.sleep(6000)
+        }
     }
 }
