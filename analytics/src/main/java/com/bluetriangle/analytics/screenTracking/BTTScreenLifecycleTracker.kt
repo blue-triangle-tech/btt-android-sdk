@@ -153,8 +153,6 @@ internal class BTTScreenLifecycleTracker(
         timer.nativeAppProperties.screenType = screen.type
         timer.nativeAppProperties.confidenceRate = confidenceRate
         timer.nativeAppProperties.confidenceMsg = confidenceMsg
-        timer.end().submit()
-        timers.remove(scr)
     }
 
     private fun shouldIgnore(name: String): Boolean {
