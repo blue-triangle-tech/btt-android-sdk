@@ -6,6 +6,7 @@
 package com.bluetriangle.analytics.dynamicconfig.model
 
 import com.bluetriangle.analytics.Constants
+import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_GROUPING
 import com.bluetriangle.analytics.utility.getBooleanOrNull
 import com.bluetriangle.analytics.utility.getDoubleOrNull
 import com.bluetriangle.analytics.utility.getIntOrNull
@@ -41,7 +42,7 @@ internal object BTTSavedRemoteConfigurationMapper {
             jsonObject.getBoolean(ENABLE_REMOTE_CONFIG),
             jsonObject.getBooleanOrNull(ENABLE_ALL_TRACKING)?:defaultConfig.enableAllTracking,
             jsonObject.getBooleanOrNull(ENABLE_SCREEN_TRACKING)?:defaultConfig.enableScreenTracking,
-            jsonObject.getBooleanOrNull(ENABLE_GROUPING) == true,
+            jsonObject.getBooleanOrNull(ENABLE_GROUPING)?:DEFAULT_ENABLE_GROUPING,
             jsonObject.getIntOrNull(GROUPING_IDLE_TIME)?: Constants.DEFAULT_GROUPING_IDLE_TIME,
             jsonObject.getDoubleOrNull(GROUPED_VIEW_SAMPLE_RATE),
             jsonObject.getLong(SAVED_DATE)

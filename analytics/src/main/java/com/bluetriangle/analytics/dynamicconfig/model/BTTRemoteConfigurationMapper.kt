@@ -5,7 +5,8 @@
  */
 package com.bluetriangle.analytics.dynamicconfig.model
 
-import com.bluetriangle.analytics.Constants
+import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_GROUPING
+import com.bluetriangle.analytics.Constants.DEFAULT_GROUPING_IDLE_TIME
 import com.bluetriangle.analytics.utility.getBooleanOrNull
 import com.bluetriangle.analytics.utility.getDoubleOrNull
 import com.bluetriangle.analytics.utility.getIntOrNull
@@ -37,8 +38,8 @@ internal object BTTRemoteConfigurationMapper {
         } ?: listOf()
         val enableAllTracking = remoteConfigJson.getBooleanOrNull(ENABLE_ALL_TRACKING) != false
         val enableScreenTracking = remoteConfigJson.getBooleanOrNull(ENABLE_SCREEN_TRACKING) != false
-        val enableGrouping = remoteConfigJson.getBooleanOrNull(ENABLE_GROUPING) == true
-        val groupingIdleTime = remoteConfigJson.getIntOrNull(GROUPING_IDLE_TIME) ?: Constants.DEFAULT_GROUPING_IDLE_TIME
+        val enableGrouping = remoteConfigJson.getBooleanOrNull(ENABLE_GROUPING) ?: DEFAULT_ENABLE_GROUPING
+        val groupingIdleTime = remoteConfigJson.getIntOrNull(GROUPING_IDLE_TIME) ?: DEFAULT_GROUPING_IDLE_TIME
         val groupedViewSampleRate = remoteConfigJson.getDoubleOrNull(GROUPED_VIEW_SAMPLE_RATE)?.div(100.0)
 
         return BTTRemoteConfiguration(

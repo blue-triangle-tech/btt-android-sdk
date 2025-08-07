@@ -47,7 +47,7 @@ class InteractionWindowCallback(
 //                val y = event.y.roundToInt()
 //                recordTouchEvent(type, activity, x, y)
 //            }
-            Tracker.instance?.configuration?.logger?.debug("User Interaction -> dispatchTouchEvent($event) -> $result")
+//            Tracker.instance?.configuration?.logger?.debug("User Interaction -> dispatchTouchEvent($event) -> $result")
             gestureDetector.onTouchEvent(event)
         }
         return result

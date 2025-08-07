@@ -39,17 +39,17 @@ private class ViewAttributes(
     val name: String? get() = idEntry ?: text
 
     fun log(touchEvent: TouchEventType) {
-        Tracker.instance?.configuration?.logger?.debug("""User Interaction -> 
-            |touchEvent: $touchEvent
-            |className: $className
-            |accessibilityClassName: $accessibilityClassName
-            |accessibilityTitle: $accessibilityTitle
-            |idPackage: $idPackage
-            |idEntry: $idEntry
-            |id: $id
-            |name: $name
-            |text: $text
-            |firstText: $contentText""".trimMargin())
+//        Tracker.instance?.configuration?.logger?.debug("""User Interaction ->
+//            |touchEvent: $touchEvent
+//            |className: $className
+//            |accessibilityClassName: $accessibilityClassName
+//            |accessibilityTitle: $accessibilityTitle
+//            |idPackage: $idPackage
+//            |idEntry: $idEntry
+//            |id: $id
+//            |name: $name
+//            |text: $text
+//            |firstText: $contentText""".trimMargin())
     }
 }
 
