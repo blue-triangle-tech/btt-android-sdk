@@ -164,10 +164,6 @@ class Tracker private constructor(
             initializeScreenTracker()
         }
 
-        (context.get()?.applicationContext as Application?)?.let {
-            interactionListener.install(it)
-        }
-
         if (configuration.isTrackAnrEnabled) {
             initializeANRMonitor()
         }
@@ -184,9 +180,6 @@ class Tracker private constructor(
     private fun disable() {
         performanceMonitors.forEach {
             it.value.stopRunning()
-        }
-        (context.get()?.applicationContext as Application?)?.let {
-            interactionListener.uninstall(it)
         }
         deInitializeScreenTracker()
         deInitializeANRMonitor()

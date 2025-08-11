@@ -61,7 +61,7 @@ class QuoteRequestHelper {
         }
     }
 
-    private suspend fun getQuote() = suspendCancellableCoroutine<Quote> { continuation ->
+    suspend fun getQuote() = suspendCancellableCoroutine<Quote> { continuation ->
         val quoteRequest = getQuoteRequest()
 
         okHttpClient.newCall(quoteRequest).enqueue(object : Callback {
