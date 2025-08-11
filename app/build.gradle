@@ -2,7 +2,7 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-parcelize'
-    id("org.jetbrains.compose") version "1.6.10" // or latest
+    id("org.jetbrains.compose") version "1.6.10"
 }
 
 android {
@@ -47,7 +47,7 @@ android {
         targetCompatibility JavaVersion.VERSION_11
     }
     composeOptions {
-        kotlinCompilerExtensionVersion "1.4.7" // Match Compose version
+        kotlinCompilerExtensionVersion "1.4.7"
     }
     kotlinOptions {
         jvmTarget = '11'

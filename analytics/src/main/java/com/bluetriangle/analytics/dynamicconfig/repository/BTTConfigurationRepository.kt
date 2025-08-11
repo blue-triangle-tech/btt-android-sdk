@@ -33,7 +33,7 @@ internal class BTTConfigurationRepository(
         private const val REMOTE_CONFIG = "com.bluetriangle.analytics.REMOTE_CONFIG"
     }
 
-    private val defaultSavedConfig = BTTSavedRemoteConfigurationMapper.fromRemoteConfig(defaultConfig)
+    private val defaultSavedConfig = BTTSavedRemoteConfiguration.from(defaultConfig)
 
     private val sharedPreferences: SharedPreferences = context.getSharedPreferences(
         SAVED_CONFIG_PREFS, Context.MODE_PRIVATE)

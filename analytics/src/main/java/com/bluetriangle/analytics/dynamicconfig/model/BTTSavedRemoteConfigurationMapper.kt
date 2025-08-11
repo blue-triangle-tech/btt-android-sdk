@@ -65,17 +65,4 @@ internal object BTTSavedRemoteConfigurationMapper {
         put(SAVED_DATE, config.savedDate)
     }
 
-    fun fromRemoteConfig(remoteConfig: BTTRemoteConfiguration): BTTSavedRemoteConfiguration {
-        return BTTSavedRemoteConfiguration(
-            remoteConfig.networkSampleRate,
-            remoteConfig.ignoreScreens,
-            remoteConfig.enableRemoteConfigAck,
-            remoteConfig.enableAllTracking,
-            remoteConfig.enableScreenTracking,
-            remoteConfig.enableGrouping,
-            remoteConfig.groupingIdleTime,
-            remoteConfig.groupedViewSampleRate,
-            0L
-        )
-    }
 }
