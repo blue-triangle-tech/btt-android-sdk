@@ -6,6 +6,7 @@
 package com.bluetriangle.analytics.dynamicconfig.model
 
 import com.bluetriangle.analytics.Constants
+import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_GROUPING
 import com.bluetriangle.analytics.utility.getBooleanOrNull
 import com.bluetriangle.analytics.utility.getDoubleOrNull
 import com.bluetriangle.analytics.utility.getIntOrNull
@@ -24,7 +25,7 @@ internal object BTTSavedRemoteConfigurationMapper {
     private const val ENABLE_SCREEN_TRACKING = "enableScreenTracking"
     private const val GROUPED_VIEW_SAMPLE_RATE = "groupedViewSampleRate"
 
-    fun fromJson(jsonObject: JSONObject): BTTSavedRemoteConfiguration {
+    fun fromJson(jsonObject: JSONObject, defaultConfig: BTTRemoteConfiguration): BTTSavedRemoteConfiguration {
         val ignoreScreens = jsonObject.getJsonArrayOrNull(IGNORE_SCREENS)?.let { array ->
             buildList {
                 for (i in 0 until array.length()) {
@@ -39,9 +40,9 @@ internal object BTTSavedRemoteConfigurationMapper {
             jsonObject.getDoubleOrNull(NETWORK_SAMPLE_RATE),
             ignoreScreens,
             jsonObject.getBoolean(ENABLE_REMOTE_CONFIG),
-            jsonObject.getBooleanOrNull(ENABLE_ALL_TRACKING) != false,
-            jsonObject.getBooleanOrNull(ENABLE_SCREEN_TRACKING) != false,
-            jsonObject.getBooleanOrNull(ENABLE_GROUPING) == true,
+            jsonObject.getBooleanOrNull(ENABLE_ALL_TRACKING)?:defaultConfig.enableAllTracking,
+            jsonObject.getBooleanOrNull(ENABLE_SCREEN_TRACKING)?:defaultConfig.enableScreenTracking,
+            jsonObject.getBooleanOrNull(ENABLE_GROUPING)?:DEFAULT_ENABLE_GROUPING,
             jsonObject.getIntOrNull(GROUPING_IDLE_TIME)?: Constants.DEFAULT_GROUPING_IDLE_TIME,
             jsonObject.getDoubleOrNull(GROUPED_VIEW_SAMPLE_RATE),
             jsonObject.getLong(SAVED_DATE)
@@ -60,6 +61,8 @@ internal object BTTSavedRemoteConfigurationMapper {
         put(ENABLE_SCREEN_TRACKING, config.enableScreenTracking)
         put(ENABLE_GROUPING, config.enableGrouping)
         put(GROUPING_IDLE_TIME, config.groupingIdleTime)
+        put(GROUPED_VIEW_SAMPLE_RATE, config.groupedViewSampleRate)
         put(SAVED_DATE, config.savedDate)
     }
+
 }

@@ -7,7 +7,7 @@ package com.bluetriangle.analytics.dynamicconfig.model
 
 internal class BTTSavedRemoteConfiguration(
     networkSampleRate: Double?,
-    ignoreList: List<String>,
+    ignoreScreens: List<String>,
     enableRemoteConfigAck: Boolean,
     enableAllTracking: Boolean,
     enableScreenTracking: Boolean,
@@ -17,7 +17,7 @@ internal class BTTSavedRemoteConfiguration(
     val savedDate: Long
 ) : BTTRemoteConfiguration(
     networkSampleRate,
-    ignoreList,
+    ignoreScreens,
     enableAllTracking,
     enableRemoteConfigAck,
     enableScreenTracking,

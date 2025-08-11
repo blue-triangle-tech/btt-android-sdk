@@ -24,13 +24,16 @@ internal class BTTConfigurationRepository(
     private val logger: Logger?,
     context: Context,
     siteId: String,
-    private val defaultConfig: BTTSavedRemoteConfiguration):
+    defaultConfig: BTTRemoteConfiguration
+):
     IBTTConfigurationRepository {
 
     companion object {
         private const val SAVED_CONFIG_PREFS = "SAVED_CONFIG"
         private const val REMOTE_CONFIG = "com.bluetriangle.analytics.REMOTE_CONFIG"
     }
+
+    private val defaultSavedConfig = BTTSavedRemoteConfiguration.from(defaultConfig)
 
     private val sharedPreferences: SharedPreferences = context.getSharedPreferences(
         SAVED_CONFIG_PREFS, Context.MODE_PRIVATE)
@@ -49,13 +52,13 @@ internal class BTTConfigurationRepository(
     private val configKey: String = "${REMOTE_CONFIG}_$siteId"
 
     override fun get(): BTTSavedRemoteConfiguration {
-        val savedConfigJson = sharedPreferences.getString(configKey, null)?:return defaultConfig
+        val savedConfigJson = sharedPreferences.getString(configKey, null)?:return defaultSavedConfig
 
         return try {
-            BTTSavedRemoteConfigurationMapper.fromJson(JSONObject(savedConfigJson))
+            BTTSavedRemoteConfigurationMapper.fromJson(JSONObject(savedConfigJson), defaultSavedConfig)
         } catch (e: Exception) {
             logger?.error("Error while parsing config JSON: ${e.message}")
-            defaultConfig
+            defaultSavedConfig
         }
     }
 

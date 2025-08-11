@@ -3,6 +3,7 @@ package com.bluetriangle.analytics
 import android.Manifest
 import android.util.Log
 import androidx.annotation.RequiresPermission
+import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_GROUPING
 import java.util.concurrent.TimeUnit
 
 class BlueTriangleConfiguration {
@@ -162,7 +163,7 @@ class BlueTriangleConfiguration {
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     var isTrackNetworkStateEnabled: Boolean = true
 
-    var isGroupingEnabled: Boolean = false
+    var isGroupingEnabled: Boolean = DEFAULT_ENABLE_GROUPING
 
     var groupingIdleTime: Int = Constants.DEFAULT_GROUPING_IDLE_TIME
         set(value) {

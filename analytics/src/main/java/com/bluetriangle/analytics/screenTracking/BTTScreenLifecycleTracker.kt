@@ -4,6 +4,7 @@ import com.bluetriangle.analytics.Constants.TIMER_MIN_PGTM
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.model.Screen
 import com.bluetriangle.analytics.screenTracking.grouping.BTTTimerGroupManager
+import com.bluetriangle.analytics.model.ScreenType
 import com.bluetriangle.analytics.utility.logD
 
 internal class BTTScreenLifecycleTracker(
@@ -107,11 +108,36 @@ internal class BTTScreenLifecycleTracker(
         val scr  = screen.toString()
         val loadTm = loadTime[scr] ?: 0L
         val viewTm = viewTime[scr] ?: 0L
+
+        var confidenceRate = 100
+        var confidenceMsg: String? = null
+
+        var pgTm = viewTm - loadTm
+
+        if(loadTm == 0L) {
+            confidenceRate = 0
+            confidenceMsg = when(screen.type) {
+                ScreenType.Activity, ScreenType.Fragment -> "onCreate/onStart not called on ${screen.name}"
+                ScreenType.Composable -> "Composable load time could not be calculated"
+                is ScreenType.Custom -> "onLoadStarted/onLoadEnded methods were not called"
+            }
+        } else if(viewTm == 0L) {
+            confidenceRate = 0
+            confidenceMsg = when(screen.type) {
+                ScreenType.Activity, ScreenType.Fragment -> "onResume not called on ${screen.name}"
+                ScreenType.Composable -> "Composable load time could not be calculated"
+                is ScreenType.Custom -> "onViewStarted method was not called"
+            }
+        } else if(pgTm > 20_000) {
+            pgTm = 20_000
+            confidenceRate = 50
+            confidenceMsg = "load time calculation gone out of bounds"
+        }
         val disappearTm = System.currentTimeMillis()
 
         timer.setContentGroupName(AUTOMATED_TIMERS_PAGE_TYPE)
         timer.pageTimeCalculator = {
-            (viewTm - loadTm).coerceAtLeast(TIMER_MIN_PGTM)
+            (pgTm).coerceAtLeast(TIMER_MIN_PGTM)
         }
 
         timer.generateNativeAppProperties()
@@ -122,8 +148,11 @@ internal class BTTScreenLifecycleTracker(
         timer.nativeAppProperties.className = screen.name
 
         timer.nativeAppProperties.loadTime = viewTm - loadTm
+        timer.nativeAppProperties.loadTime = pgTm
         timer.nativeAppProperties.fullTime = disappearTm - loadTm
         timer.nativeAppProperties.screenType = screen.type
+        timer.nativeAppProperties.confidenceRate = confidenceRate
+        timer.nativeAppProperties.confidenceMsg = confidenceMsg
     }
 
     private fun shouldIgnore(name: String): Boolean {

@@ -2,11 +2,11 @@ package com.bluetriangle.analytics.screenTracking.grouping
 
 import android.os.Handler
 import android.os.Looper
+import com.bluetriangle.analytics.Constants.GROUP_SUFFIX
 import com.bluetriangle.analytics.Constants.TIMER_MIN_PGTM
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.model.Screen
-import com.bluetriangle.analytics.screenTracking.BTTScreenLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.BTTScreenLifecycleTracker.Companion.AUTOMATED_TIMERS_PAGE_TYPE
 
 internal class BTTTimerGroup(
@@ -113,7 +113,7 @@ internal class BTTTimerGroup(
 
         if(timers.isEmpty()) return
 
-        val groupPageName = manualGroupName ?: (groupName ?: namingStrategy.getName(timers.map { it.second }))
+        val groupPageName = (manualGroupName ?: (groupName ?: namingStrategy.getName(timers.map { it.second }))) + GROUP_SUFFIX
         groupTimer.setPageName(groupPageName)
 
         generateGroupProperties(tracker)
