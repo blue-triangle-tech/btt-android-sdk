@@ -14,7 +14,12 @@ internal class BTTTimerGroupManager(var groupIdleTime: Int) {
         val lastUserAction = Tracker.instance?.lastTouchEventTimestamp?:0L
 
         if(lastActive == null || (shouldRegisterTap && lastUserAction > lastActive.startTime)) {
-            createNewGroupAndAdd(screen, timer)
+            val groupingCause = if(lastActive == null) {
+                GroupingCause.Timeout(System.currentTimeMillis() - lastGroupStartTime)
+            } else {
+                GroupingCause.Tap(lastUserAction - lastGroupStartTime)
+            }
+            createNewGroupAndAdd(screen, timer, groupingCause = groupingCause)
         } else {
             lastActive.add(screen, timer)
         }
@@ -24,19 +29,20 @@ internal class BTTTimerGroupManager(var groupIdleTime: Int) {
         return activeGroups.lastOrNull { !it.isClosed }
     }
 
-    private fun createNewGroup(): BTTTimerGroup {
+    private fun createNewGroup(groupingCause: GroupingCause): BTTTimerGroup {
         submitAllExistingTimers()
 
-        val newGroup = BTTTimerGroup(groupIdleTime = groupIdleTime, onCompleted = this::onGroupCompleted)
+        val newGroup = BTTTimerGroup(groupIdleTime = groupIdleTime, onCompleted = this::onGroupCompleted, groupingCause = groupingCause)
         addToActiveGroup(newGroup)
         return newGroup
     }
 
     private fun createNewGroupAndAdd(
         screen: Screen,
-        timer: Timer
+        timer: Timer,
+        groupingCause: GroupingCause
     ) {
-        createNewGroup().apply {
+        createNewGroup(groupingCause).apply {
             add(screen, timer)
         }
     }
@@ -65,8 +71,12 @@ internal class BTTTimerGroupManager(var groupIdleTime: Int) {
     }
 
     fun setNewGroup(groupName: String) {
-        createNewGroup().setManualGroupName(groupName)
+        val timeInterval = System.currentTimeMillis() - lastGroupStartTime
+        createNewGroup(groupingCause = GroupingCause.Manual(timeInterval)).setManualGroupName(groupName)
     }
+
+    val lastGroupStartTime: Long
+        get() = activeGroups.lastOrNull()?.startTime?:System.currentTimeMillis()
 
     fun destroy() {
         activeGroups.forEach {

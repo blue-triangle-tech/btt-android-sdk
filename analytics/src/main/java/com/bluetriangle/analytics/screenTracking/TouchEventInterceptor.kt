@@ -26,7 +26,6 @@ class TouchEventInterceptor(private val originalCallback: Window.Callback) : Win
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
         if (event.action == MotionEvent.ACTION_DOWN) {
-            Tracker.instance?.configuration?.logger?.debug("TouchEventInterceptor: ActionDown -> ${event.x}, ${event.y}")
             Tracker.instance?.registerTouchEvent()
         }
         return originalCallback.dispatchTouchEvent(event)

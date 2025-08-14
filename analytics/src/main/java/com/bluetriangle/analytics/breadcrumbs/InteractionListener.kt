@@ -4,7 +4,7 @@ import android.app.Activity
 import android.app.Application
 import android.os.Bundle
 
-class InteractionListener : Application.ActivityLifecycleCallbacks {
+internal class InteractionListener : Application.ActivityLifecycleCallbacks {
 
     fun install(application: Application) {
         application.registerActivityLifecycleCallbacks(this)
