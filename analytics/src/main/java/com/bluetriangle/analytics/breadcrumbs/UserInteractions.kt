@@ -17,12 +17,12 @@ import com.bluetriangle.analytics.networkcapture.CapturedRequest.Companion.FIELD
 import com.bluetriangle.analytics.networkcapture.CapturedRequest.Companion.FIELD_URL
 import org.json.JSONObject
 
-enum class UserEventType {
+internal enum class UserEventType {
     TAP,
     DOUBLE_TAP
 }
 
-class UserEvent(
+internal class UserEvent(
     val eventType: UserEventType,
     val x: Int,
     val y: Int,
@@ -98,7 +98,7 @@ private class ViewAttributes(
     }
 }
 
-fun recordTouchEvent(
+internal fun recordTouchEvent(
     type: UserEventType,
     activity: Activity,
     x: Int,
@@ -138,7 +138,7 @@ private fun View.isPointInHitArea(x: Int, y: Int): Boolean {
     return rect.contains(x, y)
 }
 
-fun findClickableViewAtPosition(view: View, x: Int, y: Int): View? {
+internal fun findClickableViewAtPosition(view: View, x: Int, y: Int): View? {
     if (view is ComposeView && view.isPointInHitArea(x, y)) {
         return view
     }

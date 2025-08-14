@@ -5,7 +5,7 @@ import com.bluetriangle.analytics.Constants
 import com.bluetriangle.analytics.Timer
 import org.json.JSONArray
 
-class UserEventsCollection(
+internal class UserEventsCollection(
     private var siteId: String,
     private var nStart: String,
     private var pageName: String,

@@ -5,7 +5,7 @@ import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
 import kotlin.math.roundToInt
 
-class InteractionGestureListener(
+internal class InteractionGestureListener(
     val activity: Activity,
 ) : SimpleOnGestureListener() {
     override fun onSingleTapUp(event: MotionEvent): Boolean {

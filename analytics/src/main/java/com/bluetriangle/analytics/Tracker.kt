@@ -432,7 +432,7 @@ class Tracker private constructor(
 
     private val userEvents = ConcurrentHashMap<Long, UserEventsCollection>()
 
-    fun submitUserEvent(userEvent: UserEvent) {
+    internal fun submitUserEvent(userEvent: UserEvent) {
         getMostRecentTimer()?.let { timer ->
             configuration.logger?.debug("User Event Captured: $userEvent for $timer")
             userEvent.setNavigationStart(timer.start)
@@ -470,7 +470,7 @@ class Tracker private constructor(
     }
 
     @Synchronized
-    fun getUserEventsCollectionsForTimer(timer: Timer): List<UserEventsCollection> {
+    internal fun getUserEventsCollectionsForTimer(timer: Timer): List<UserEventsCollection> {
         val keysToSend = userEvents.keys().toList().filter { it <= timer.start }
         val userEventsCollection = mutableListOf<UserEventsCollection>()
         keysToSend.forEach {

@@ -14,7 +14,7 @@ import android.view.Window
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 
-class InteractionWindowCallback(
+internal class InteractionWindowCallback(
     val activity: Activity,
     val wrapped: Window.Callback,
 ) : Window.Callback {
