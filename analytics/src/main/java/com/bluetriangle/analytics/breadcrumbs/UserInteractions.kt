@@ -6,18 +6,64 @@ import android.os.Build
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.compose.ui.platform.ComposeView
 import androidx.core.view.children
+import com.bluetriangle.analytics.Tracker
+import com.bluetriangle.analytics.networkcapture.CapturedRequest.Companion.FIELD_DURATION
+import com.bluetriangle.analytics.networkcapture.CapturedRequest.Companion.FIELD_END_TIME
+import com.bluetriangle.analytics.networkcapture.CapturedRequest.Companion.FIELD_ENTRY_TYPE
+import com.bluetriangle.analytics.networkcapture.CapturedRequest.Companion.FIELD_FILE
+import com.bluetriangle.analytics.networkcapture.CapturedRequest.Companion.FIELD_START_TIME
+import com.bluetriangle.analytics.networkcapture.CapturedRequest.Companion.FIELD_URL
+import org.json.JSONObject
 
-enum class TouchEventType {
+enum class UserEventType {
     TAP,
     DOUBLE_TAP
+}
+
+class UserEvent(
+    val eventType: UserEventType,
+    val x: Int,
+    val y: Int,
+    val className: String,
+    val classFullName: String,
+    val id: String?
+) {
+    private val absoluteStart = System.currentTimeMillis()
+    var start = absoluteStart
+
+    fun setNavigationStart(navigationStart: Long) {
+        start = absoluteStart - navigationStart
+    }
+
+    val payload: JSONObject
+        get() = JSONObject(
+            mapOf(
+                FIELD_ENTRY_TYPE to "UserAction",
+                FIELD_URL to StringBuilder().apply {
+                    append(classFullName)
+                    if(id != null) {
+                        append("/id=$id")
+                    }
+                    append("/x=$x")
+                    append("/y=$y")
+               }.toString(),
+                FIELD_FILE to eventType.name.lowercase(),
+                FIELD_START_TIME to start.toString(),
+                FIELD_END_TIME to (start + 15).toString(),
+                FIELD_DURATION to 15.toString(),
+            )
+        )
 }
 
 private class ViewAttributes(
     activity: Activity,
     view: View
 ) {
-    val className: String? = view.javaClass.canonicalName
+    val className: String = if(view is ComposeView) "" else view.javaClass.simpleName
+
+    val classFullName = if(view is ComposeView) "" else view.javaClass.canonicalName?:view.javaClass.simpleName
 
     val text: String? = if (view is TextView) view.text.toString() else null
 
@@ -30,27 +76,30 @@ private class ViewAttributes(
 
     val id: Int? = if (view.id != View.NO_ID) view.id else null
 
+    val stableId: String = when {
+        view.id != View.NO_ID -> "${view.resources.getResourcePackageName(view.id)}:${view.resources.getResourceEntryName(view.id)}"
+        else -> "view-${System.identityHashCode(view)}"
+    }
+
     val idPackage: String? = id?.let { activity.resources.getResourcePackageName(it) }
     val idEntry: String? = id?.let { activity.resources.getResourceEntryName(it) }
-    val accessibilityId: String? = view.createAccessibilityNodeInfo()?.text?.toString()
+    val accessibilityId: String? = ""
 
-    fun log(touchEvent: TouchEventType) {
-//        Tracker.instance?.configuration?.logger?.debug("""User Interaction ->
-//            |touchEvent: $touchEvent
-//            |className: $className
-//            |accessibilityClassName: $accessibilityClassName
-//            |accessibilityTitle: $accessibilityTitle
-//            |idPackage: $idPackage
-//            |idEntry: $idEntry
-//            |id: $id
-//            |name: $name
-//            |text: $text
-//            |firstText: $contentText""".trimMargin())
+    fun log(touchEvent: UserEventType) {
+        Tracker.instance?.configuration?.logger?.debug("""User Interaction ->
+            |touchEvent: $touchEvent
+            |className: $className
+            |accessibilityClassName: $accessibilityClassName
+            |accessibilityTitle: $accessibilityId
+            |idPackage: $idPackage
+            |idEntry: $idEntry
+            |id: $id
+            |text: $text""".trimMargin())
     }
 }
 
 fun recordTouchEvent(
-    type: TouchEventType,
+    type: UserEventType,
     activity: Activity,
     x: Int,
     y: Int,
@@ -58,7 +107,17 @@ fun recordTouchEvent(
     val contentView = activity.window.decorView.rootView
     val clickableView = findClickableViewAtPosition(contentView, x, y)
     if(clickableView != null) {
-        ViewAttributes(activity, clickableView).log(type)
+        ViewAttributes(activity, clickableView).let {
+            val userEvent = UserEvent(
+                eventType = type,
+                x = x,
+                y = y,
+                className = it.className,
+                classFullName = it.classFullName,
+                id = it.stableId
+            )
+            Tracker.instance?.submitUserEvent(userEvent)
+        }
     }
 }
 
@@ -80,6 +139,9 @@ private fun View.isPointInHitArea(x: Int, y: Int): Boolean {
 }
 
 fun findClickableViewAtPosition(view: View, x: Int, y: Int): View? {
+    if (view is ComposeView && view.isPointInHitArea(x, y)) {
+        return view
+    }
     if(view.isShown && view.isClickable && view.isPointInHitArea(x, y)) {
         return view
     }

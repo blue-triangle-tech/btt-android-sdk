@@ -16,6 +16,9 @@ import androidx.core.content.edit
 import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
 import com.bluetriangle.analytics.appeventhub.AppEventHub
+import com.bluetriangle.analytics.breadcrumbs.InteractionListener
+import com.bluetriangle.analytics.breadcrumbs.UserEvent
+import com.bluetriangle.analytics.breadcrumbs.UserEventsCollection
 import com.bluetriangle.analytics.deviceinfo.DeviceInfoProvider
 import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 import com.bluetriangle.analytics.dynamicconfig.fetcher.BTTConfigurationFetcher
@@ -116,6 +119,8 @@ class Tracker private constructor(
     private val claritySessionConnector:ClaritySessionConnector
     internal val appVersion: String
 
+    private val interactionListener = InteractionListener()
+
     init {
         this.context = WeakReference(application.applicationContext)
         this.configuration = configuration
@@ -157,6 +162,9 @@ class Tracker private constructor(
         this.configuration.groupingIdleTime = sessionData.groupingIdleTime
         this.configuration.isScreenTrackingEnabled = sessionData.enableScreenTracking
 
+        (context.get()?.applicationContext as? Application?)?.let {
+            interactionListener.install(it)
+        }
         if(configuration.isScreenTrackingEnabled) {
             initializeScreenTracker()
         }
@@ -178,6 +186,11 @@ class Tracker private constructor(
         performanceMonitors.forEach {
             it.value.stopRunning()
         }
+
+        (context.get()?.applicationContext as? Application?)?.let {
+            interactionListener.uninstall(it)
+        }
+
         deInitializeScreenTracker()
         deInitializeANRMonitor()
         stopTrackCrashes()
@@ -427,6 +440,31 @@ class Tracker private constructor(
         }
     }
 
+    private val userEvents = ConcurrentHashMap<Long, UserEventsCollection>()
+
+    fun submitUserEvent(userEvent: UserEvent) {
+        getMostRecentTimer()?.let { timer ->
+            configuration.logger?.debug("User Event Captured: $userEvent for $timer")
+            userEvent.setNavigationStart(timer.start)
+            if (userEvents.containsKey(timer.start)) {
+                userEvents[timer.start]?.add(userEvent)
+            } else {
+                val userEventsCollection = UserEventsCollection(
+                    configuration.siteId.toString(),
+                    timer.start.toString(),
+                    getTimerValue(Timer.FIELD_PAGE_NAME, timer),
+                    getTimerValue(Timer.FIELD_CONTENT_GROUP_NAME, timer),
+                    getTimerValue(Timer.FIELD_TRAFFIC_SEGMENT_NAME, timer),
+                    configuration.sessionId.toString(),
+                    globalFields[Timer.FIELD_BROWSER_VERSION]!!,
+                    globalFields[Timer.FIELD_DEVICE]!!,
+                    userEvent
+                )
+                userEvents[timer.start] = userEventsCollection
+            }
+        }
+    }
+
     /**
      * Returns a list of captured request collections for the current timer as well as all past timers to send
      */
@@ -439,6 +477,17 @@ class Tracker private constructor(
                 ?.let { collection -> capturedRequestCollections.add(collection) }
         }
         return capturedRequestCollections.toList()
+    }
+
+    @Synchronized
+    fun getUserEventsCollectionsForTimer(timer: Timer): List<UserEventsCollection> {
+        val keysToSend = userEvents.keys().toList().filter { it <= timer.start }
+        val userEventsCollection = mutableListOf<UserEventsCollection>()
+        keysToSend.forEach {
+            userEvents.remove(it)
+                ?.let { collection -> userEventsCollection.add(collection) }
+        }
+        return userEventsCollection.toList()
     }
 
     internal fun getTimerValue(fieldName: String, timer: Timer?): String {

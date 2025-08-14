@@ -1,7 +1,7 @@
 package com.bluetriangle.analytics
 
-import androidx.core.net.toUri
 import com.bluetriangle.analytics.Timer.Companion.FIELD_NATIVE_APP
+import com.bluetriangle.analytics.breadcrumbs.UserEventsRunnable
 import com.bluetriangle.analytics.caching.classifier.CacheType
 import com.bluetriangle.analytics.networkcapture.CapturedRequestRunnable
 import org.json.JSONObject
@@ -38,6 +38,8 @@ internal class TimerRunnable(
                 configuration.logger?.info("shouldSendCapturedRequests is false, ignoring captured requests collections for timer: ${timer}")
                 listOf()
             }
+            var userEventsCollections = Tracker.instance?.getUserEventsCollectionsForTimer(timer)
+
             timer.onSubmit()
             try {
                 val url = URL(configuration.trackerUrl)
@@ -54,6 +56,10 @@ internal class TimerRunnable(
                 if (!capturedRequestCollections.isNullOrEmpty()) {
                     CapturedRequestRunnable(configuration, capturedRequestCollections).run()
                     capturedRequestCollections = null
+                }
+                if(!userEventsCollections.isNullOrEmpty()) {
+                    UserEventsRunnable(configuration, userEventsCollections).run()
+                    userEventsCollections = null
                 }
                 if (statusCode >= 300) {
                     val responseBody =
@@ -77,6 +83,9 @@ internal class TimerRunnable(
             } catch (e: Exception) {
                 if (!capturedRequestCollections.isNullOrEmpty()) {
                     CapturedRequestRunnable(configuration, capturedRequestCollections).run()
+                }
+                if(!userEventsCollections.isNullOrEmpty()) {
+                    UserEventsRunnable(configuration, userEventsCollections).run()
                 }
                 configuration.logger?.error(e, "Android Error submitting $timer: ${e.message}")
                 cachePayload(configuration.trackerUrl, payloadData)

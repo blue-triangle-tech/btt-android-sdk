@@ -9,10 +9,17 @@ import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.model.Screen
 import com.bluetriangle.analytics.screenTracking.BTTScreenLifecycleTracker.Companion.AUTOMATED_TIMERS_PAGE_TYPE
 
+sealed class GroupingCause(val name: String, val timeInterval: Long) {
+    class Timeout(timeInterval: Long): GroupingCause("timeout", timeInterval)
+    class Tap(timeInterval: Long): GroupingCause("tap", timeInterval)
+    class Manual(timeInterval: Long): GroupingCause("manual", timeInterval)
+}
+
 internal class BTTTimerGroup(
     private val namingStrategy: GroupNamingStrategy = LastTimerNameStrategy,
     groupIdleTime: Int,
-    private val onCompleted: (BTTTimerGroup)-> Unit
+    private val onCompleted: (BTTTimerGroup)-> Unit,
+    private val groupingCause: GroupingCause
 ) {
     private var timers = mutableListOf<Pair<Screen, Timer>>()
     private var groupTimer = Timer()
@@ -157,7 +164,7 @@ internal class BTTTimerGroup(
 
         val loadStartTime = timers.minOfOrNull { it.second.nativeAppProperties.loadStartTime }?:0
         val disappearTm = timers.maxOfOrNull { it.second.nativeAppProperties.disappearTime }?:0
-        val loadTime = timers.sumOf { it.second.nativeAppProperties.loadTime?:0 }
+        val loadTime = calculateGroupPgTm(timers.map { it.second.nativeAppProperties.loadStartTime to it.second.nativeAppProperties.loadEndTime })
 
         groupTimer.pageTimeCalculator = {
             loadTime.coerceAtLeast(TIMER_MIN_PGTM)
@@ -165,6 +172,28 @@ internal class BTTTimerGroup(
         groupTimer.nativeAppProperties.loadTime = loadTime
         groupTimer.nativeAppProperties.fullTime = disappearTm - loadStartTime
         groupTimer.nativeAppProperties.grouped = true
+        groupTimer.nativeAppProperties.groupingCause = groupingCause.name
+        groupTimer.nativeAppProperties.groupingCauseInterval = groupingCause.timeInterval
+    }
+
+    private fun calculateGroupPgTm(loadTimes: List<Pair<Long, Long>>): Long {
+        val sortedTimes = loadTimes.sortedBy { it.first }
+        val mergedTimes = mutableListOf<Pair<Long, Long>>(
+            sortedTimes[0]
+        )
+        if(sortedTimes.size > 1) {
+            for(i in 1 until sortedTimes.size) {
+                val last = mergedTimes.last()
+                val current = sortedTimes[i]
+                if(current.first <= last.second) {
+                    mergedTimes.removeAt(mergedTimes.lastIndex)
+                    mergedTimes.add(last.first to maxOf(last.second, current.second))
+                } else {
+                    mergedTimes.add(current)
+                }
+            }
+        }
+        return mergedTimes.sumOf { it.second - it.first }
     }
 
     fun flush() {

@@ -48,6 +48,8 @@ object Constants {
     internal const val NETWORK_TYPE_ETHERNET = "ethernet"
     internal const val NETWORK_TYPE_OFFLINE = "offline"
     internal const val GROUPED = "grouped"
+    internal const val GROUPING_CAUSE = "groupingCause"
+    internal const val GROUPING_CAUSE_INTERVAL = "groupingCauseInterval"
 
     internal const val CONFIDENCE_RATE = "confidenceRate"
     internal const val CONFIDENCE_MSG = "confidenceMsg"
