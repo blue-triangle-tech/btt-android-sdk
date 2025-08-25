@@ -2,7 +2,6 @@
 
 package com.bluetriangle.analytics.launchtime
 
-import com.bluetriangle.analytics.Constants.EVENT_SUFFIX
 import com.bluetriangle.analytics.Logger
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Tracker
@@ -25,7 +24,7 @@ internal class LaunchReporter(
                     is LaunchEvent.HotLaunch -> "HotLaunchTime"
                     is LaunchEvent.WarmLaunch -> "WarmLaunchTime"
                     is LaunchEvent.ColdLaunch -> "ColdLaunchTime"
-                } + EVENT_SUFFIX
+                }
 
                 // As Reporter is initialized inside the Tracker constructor.
                 // The Tracker instance won't be immediately available in the singleton.
