@@ -159,7 +159,27 @@ You can disable Screen tracking by adding the following meta-data:
 **Note:**
 Screen tracking also allows co-relating errors and network requests with the screens. The crash or network request associates screen name on which this crash or network request occurred. Thus, if screen tracking is disabled, the page name of most recently started manual Timer's page name will be sent along with the crash or network request.
 
- 
+### Grouping
+Blue Triangle connects user experience to business outcomes by instrumenting an SDK in mobile apps to capture key metrics and events. Unlike most SDKs that only collect raw components—Classes (Activities and Fragments), Composables, Blue Triangle automatically groups them into meaningful user steps, enabling clear business impact analysis while still providing detailed data for developer-level optimizations.
+
+A Group is a logical association of one or more Activities or Fragments or Composables that represent a single screen, ideally appearing as a user step. 
+
+When this feature is enabled, the SDK automatically groups all single-screen Activities, Fragments or Composables under a group name derived from either:  
+1. The screen title, or
+2. The class name of the last appearing view.
+
+Developers can also manually update or create group names using the following APIs:
+
+- Developer can update current group by using the below function:
+  ```kotlin
+    Tracker.instance.setGroupName(<Group name>)
+  ```
+- Developer can create new group by using the below function:
+  ```kotlin
+    Tracker.instance.setNewGroup(<Group name>)
+  ```
+Visit the [**Official Help Doc**](https://help.bluetriangle.com/hc/en-us/articles/44149857145491-Understanding-the-User-Experience-through-Automated-Step-Grouping-in-Mobile-Applications) for more info.
+
 ### Native View/Webview Tracking/Session Stitching- Mandatory
 Native Webviews that are integrated into your native application can be tracked in the same session as the native app. To achieve this, follow the steps below to configure the webview:
 

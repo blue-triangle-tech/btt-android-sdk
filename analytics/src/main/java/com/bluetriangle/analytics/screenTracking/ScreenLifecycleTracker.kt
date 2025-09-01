@@ -15,7 +15,7 @@ internal interface ScreenLifecycleTracker {
 
     fun generateMetaData(screen: Screen, timer: Timer)
 
-    fun setGroupName(screenName: String)
+    fun setGroupName(groupName: String)
 
     fun setNewGroup(groupName: String)
 

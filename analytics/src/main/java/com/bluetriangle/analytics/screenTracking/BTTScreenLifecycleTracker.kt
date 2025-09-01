@@ -160,10 +160,14 @@ internal class BTTScreenLifecycleTracker(
     }
 
     override fun setGroupName(groupName: String) {
+        if(!groupingEnabled) return
+
         groupManager.setGroupName(groupName)
     }
 
     override fun setNewGroup(groupName: String) {
+        if(!groupingEnabled) return
+
         groupManager.setNewGroup(groupName)
     }
 

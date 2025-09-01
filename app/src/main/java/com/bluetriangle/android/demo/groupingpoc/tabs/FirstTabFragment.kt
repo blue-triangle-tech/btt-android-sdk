@@ -55,7 +55,6 @@ class FirstTabFragment : Fragment() {
                 fromUser: Boolean
             ) {
                 val idleTime = progress + 1
-                Tracker.instance?.configuration?.groupingIdleTime = idleTime
                 idleValue.text = idleTime.toString()
                 GroupingConfig.setIdleTime(idleTime)
             }

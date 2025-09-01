@@ -163,14 +163,14 @@ class BlueTriangleConfiguration {
     @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
     var isTrackNetworkStateEnabled: Boolean = true
 
-    var isGroupingEnabled: Boolean = DEFAULT_ENABLE_GROUPING
+    internal var isGroupingEnabled: Boolean = DEFAULT_ENABLE_GROUPING
 
-    var groupingIdleTime: Int = Constants.DEFAULT_GROUPING_IDLE_TIME
+    internal var groupingIdleTime: Int = Constants.DEFAULT_GROUPING_IDLE_TIME
         set(value) {
             field = value.coerceAtLeast(1)
         }
 
-    var groupedViewSampleRate = Constants.DEFAULT_GROUPED_VIEW_SAMPLE_RATE
+    internal var groupedViewSampleRate = Constants.DEFAULT_GROUPED_VIEW_SAMPLE_RATE
         set(value) {
             field = value.coerceAtLeast(0.0).coerceAtMost(1.0)
         }

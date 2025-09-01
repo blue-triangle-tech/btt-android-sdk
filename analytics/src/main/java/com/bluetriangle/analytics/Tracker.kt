@@ -1069,11 +1069,7 @@ class Tracker private constructor(
                 defaultConfig = defaultConfig
             )
 
-            val sharedPreferences =
-                application.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
-
-            val host = if(configuration.isDebug) sharedPreferences.getString("ip_address", "d.btttag.com") else "d.btttag.com"
-            val configUrl = "https://$host/config.php?siteID=${configuration.siteId}&os=${Constants.OS}&osver=${Build.VERSION.RELEASE}&app=${Utils.getAppVersion(application)}&sdk=${BuildConfig.SDK_VERSION}"
+            val configUrl = "https://d.btttag.com/config.php?siteID=${configuration.siteId}&os=${Constants.OS}&osver=${Build.VERSION.RELEASE}&app=${Utils.getAppVersion(application)}&sdk=${BuildConfig.SDK_VERSION}"
             configurationUpdater = BTTConfigurationUpdater(
                 logger = configuration.logger,
                 repository = this.configurationRepository,

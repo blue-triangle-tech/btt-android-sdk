@@ -78,7 +78,6 @@ class DemoApplication : Application() {
         configuration.isLaunchTimeEnabled = true
         configuration.isTrackNetworkStateEnabled = true
         configuration.isMemoryWarningEnabled = true
-        configuration.isGroupingEnabled = GroupingConfig.getGrouping()
         tracker = init(this, configuration)
 
         tracker?.setSessionTrafficSegmentName("Demo Traffic Segment")
