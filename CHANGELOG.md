@@ -1,4 +1,4 @@
-# Blue Triangle 2.18.0 Latest, Sept 1 2025
+# Blue Triangle 2.18.0 Latest, Sept 2 2025
 ### New Features
 - Automated Grouping of all single-screen Activities/Fragments/Composables.
 - Automated group name through screen title or class name.
