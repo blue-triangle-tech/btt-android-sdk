@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import com.bluetriangle.analytics.BlueTriangleConfiguration
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.Tracker.Companion.init
+import com.bluetriangle.android.demo.groupingpoc.GroupingConfig
 import com.bluetriangle.android.demo.tests.ANRTest
 import com.bluetriangle.android.demo.tests.ANRTestFactory
 import com.bluetriangle.android.demo.tests.ANRTestScenario

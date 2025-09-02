@@ -38,16 +38,7 @@ internal class BTTConfigurationUpdater(
             is BTTConfigFetchResult.Success -> {
                 logger?.debug("Fetched remote config: ${result.config}")
                 val savedRemoteConfig = repository.get()
-                repository.save(
-                    BTTSavedRemoteConfiguration(
-                        result.config.networkSampleRate,
-                        result.config.ignoreScreens,
-                        result.config.enableRemoteConfigAck,
-                        result.config.enableAllTracking,
-                        result.config.enableScreenTracking,
-                        System.currentTimeMillis()
-                    )
-                )
+                repository.save(result.config)
                 if (result.config.enableRemoteConfigAck) {
                     if (result.config != savedRemoteConfig) {
                         reporter.reportSuccess()

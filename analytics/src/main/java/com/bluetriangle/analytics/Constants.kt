@@ -30,6 +30,10 @@ object Constants {
     const val BUFFER_REPOSITORY = "Buffer"
     const val DEFAULT_NETWORK_SAMPLE_RATE = 0.05
 
+    internal const val DEFAULT_GROUPING_IDLE_TIME = 2
+    internal const val DEFAULT_ENABLE_GROUPING = true
+    internal const val DEFAULT_GROUPED_VIEW_SAMPLE_RATE = 0.05
+
     internal const val SDK_VERSION = "sdkVersion"
     internal const val APP_VERSION = "appVersion"
     internal const val NUMBER_OF_CPU_CORES = "numberOfCPUCores"
@@ -43,7 +47,11 @@ object Constants {
     internal const val NETWORK_TYPE_CELLULAR = "cellular"
     internal const val NETWORK_TYPE_ETHERNET = "ethernet"
     internal const val NETWORK_TYPE_OFFLINE = "offline"
+    internal const val GROUPED = "grouped"
+    internal const val GROUPING_CAUSE = "groupingCause"
+    internal const val GROUPING_CAUSE_INTERVAL = "groupingCauseInterval"
 
     internal const val CONFIDENCE_RATE = "confidenceRate"
     internal const val CONFIDENCE_MSG = "confidenceMsg"
+
 }

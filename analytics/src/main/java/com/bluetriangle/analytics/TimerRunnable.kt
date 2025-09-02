@@ -1,6 +1,7 @@
 package com.bluetriangle.analytics
 
 import com.bluetriangle.analytics.Timer.Companion.FIELD_NATIVE_APP
+import com.bluetriangle.analytics.breadcrumbs.UserEventsRunnable
 import com.bluetriangle.analytics.caching.classifier.CacheType
 import com.bluetriangle.analytics.networkcapture.CapturedRequestRunnable
 import org.json.JSONObject
@@ -37,6 +38,8 @@ internal class TimerRunnable(
                 configuration.logger?.info("shouldSendCapturedRequests is false, ignoring captured requests collections for timer: ${timer}")
                 listOf()
             }
+            var userEventsCollections = Tracker.instance?.getUserEventsCollectionsForTimer(timer)
+
             timer.onSubmit()
             try {
                 val url = URL(configuration.trackerUrl)
@@ -54,6 +57,10 @@ internal class TimerRunnable(
                     CapturedRequestRunnable(configuration, capturedRequestCollections).run()
                     capturedRequestCollections = null
                 }
+                if(!userEventsCollections.isNullOrEmpty()) {
+                    UserEventsRunnable(configuration, userEventsCollections).run()
+                    userEventsCollections = null
+                }
                 if (statusCode >= 300) {
                     val responseBody =
                         BufferedReader(InputStreamReader(connection.errorStream)).use { it.readText() }
@@ -64,7 +71,7 @@ internal class TimerRunnable(
                         cachePayload(configuration.trackerUrl, payloadData)
                     }
                 } else {
-                    configuration.logger?.debug("$timer submitted successfully")
+                    configuration.logger?.debug("$url\n$timer submitted successfully")
 
                     // successfully submitted a timer, lets check if there are any cached timers that we can try and submit too
                     val nextCachedPayload = configuration.payloadCache?.pickNext()
@@ -76,6 +83,9 @@ internal class TimerRunnable(
             } catch (e: Exception) {
                 if (!capturedRequestCollections.isNullOrEmpty()) {
                     CapturedRequestRunnable(configuration, capturedRequestCollections).run()
+                }
+                if(!userEventsCollections.isNullOrEmpty()) {
+                    UserEventsRunnable(configuration, userEventsCollections).run()
                 }
                 configuration.logger?.error(e, "Android Error submitting $timer: ${e.message}")
                 cachePayload(configuration.trackerUrl, payloadData)

@@ -2,6 +2,10 @@ package com.bluetriangle.android.demo
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.compose.runtime.key
+import androidx.lifecycle.asLiveData
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
 
 class SharedPreferencesMgr(context: Context) {
     private var sharedPref: SharedPreferences =
@@ -49,5 +53,18 @@ class SharedPreferencesMgr(context: Context) {
         val editor = sharedPref.edit()
         editor.remove(key)
         editor.apply()
+    }
+
+    fun observeBoolean(key: String) = callbackFlow{
+        trySend(sharedPref.getBoolean(key, false))
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { pref, k ->
+            if(k == key) {
+                trySend(pref.getBoolean(key, false))
+            }
+        }
+        sharedPref.registerOnSharedPreferenceChangeListener(listener)
+        return@callbackFlow awaitClose {
+            sharedPref.unregisterOnSharedPreferenceChangeListener(listener)
+        }
     }
 }

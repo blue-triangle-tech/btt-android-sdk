@@ -33,20 +33,13 @@ internal class BTTConfigurationRepository(
         private const val REMOTE_CONFIG = "com.bluetriangle.analytics.REMOTE_CONFIG"
     }
 
-    private val defaultSavedConfig = BTTSavedRemoteConfigurationMapper.fromRemoteConfig(defaultConfig)
+    private val defaultSavedConfig = BTTSavedRemoteConfiguration.from(defaultConfig)
 
     private val sharedPreferences: SharedPreferences = context.getSharedPreferences(
         SAVED_CONFIG_PREFS, Context.MODE_PRIVATE)
 
     override fun save(config: BTTRemoteConfiguration) {
-        val savedConfig = BTTSavedRemoteConfiguration(
-            config.networkSampleRate,
-            config.ignoreScreens,
-            config.enableRemoteConfigAck,
-            config.enableAllTracking,
-            config.enableScreenTracking,
-            System.currentTimeMillis()
-        )
+        val savedConfig = BTTSavedRemoteConfiguration.from(config)
 
         sharedPreferences.edit {
             putString(
