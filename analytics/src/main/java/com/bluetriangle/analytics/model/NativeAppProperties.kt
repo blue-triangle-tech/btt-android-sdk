@@ -5,6 +5,9 @@ import com.bluetriangle.analytics.Constants.APP_VERSION
 import com.bluetriangle.analytics.Constants.CONFIDENCE_MSG
 import com.bluetriangle.analytics.Constants.CONFIDENCE_RATE
 import com.bluetriangle.analytics.Constants.FULL_TIME
+import com.bluetriangle.analytics.Constants.GROUPED
+import com.bluetriangle.analytics.Constants.GROUPING_CAUSE
+import com.bluetriangle.analytics.Constants.GROUPING_CAUSE_INTERVAL
 import com.bluetriangle.analytics.Constants.LAUNCH_SCREEN_NAME
 import com.bluetriangle.analytics.Constants.LOAD_TIME
 import com.bluetriangle.analytics.Constants.MAX_MAIN_THREAD_USAGE
@@ -41,9 +44,17 @@ internal data class NativeAppProperties(
     var netStateSource: String? = null,
     var appVersion: String? = null,
     var sdkVersion: String? = null,
+    var grouped: Boolean = false,
     var confidenceRate: Int? = null,
-    var confidenceMsg: String? = null
+    var confidenceMsg: String? = null,
+    var groupingCause: String? = null,
+    var groupingCauseInterval: Long? = null
 ) : Parcelable {
+
+    internal var loadStartTime: Long = 0
+    internal var loadEndTime: Long = 0
+    internal var disappearTime: Long = 0
+    internal var className: String = ""
 
     private val cellularTotal
         get() = cellular?.entries?.map { it.value }?.let {
@@ -59,6 +70,9 @@ internal data class NativeAppProperties(
         obj.put(NUMBER_OF_CPU_CORES, numberOfCPUCores)
         obj.put(APP_VERSION, appVersion)
         obj.put(SDK_VERSION, sdkVersion)
+        obj.put(GROUPED, grouped)
+        obj.put(GROUPING_CAUSE, groupingCause)
+        obj.put(GROUPING_CAUSE_INTERVAL, groupingCauseInterval)
 
         networkStates.apply {
             forEach { obj.put(it) }

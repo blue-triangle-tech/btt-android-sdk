@@ -30,7 +30,6 @@ fun BttTimerEffect(screenName: String) {
     }
 }
 
-
 internal class ComposableLifecycleObserver(
     private val screenTracker: ScreenLifecycleTracker?,
     screenName: String
@@ -41,10 +40,10 @@ internal class ComposableLifecycleObserver(
     override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
         screenTracker?.apply {
             when (event) {
-                ON_CREATE -> onLoadStarted(screen)
-                ON_START -> onLoadEnded(screen)
-                ON_RESUME -> onViewStarted(screen)
-                ON_STOP -> onViewEnded(screen)
+                ON_CREATE -> onLoadStarted(screen, automated = true)
+                ON_START -> onLoadEnded(screen, automated = true)
+                ON_RESUME -> onViewStarted(screen, automated = true)
+                ON_STOP -> onViewEnded(screen, automated = true)
                 else -> {}
             }
         }

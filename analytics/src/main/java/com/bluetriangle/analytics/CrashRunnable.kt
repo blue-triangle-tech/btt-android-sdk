@@ -68,8 +68,14 @@ internal class CrashRunnable(
             crashHitsTimer.setPageName(
                 mostRecentTimer?.getField(Timer.FIELD_PAGE_NAME) ?: Constants.CRASH_PAGE_NAME
             )
+            mostRecentTimer?.getField(Timer.FIELD_CONTENT_GROUP_NAME)?.let {
+                crashHitsTimer.setContentGroupName(it)
+            }
+            mostRecentTimer?.getField(Timer.FIELD_TRAFFIC_SEGMENT_NAME)?.let {
+                crashHitsTimer.setTrafficSegmentName(it)
+            }
         }
-        crashHitsTimer.setFields(tracker?.globalFields?.toMap() ?: emptyMap())
+        crashHitsTimer.setFieldsIfAbsent(tracker?.globalFields?.toMap() ?: emptyMap())
         tracker?.loadCustomVariables(crashHitsTimer)
         val timerRunnable = TimerRunnable(configuration, crashHitsTimer, false)
         timerRunnable.run()

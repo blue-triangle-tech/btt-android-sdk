@@ -95,6 +95,10 @@ internal class SessionManager(
             config.networkSampleRate?:defaultConfig.networkSampleRate!!,
             config.ignoreScreens,
             config.enableScreenTracking,
+            config.enableGrouping,
+            config.groupingIdleTime,
+            config.groupedViewSampleRate?:defaultConfig.groupedViewSampleRate!!,
+            debugConfig.fullSampleRate || Utils.shouldSample(config.groupedViewSampleRate?:defaultConfig.groupedViewSampleRate!!),
             getNewExpiration()
         )
     }
@@ -123,6 +127,10 @@ internal class SessionManager(
                 it.networkSampleRate,
                 it.ignoreScreens,
                 it.enableScreenTracking,
+                it.enableGrouping,
+                it.groupingIdleTime,
+                it.groupedViewSampleRate,
+                it.shouldSampleGroupedView,
                 getNewExpiration()
             )
             sessionStore.storeSessionData(
@@ -164,6 +172,10 @@ internal class SessionManager(
                                 config.networkSampleRate?:defaultConfig.networkSampleRate!!,
                                 config.ignoreScreens,
                                 config.enableScreenTracking,
+                                config.enableGrouping,
+                                config.groupingIdleTime,
+                                config.groupedViewSampleRate?:defaultConfig.groupedViewSampleRate!!,
+                                Utils.shouldSample(config.networkSampleRate?:defaultConfig.networkSampleRate!!),
                                 session.expiration
                             )
                             Tracker.instance?.updateSession(sessionData)

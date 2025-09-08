@@ -60,7 +60,7 @@ Add the package dependency to your application's `build.gradle` file:
 ```groovy
 dependencies {
     //...
-    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.17.2'
+    implementation 'com.github.blue-triangle-tech:btt-android-sdk:2.18.0'
 }
 ```
 
@@ -69,7 +69,7 @@ dependencies {
 If project uses gradle plugin version 8.2.0 and above, use exclude with dependency like below.
 
 ```groovy
-implementation("com.github.blue-triangle-tech:btt-android-sdk:2.17.2") {
+implementation("com.github.blue-triangle-tech:btt-android-sdk:2.18.0") {
     exclude("com.squareup.okhttp3", "okhttp-bom")
 }
 ```
@@ -159,7 +159,27 @@ You can disable Screen tracking by adding the following meta-data:
 **Note:**
 Screen tracking also allows co-relating errors and network requests with the screens. The crash or network request associates screen name on which this crash or network request occurred. Thus, if screen tracking is disabled, the page name of most recently started manual Timer's page name will be sent along with the crash or network request.
 
- 
+### Grouping
+Blue Triangle connects user experience to business outcomes by instrumenting an SDK in mobile apps to capture key metrics and events. Unlike most SDKs that only collect raw components - Activities, Fragments, Composables, Blue Triangle automatically groups them into meaningful user steps, enabling clear business impact analysis while still providing detailed data for developer-level optimizations.
+
+Blue Triangle groups Activities, Fragments and Composables of a single screen. If two or more Activities, Fragments or Composables lifecycle start within two seconds without any user action in between, then those are part of a group.
+
+When this feature is enabled, the SDK automatically groups all single-screen Activities, Fragments or Composables under a group name derived from either:  
+1. The screen title, or
+2. The class name of the last appearing view.
+
+Developers can also manually update or create group names using the following APIs:
+
+- Developer can update current group by using the below function:
+  ```kotlin
+    Tracker.instance.setGroupName(<Group name>)
+  ```
+- Developer can create new group by using the below function:
+  ```kotlin
+    Tracker.instance.setNewGroup(<Group name>)
+  ```
+Visit the [**Official Help Doc**](https://help.bluetriangle.com/hc/en-us/articles/44149857145491-Understanding-the-User-Experience-through-Automated-Step-Grouping-in-Mobile-Applications) for more info.
+
 ### Native View/Webview Tracking/Session Stitching- Mandatory
 Native Webviews that are integrated into your native application can be tracked in the same session as the native app. To achieve this, follow the steps below to configure the webview:
 

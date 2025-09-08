@@ -1,7 +1,5 @@
 package com.bluetriangle.android.demo.tests
 
-import java.lang.StringBuilder
-
 class WordGeneratorTest(val word:String = "unknown", val interval: Long = 10L):BTTTestCase {
     override val title: String
         get() = "Generate Word"
