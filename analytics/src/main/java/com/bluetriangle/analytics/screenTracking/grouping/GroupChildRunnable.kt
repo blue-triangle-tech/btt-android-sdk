@@ -86,6 +86,9 @@ internal class GroupChildRunnable(
                 put(CapturedRequest.FIELD_END_TIME, it.endTime)
                 put(CapturedRequest.FIELD_URL, it.pageName)
                 put(Timer.FIELD_NATIVE_APP, it.nativeAppProperties.toJSONObject())
+                it.performanceMetrics?.forEach { perf ->
+                    put(perf.key, perf.value)
+                }
             }
         }).toString(indentSpaces)
     }

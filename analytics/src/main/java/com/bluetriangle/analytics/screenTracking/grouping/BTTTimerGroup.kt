@@ -148,7 +148,8 @@ internal class BTTTimerGroup(
                 childPgTm,
                 (childLoadStartTime - groupStartTime).toString(),
                 (childLoadEndTime - groupStartTime).toString(),
-                childNativeAppProp
+                childNativeAppProp,
+                it.second.performanceMonitor?.wcdPerformanceReport
             )
         }
     }

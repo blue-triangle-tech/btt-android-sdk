@@ -6,7 +6,6 @@ import android.system.Os
 import android.system.OsConstants
 import android.util.Log
 import com.bluetriangle.analytics.BlueTriangleConfiguration
-import com.bluetriangle.analytics.PerformanceReport
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Timer.Companion.FIELD_PAGE_NAME
 import com.bluetriangle.analytics.utility.getNumberOfCPUCores
@@ -33,11 +32,11 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
         private val CPU_STATS_FILE = File("/proc/self/stat")
     }
 
-    override val metricFields: Map<String, String>
+    override val metricFields: Map<PerformanceMetric, String>
         get() = mapOf(
-            PerformanceReport.FIELD_MIN_CPU to minCpu.toString(),
-            PerformanceReport.FIELD_MAX_CPU to maxCpu.toString(),
-            PerformanceReport.FIELD_AVG_CPU to calculateAverageCpu().toString()
+            PerformanceMetric.MinCpu to minCpu.toString(),
+            PerformanceMetric.MaxCpu to maxCpu.toString(),
+            PerformanceMetric.AvgCpu to calculateAverageCpu().toString()
         )
 
     private val logger = configuration.logger
