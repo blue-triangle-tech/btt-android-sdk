@@ -68,10 +68,10 @@ class PerformanceMonitor(configuration: BlueTriangleConfiguration, deviceInfoPro
         }
 
     val analyticsPerformanceReport: Map<String, String>
-        get() = performanceReport.mapKeys { it.key.analyticsField }
+        get() = performanceReport.mapKeys { it.key.field }
 
     val wcdPerformanceReport: Map<String, String>
-        get() = performanceReport.filter { it.key != PerformanceMetric.TotalMemory }.mapKeys { it.key.wcdField }
+        get() = performanceReport.filter { it.key != PerformanceMetric.TotalMemory }.mapKeys { it.key.field }
 
     companion object {
         private const val THREAD_NAME = "BTTPerformanceMonitor"

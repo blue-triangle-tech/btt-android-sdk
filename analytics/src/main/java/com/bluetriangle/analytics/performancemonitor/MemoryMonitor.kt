@@ -18,9 +18,9 @@ internal class MemoryMonitor(
     override val metricFields: Map<PerformanceMetric, String>
         get() = mapOf(
             PerformanceMetric.MinMemory to minMemory.toString(),
-            PerformanceMetric.MaxMemory to totalMemory.toString(),
-            PerformanceMetric.AvgMemory to maxMemory.toString(),
-            PerformanceMetric.TotalMemory to calculateAverageMemory().toString()
+            PerformanceMetric.MaxMemory to maxMemory.toString(),
+            PerformanceMetric.AvgMemory to avgMemory.toString(),
+            PerformanceMetric.TotalMemory to totalMemory.toString()
         )
 
     private var minMemory = Long.MAX_VALUE
@@ -32,11 +32,8 @@ internal class MemoryMonitor(
     private val isVerboseDebug = configuration.isDebug || configuration.debugLevel == Log.VERBOSE
     private var memoryUsed = arrayListOf<Long>()
 
-    private fun calculateAverageMemory(): Long {
-        return if (memoryCount == 0L) {
-            0
-        } else cumulativeMemory / memoryCount
-    }
+    private val avgMemory: Long
+        get() = if (memoryCount == 0L) 0 else cumulativeMemory / memoryCount
 
     private var isMemoryThresholdReached = false
 
