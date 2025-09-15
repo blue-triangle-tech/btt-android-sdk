@@ -1,4 +1,8 @@
-# Blue Triangle 2.18.0 Latest, Sept 2 2025
+# Blue Triangle 2.18.1, Sept 15 2025
+### New Features
+- Associating Performance data to Group children. Added 6 properties for minCPU, maxCPU, avgCPU, minMemory, maxMemory, avgMemory to WCD payload for group children.
+
+# Blue Triangle 2.18.0, Sept 2 2025
 ### New Features
 - Automated Grouping of all single-screen Activities/Fragments/Composables.
 - Automated group name through screen title or class name.
