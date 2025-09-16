@@ -6,6 +6,7 @@ import com.bluetriangle.analytics.performancemonitor.CpuMonitor
 import com.bluetriangle.analytics.performancemonitor.MainThreadMonitor
 import com.bluetriangle.analytics.performancemonitor.MemoryMonitor
 import com.bluetriangle.analytics.performancemonitor.MetricMonitor
+import com.bluetriangle.analytics.performancemonitor.PerformanceMetric
 
 class PerformanceMonitor(configuration: BlueTriangleConfiguration, deviceInfoProvider: IDeviceInfoProvider) : Thread(THREAD_NAME) {
     private val logger = configuration.logger
@@ -61,12 +62,16 @@ class PerformanceMonitor(configuration: BlueTriangleConfiguration, deviceInfoPro
             return (mainThreadMonitor as? MainThreadMonitor)?.maxMainThreadBlock?:0L
         }
 
-    val performanceReport: Map<String, String>
-        get() {
-            val metrics = hashMapOf<String, String>()
-            metricMonitors.forEach { metrics.putAll(it.metricFields) }
-            return metrics
+    val performanceReport: Map<PerformanceMetric, String>
+        get() = buildMap {
+            metricMonitors.forEach { putAll(it.metricFields) }
         }
+
+    val analyticsPerformanceReport: Map<String, String>
+        get() = performanceReport.mapKeys { it.key.field }
+
+    val wcdPerformanceReport: Map<String, String>
+        get() = performanceReport.filter { it.key != PerformanceMetric.TotalMemory }.mapKeys { it.key.field }
 
     companion object {
         private const val THREAD_NAME = "BTTPerformanceMonitor"

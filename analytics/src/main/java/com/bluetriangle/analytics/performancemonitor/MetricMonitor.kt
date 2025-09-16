@@ -4,7 +4,7 @@ import com.bluetriangle.analytics.Timer
 
 internal interface MetricMonitor {
 
-    val metricFields: Map<String, String>
+    val metricFields: Map<PerformanceMetric, String>
 
     fun onBeforeSleep()
 

@@ -143,7 +143,7 @@ class Timer : Parcelable {
     /**
      * Performance monitor thread
      */
-    private var performanceMonitor: PerformanceMonitor? = null
+    internal var performanceMonitor: PerformanceMonitor? = null
 
     internal var nativeAppProperties = NativeAppProperties(
         null,
@@ -249,9 +249,7 @@ class Timer : Parcelable {
         } else {
             logger?.error("Timer already started")
         }
-        if (performanceMonitor != null) {
-            performanceMonitor!!.start()
-        }
+        performanceMonitor?.start()
         return this
     }
 
@@ -315,12 +313,12 @@ class Timer : Parcelable {
         if(!fields.containsKey(FIELD_ORDER_TIME)) {
             setOrderTime(end)
         }
-        if (performanceMonitor != null) {
-            performanceMonitor!!.stopRunning()
-            val performanceReport = performanceMonitor!!.performanceReport
+        performanceMonitor?.let {
+            it.stopRunning()
+            val performanceReport = it.analyticsPerformanceReport
             logger?.debug(performanceReport.toString())
             setPerformanceReportFields(performanceReport)
-            tracker?.clearPerformanceMonitor(performanceMonitor!!.id)
+            tracker?.clearPerformanceMonitor(it.id)
         }
         tracker?.removeFromTimerStack(this)
         onEnded()
@@ -751,11 +749,6 @@ class Timer : Parcelable {
     internal fun startSilent(): Timer {
         if(!isTrackingEnabled()) return this
 
-        if (performanceMonitor != null) {
-            tracker?.clearPerformanceMonitor(performanceMonitor!!.id)
-            performanceMonitor = null
-        }
-
         if (start == 0L) {
             start = System.currentTimeMillis()
             setField(FIELD_UNLOAD_EVENT_START, start)
@@ -763,6 +756,7 @@ class Timer : Parcelable {
         } else {
             logger?.error("Timer already started")
         }
+        performanceMonitor?.start()
         return this
     }
 
