@@ -3,7 +3,6 @@ package com.bluetriangle.analytics.performancemonitor
 import android.util.Log
 import com.bluetriangle.analytics.BlueTriangleConfiguration
 import com.bluetriangle.analytics.CrashRunnable
-import com.bluetriangle.analytics.PerformanceReport
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Timer.Companion.FIELD_PAGE_NAME
 import com.bluetriangle.analytics.Tracker
@@ -16,12 +15,12 @@ internal class MemoryMonitor(
 
     private val totalMemory = Runtime.getRuntime().maxMemory()
 
-    override val metricFields: Map<String, String>
+    override val metricFields: Map<PerformanceMetric, String>
         get() = mapOf(
-            PerformanceReport.FIELD_MIN_MEMORY to minMemory.toString(),
-            PerformanceReport.FIELD_TOTAL_MEMORY to totalMemory.toString(),
-            PerformanceReport.FIELD_MAX_MEMORY to maxMemory.toString(),
-            PerformanceReport.FIELD_AVG_MEMORY to calculateAverageMemory().toString()
+            PerformanceMetric.MinMemory to minMemory.toString(),
+            PerformanceMetric.MaxMemory to maxMemory.toString(),
+            PerformanceMetric.AvgMemory to avgMemory.toString(),
+            PerformanceMetric.TotalMemory to totalMemory.toString()
         )
 
     private var minMemory = Long.MAX_VALUE
@@ -33,11 +32,8 @@ internal class MemoryMonitor(
     private val isVerboseDebug = configuration.isDebug || configuration.debugLevel == Log.VERBOSE
     private var memoryUsed = arrayListOf<Long>()
 
-    private fun calculateAverageMemory(): Long {
-        return if (memoryCount == 0L) {
-            0
-        } else cumulativeMemory / memoryCount
-    }
+    private val avgMemory: Long
+        get() = if (memoryCount == 0L) 0 else cumulativeMemory / memoryCount
 
     private var isMemoryThresholdReached = false
 

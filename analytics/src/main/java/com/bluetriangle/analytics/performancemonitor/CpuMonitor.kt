@@ -6,7 +6,6 @@ import android.system.Os
 import android.system.OsConstants
 import android.util.Log
 import com.bluetriangle.analytics.BlueTriangleConfiguration
-import com.bluetriangle.analytics.PerformanceReport
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Timer.Companion.FIELD_PAGE_NAME
 import com.bluetriangle.analytics.utility.getNumberOfCPUCores
@@ -33,11 +32,11 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
         private val CPU_STATS_FILE = File("/proc/self/stat")
     }
 
-    override val metricFields: Map<String, String>
+    override val metricFields: Map<PerformanceMetric, String>
         get() = mapOf(
-            PerformanceReport.FIELD_MIN_CPU to minCpu.toString(),
-            PerformanceReport.FIELD_MAX_CPU to maxCpu.toString(),
-            PerformanceReport.FIELD_AVG_CPU to calculateAverageCpu().toString()
+            PerformanceMetric.MinCpu to minCpu.toString(),
+            PerformanceMetric.MaxCpu to maxCpu.toString(),
+            PerformanceMetric.AvgCpu to avgCpu.toString()
         )
 
     private val logger = configuration.logger
@@ -53,13 +52,10 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
         0
     }
 
-    private val cpuCoresCount = getNumberOfCPUCores()?:0L
+    private val cpuCoresCount = getNumberOfCPUCores() ?: 0L
 
-    private fun calculateAverageCpu(): Double {
-        return if (cpuCount == 0L) {
-            0.0
-        } else cumulativeCpu / cpuCount
-    }
+    private val avgCpu: Double
+        get() = if (cpuCount == 0L) 0.0  else cumulativeCpu / cpuCount
 
     private fun updateCpu(cpu: Double) {
         if (cpu < minCpu) {
@@ -68,7 +64,7 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
         if (cpu > maxCpu) {
             maxCpu = cpu
         }
-        if(isVerboseDebug) {
+        if (isVerboseDebug) {
             cpuUsed.add(cpu)
         }
         cumulativeCpu += cpu
@@ -125,7 +121,7 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
         // so we just calculate how many max clock ticks could've happened in the timeDelta time duration
         val maxClockTicks = (timeDuration * clockSpeedHz)
         val totalCPUUsage = usedClockTicks / maxClockTicks * 100.0
-        return totalCPUUsage/cpuCoresCount
+        return totalCPUUsage / cpuCoresCount
     }
 
     /**

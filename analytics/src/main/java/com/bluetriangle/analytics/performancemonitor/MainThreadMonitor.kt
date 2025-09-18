@@ -5,7 +5,7 @@ import android.os.Looper
 import com.bluetriangle.analytics.BlueTriangleConfiguration
 
 internal class MainThreadMonitor(configuration: BlueTriangleConfiguration) : MetricMonitor {
-    override val metricFields: Map<String, String>
+    override val metricFields: Map<PerformanceMetric, String>
         get() = mapOf()
 
     private val handler = Handler(Looper.getMainLooper())

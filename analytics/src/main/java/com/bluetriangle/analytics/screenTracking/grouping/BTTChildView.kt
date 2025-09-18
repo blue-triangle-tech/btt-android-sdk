@@ -8,7 +8,8 @@ internal class BTTChildView(
     val pageTime: String,
     val startTime: String,
     val endTime: String,
-    val nativeAppProperties: NativeAppProperties
+    val nativeAppProperties: NativeAppProperties,
+    val performanceMetrics: Map<String, String>?
 ) {
     companion object{
         const val ENTRY_TYPE = "screen"
