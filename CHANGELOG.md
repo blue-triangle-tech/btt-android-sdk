@@ -1,3 +1,7 @@
+# Blue Triangle 2.18.2 Latest, Oct 9 2025
+### Bug Fixes
+- WebView crash while updating session stitching data.
+
 # Blue Triangle 2.18.1, Sept 15 2025
 ### New Features
 - Associating Performance data to Group children. Added 6 properties for minCPU, maxCPU, avgCPU, minMemory, maxMemory, avgMemory to WCD payload for group children.
