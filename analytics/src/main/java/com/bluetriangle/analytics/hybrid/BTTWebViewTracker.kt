@@ -1,6 +1,7 @@
 package com.bluetriangle.analytics.hybrid
 
 import android.os.Build
+import android.os.Looper
 import android.webkit.WebView
 import com.bluetriangle.analytics.BuildConfig
 import com.bluetriangle.analytics.Tracker
@@ -13,24 +14,28 @@ object BTTWebViewTracker {
 
     @JvmStatic
     public fun onLoadResource(view: WebView?, url: String?) {
-        if (view == null || url == null) return
-        val fileName = url.split("/").lastOrNull { segment -> segment.isNotEmpty() }
-        if (fileName != "btt.js") return
+        try {
+            if (view == null || url == null) return
+            val fileName = url.split("/").lastOrNull { segment -> segment.isNotEmpty() }
+            if (fileName != "btt.js") return
 
-        addWebView(view)
+            addWebView(view)
 
-        Tracker.instance?.configuration?.let {
-            val expiration = (System.currentTimeMillis() + (30 * 60 * 1000)).toString()
-            val sessionID = "{\"value\":\"${it.sessionId}\",\"expires\":\"$expiration\"}"
+            Tracker.instance?.configuration?.let {
+                val expiration = (System.currentTimeMillis() + (30 * 60 * 1000)).toString()
+                val sessionID = "{\"value\":\"${it.sessionId}\",\"expires\":\"$expiration\"}"
 
-            val wcdOn = if(it.shouldSampleNetwork) "on" else "off"
-            val wcdCollect = "{\"value\":\"$wcdOn\",\"expires\":\"$expiration\"}"
-            val sdkVersion = "Android-${BuildConfig.SDK_VERSION}"
+                val wcdOn = if(it.shouldSampleNetwork) "on" else "off"
+                val wcdCollect = "{\"value\":\"$wcdOn\",\"expires\":\"$expiration\"}"
+                val sdkVersion = "Android-${BuildConfig.SDK_VERSION}"
 
-            view.setLocalStorage("BTT_X0siD", sessionID)
-            view.setLocalStorage("BTT_SDK_VER", sdkVersion)
-            view.setLocalStorage("BTT_WCD_Collect", wcdCollect)
-            Tracker.instance?.configuration?.logger?.info("Injected session ID and SDK version in WebView: BTT_X0siD: $sessionID, BTT_SDK_VER: $sdkVersion with expiration $expiration")
+                view.setLocalStorage("BTT_X0siD", sessionID)
+                view.setLocalStorage("BTT_SDK_VER", sdkVersion)
+                view.setLocalStorage("BTT_WCD_Collect", wcdCollect)
+                Tracker.instance?.configuration?.logger?.info("Injected session ID and SDK version in WebView: BTT_X0siD: $sessionID, BTT_SDK_VER: $sdkVersion with expiration $expiration")
+            }
+        } catch (e: Exception) {
+            Tracker.instance?.configuration?.logger?.error("Error while stitching WebView session: ${e.message}")
         }
     }
 
@@ -49,15 +54,21 @@ object BTTWebViewTracker {
 
     @JvmStatic
     internal fun updateSession(sessionId: String) {
-        webViews.forEach { webView ->
+        try {
+            Looper.getMainLooper().runCatching {
+                webViews.forEach { webView ->
 
-            webView.get()?.let {
+                    webView.get()?.let {
 
-                it.hasBTTJs {
-                    val siteId = Tracker.instance?.configuration?.siteId
-                    onLoadResource(it, "https://${siteId}.btttag.com/btt.js")
+                        it.hasBTTJs {
+                            val siteId = Tracker.instance?.configuration?.siteId
+                            onLoadResource(it, "https://${siteId}.btttag.com/btt.js")
+                        }
+                    }
                 }
             }
+        } catch (e: Exception) {
+            Tracker.instance?.configuration?.logger?.error("Error while updating WebView session: ${e.message}")
         }
     }
 
