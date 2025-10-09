@@ -1,3 +1,7 @@
+# Blue Triangle 2.18.2 Latest, Oct 9 2025
+### Bug Fixes
+- WebView related occasional crash fixed. On configuration update, if WebView was already loaded and got a new configuration update, the app might crash.
+
 # Blue Triangle 2.18.1, Sept 15 2025
 ### New Features
 - Associating Performance data to Group children. Added 6 properties for minCPU, maxCPU, avgCPU, minMemory, maxMemory, avgMemory to WCD payload for group children.
