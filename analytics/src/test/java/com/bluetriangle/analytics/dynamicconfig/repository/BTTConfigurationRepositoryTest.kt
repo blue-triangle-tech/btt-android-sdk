@@ -2,6 +2,7 @@ package com.bluetriangle.analytics.dynamicconfig.repository
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.bluetriangle.analytics.Logger
 import com.bluetriangle.analytics.dynamicconfig.model.BTTRemoteConfiguration
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -31,7 +32,22 @@ class BTTConfigurationRepositoryTest {
     @Mock
     lateinit var editor: SharedPreferences.Editor
 
+    @Mock
+    lateinit var mockLogger: Logger
+
     private lateinit var preferencesMap: MutableMap<String, Any>
+
+    private val siteId = "sdkdemo26621z"
+    private val defaultConfig = BTTRemoteConfiguration(
+        0.05,
+        emptyList(),
+        true,
+        true,
+        true,
+        true,
+        2,
+        0.05
+    )
 
     @Before
     fun setUp() {
@@ -63,35 +79,53 @@ class BTTConfigurationRepositoryTest {
 
     @Test
     fun `When configuration is present in cache should return cached configuration`() {
-        val testSampleRate = Math.random()
-        val config = BTTRemoteConfiguration(testSampleRate)
-        val repository = BTTConfigurationRepository(mockContext)
-        repository.save(config)
+        val config = BTTRemoteConfiguration(
+            Math.random(),
+            listOf("HomeActivity", "ProductsFragment"),
+            true,
+            false,
+            false,
+            true,
+            3,
+            Math.random()
+        )
+        val repositoryInput = BTTConfigurationRepository(mockLogger, mockContext, siteId, defaultConfig)
+        val repositoryOutput = BTTConfigurationRepository(mockLogger, mockContext, siteId, defaultConfig)
+
+        repositoryInput.save(config)
 
         assertEquals(
-            "Network sample rate doesn't match",
-            testSampleRate,
-            BTTConfigurationRepository(mockContext).get()?.networkSampleRate ?: 0.0,
-            0.000005
+            "Configuration doesn't match",
+            config,
+            repositoryOutput.get()
         )
     }
 
     @Test
-    fun `When cache is empty should return null`() {
-        val repository = BTTConfigurationRepository(mockContext)
+    fun `When cache is empty should default config`() {
+        val repository = BTTConfigurationRepository(mockLogger, mockContext, siteId, defaultConfig)
 
         assertEquals(
             "Doesn't return null",
-            null,
+            defaultConfig,
             repository.get()
         )
     }
 
     @Test
     fun `Configuration should be saved with correct timestamp`() {
-        val repository = BTTConfigurationRepository(mockContext)
+        val repository = BTTConfigurationRepository(mockLogger, mockContext, siteId, defaultConfig)
 
-        val config = BTTRemoteConfiguration(Math.random())
+        val config = BTTRemoteConfiguration(
+            Math.random(),
+            listOf(),
+            true,
+            true,
+            true,
+            true,
+            2,
+            Math.random()
+        )
         repository.save(config)
 
         val currentTime = System.currentTimeMillis()
