@@ -1,4 +1,8 @@
-# Blue Triangle 2.18.2 Latest, Oct 9 2025
+# Blue Triangle 2.18.3 Latest, Nov 3 2025
+### Bug Fixes
+- Fixed a rare crash caused by a race condition during ActivityLifecycleTracker.unregister call.
+
+# Blue Triangle 2.18.2, Oct 9 2025
 ### Bug Fixes
 - WebView related occasional crash fixed. On configuration update, if WebView was already loaded and got a new configuration update, the app might crash.
 
