@@ -13,36 +13,45 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class ActivityLifecycleTrackerTest {
 
-    @Test
-    fun `when onActivityDestroyed called while unregister is executing should not throw ConcurrentModificationException`() {
+    private val mockWindow = mock(Window::class.java)
+    private val mockFragmentManager = mock(FragmentManager::class.java)
+
+    init {
+        val callback = mock(Window.Callback::class.java)
+        `when`(mockWindow.callback).thenReturn(callback)
+    }
+
+    private fun getActivityLifecycleTracker(): ActivityLifecycleTracker {
         val screenTracker = mock(ScreenLifecycleTracker::class.java)
         val fragmentTracker = mock(FragmentLifecycleTracker::class.java)
-        val tracker = ActivityLifecycleTracker(screenTracker, fragmentTracker)
+        return ActivityLifecycleTracker(screenTracker, fragmentTracker)
+    }
 
-        val mockWindow = mock(Window::class.java)
-        val callback = mock(Window.Callback::class.java)
-        val fragmentManager = mock(FragmentManager::class.java)
+    private fun mockActivity() = mock(FragmentActivity::class.java).apply {
+        `when`(window).thenReturn(mockWindow)
+        `when`(supportFragmentManager).thenReturn(mockFragmentManager)
+    }
 
-        `when`(mockWindow.callback).thenReturn(callback)
-
+    @Test
+    fun `when onActivityDestroyed called while unregister is executing should not throw ConcurrentModificationException`() {
         // Add many activities to increase iteration time
-        val activities = List(500) { mock(FragmentActivity::class.java) }
+        val activityLifecycleTracker = getActivityLifecycleTracker()
+        val activities = List(500) { mockActivity() }
+
         activities.forEach {
-            `when`(it.window).thenReturn(mockWindow)
-            `when`(it.supportFragmentManager).thenReturn(fragmentManager)
-            tracker.onActivityCreated(it, null)
+            activityLifecycleTracker.onActivityCreated(it, null)
         }
 
         val destroyThread = Thread {
             repeat(100) {
-                tracker.onActivityDestroyed(activities.random())
+                activityLifecycleTracker.onActivityDestroyed(activities.random())
             }
         }
 
         destroyThread.start()
         // While other thread removes, we iterate
         try {
-            tracker.unregister()
+            activityLifecycleTracker.unregister()
         } catch (e: ConcurrentModificationException) {
             fail("Should not throw ConcurrentModificationException")
         }
@@ -52,37 +61,23 @@ class ActivityLifecycleTrackerTest {
 
     @Test
     fun `when onActivityCreated called while unregister is executing should not throw ConcurrentModificationException`() {
-        val screenTracker = mock(ScreenLifecycleTracker::class.java)
-        val fragmentTracker = mock(FragmentLifecycleTracker::class.java)
-        val tracker = ActivityLifecycleTracker(screenTracker, fragmentTracker)
-
-        val mockWindow = mock(Window::class.java)
-        val callback = mock(Window.Callback::class.java)
-        val fragmentManager = mock(FragmentManager::class.java)
-
-        `when`(mockWindow.callback).thenReturn(callback)
-
+        val activityLifecycleTracker = getActivityLifecycleTracker()
         // Add many activities to increase iteration time
-        val activities = ArrayList(List(500) { mock(FragmentActivity::class.java) })
+        val activities = ArrayList(List(500) { mockActivity() })
         activities.forEach {
-            `when`(it.window).thenReturn(mockWindow)
-            `when`(it.supportFragmentManager).thenReturn(fragmentManager)
-            tracker.onActivityCreated(it, null)
+            activityLifecycleTracker.onActivityCreated(it, null)
         }
 
         val destroyThread = Thread {
             repeat(100) {
-                val mockActivity = mock(FragmentActivity::class.java)
-                `when`(mockActivity.window).thenReturn(mockWindow)
-                `when`(mockActivity.supportFragmentManager).thenReturn(fragmentManager)
-                tracker.onActivityCreated(mockActivity, null)
+                activityLifecycleTracker.onActivityCreated(mockActivity(), null)
             }
         }
 
         destroyThread.start()
         // While other thread removes, we iterate
         try {
-            tracker.unregister()
+            activityLifecycleTracker.unregister()
         } catch (e: ConcurrentModificationException) {
             fail("Should not throw ConcurrentModificationException")
         }
