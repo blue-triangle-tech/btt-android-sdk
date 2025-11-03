@@ -5,12 +5,9 @@ import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import junit.framework.TestCase.fail
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
-import org.robolectric.RobolectricTestRunner
 
-@RunWith(RobolectricTestRunner::class)
 class ActivityLifecycleTrackerTest {
 
     private val mockWindow = mock(Window::class.java)
@@ -34,43 +31,30 @@ class ActivityLifecycleTrackerTest {
 
     @Test
     fun `when onActivityDestroyed called while unregister is executing should not throw ConcurrentModificationException`() {
-        // Add many activities to increase iteration time
-        val activityLifecycleTracker = getActivityLifecycleTracker()
-        val activities = List(500) { mockActivity() }
-
-        activities.forEach {
-            activityLifecycleTracker.onActivityCreated(it, null)
+        addActivitiesAndCallBlockWhileUnregister {
+            activities, activityLifecycleTracker ->
+            activityLifecycleTracker.onActivityDestroyed(activities.random())
         }
-
-        val destroyThread = Thread {
-            repeat(100) {
-                activityLifecycleTracker.onActivityDestroyed(activities.random())
-            }
-        }
-
-        destroyThread.start()
-        // While other thread removes, we iterate
-        try {
-            activityLifecycleTracker.unregister()
-        } catch (e: ConcurrentModificationException) {
-            fail("Should not throw ConcurrentModificationException")
-        }
-
-        destroyThread.join()
     }
 
     @Test
     fun `when onActivityCreated called while unregister is executing should not throw ConcurrentModificationException`() {
+        addActivitiesAndCallBlockWhileUnregister { _, activityLifecycleTracker ->
+            activityLifecycleTracker.onActivityCreated(mockActivity(), null)
+        }
+    }
+
+    private fun addActivitiesAndCallBlockWhileUnregister(block: (List<FragmentActivity>, ActivityLifecycleTracker) -> Unit) {
         val activityLifecycleTracker = getActivityLifecycleTracker()
         // Add many activities to increase iteration time
-        val activities = ArrayList(List(500) { mockActivity() })
+        val activities = List(500) { mockActivity() }
         activities.forEach {
             activityLifecycleTracker.onActivityCreated(it, null)
         }
 
         val destroyThread = Thread {
             repeat(100) {
-                activityLifecycleTracker.onActivityCreated(mockActivity(), null)
+                block(activities, activityLifecycleTracker)
             }
         }
 
