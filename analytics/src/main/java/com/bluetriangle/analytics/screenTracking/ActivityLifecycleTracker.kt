@@ -17,12 +17,14 @@ internal class ActivityLifecycleTracker(private val screenTracker: ScreenLifecyc
 
     private var activities = arrayListOf<Activity>()
 
+    @Synchronized
     fun unregister() {
         activities.forEach {
             (it as? FragmentActivity)?.unregisterFragmentLifecycleCallback(fragmentLifecycleTracker)
         }
     }
 
+    @Synchronized
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
         logEvent("onActivityCreated", activity)
         activities.add(activity)
@@ -62,6 +64,7 @@ internal class ActivityLifecycleTracker(private val screenTracker: ScreenLifecyc
         logEvent("onActivitySaveInstanceState", activity)
     }
 
+    @Synchronized
     override fun onActivityDestroyed(activity: Activity) {
         logEvent("onActivityDestroyed", activity)
         activities.remove(activity)
