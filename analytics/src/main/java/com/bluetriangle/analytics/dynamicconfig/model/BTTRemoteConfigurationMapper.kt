@@ -25,7 +25,7 @@ internal object BTTRemoteConfigurationMapper {
     private const val GROUPED_VIEW_SAMPLE_RATE = "groupedViewSampleRate"
 
     fun fromJson(remoteConfigJson: JSONObject): BTTRemoteConfiguration {
-        val networkSampleRate = remoteConfigJson.getIntOrNull(NETWORK_SAMPLE_RATE)?.div(100.0)
+        val networkSampleRate = remoteConfigJson.getDoubleOrNull(NETWORK_SAMPLE_RATE)?.div(100.0)
         val enableRemoteConfig = remoteConfigJson.getBooleanOrNull(ENABLE_REMOTE_CONFIG) == true
         val ignoreScreens = remoteConfigJson.getJsonArrayOrNull(IGNORE_SCREENS)?.let { array ->
             buildList {
