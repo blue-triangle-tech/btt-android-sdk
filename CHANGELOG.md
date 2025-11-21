@@ -1,4 +1,10 @@
-# Blue Triangle 2.18.3 Latest, Nov 4 2025
+# Blue Triangle 2.18.4 Latest, Nov 21 2025
+### Bug Fixes and Improvements
+- Lowercased cellular network states 2g, 3g, 4g, 5g
+- Changed remote config URL to use site ID prefix
+- Fixed network sample rate config parsing to accept decimal values e.g. 1.5%, 2.5%, etc.
+
+# Blue Triangle 2.18.3, Nov 4 2025
 ### Bug Fixes
 - Fixed a rare crash caused by a race condition during ActivityLifecycleTracker.unregister call.
 
