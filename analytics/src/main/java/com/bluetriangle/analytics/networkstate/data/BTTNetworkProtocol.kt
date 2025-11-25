@@ -22,10 +22,10 @@ import kotlinx.parcelize.Parcelize
 @Suppress("EnumEntryName")
 @Parcelize
 internal enum class BTTNetworkProtocol(val description: String) : Parcelable {
-    _2G("2G"),
-    _3G("3G"),
-    _4G("4G"),
-    _5G("5G"),
+    _2G("2g"),
+    _3G("3g"),
+    _4G("4g"),
+    _5G("5g"),
     Unknown("")
 }
 
