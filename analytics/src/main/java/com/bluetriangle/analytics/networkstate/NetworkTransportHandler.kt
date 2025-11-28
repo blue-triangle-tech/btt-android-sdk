@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 internal class NetworkTransportHandler(
     val state: BTTNetworkState,
-    val transports: IntArray,
+    private val transports: IntArray,
 ) {
     private val _isOnline = MutableStateFlow(false)
 
@@ -21,16 +21,13 @@ internal class NetworkTransportHandler(
         _isOnline.value = value
     }
 
-    fun applyNetworkCapabilities(builder: NetworkRequest.Builder): NetworkRequest.Builder = builder
+    fun addTransportTypes(builder: NetworkRequest.Builder): NetworkRequest.Builder = builder
         .apply {
             transports.forEach { addTransportType(it) }
         }
-        .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
 
-    fun isNetworkOnline(capabilities: NetworkCapabilities): Boolean {
-        val hasInternet = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-        val hasTransport = transports.any { capabilities.hasTransport(it) }
-        return hasInternet && hasTransport
+    fun isSupported(capabilities: NetworkCapabilities): Boolean {
+        return transports.any { capabilities.hasTransport(it) }
     }
 
 }

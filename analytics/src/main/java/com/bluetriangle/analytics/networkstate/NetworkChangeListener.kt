@@ -39,9 +39,11 @@ internal class NetworkChangeListener(
     ) {
         for ((_, capabilities) in currentNetworkState) {
             if (capabilities == null) continue
+            val hasInternetCapability = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            if (!hasInternetCapability) continue
 
             for (handler in handlers) {
-                if (handler.isNetworkOnline(capabilities)) {
+                if (handler.isSupported(capabilities)) {
                     handlerMap[handler] = true
                 }
             }

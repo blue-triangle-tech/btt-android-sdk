@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Context.CONNECTIVITY_SERVICE
 import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -73,8 +74,9 @@ internal class NetworkStateMonitor(logger: Logger?, context: Context) : INetwork
     init {
         NetworkRequest.Builder().apply {
             handlers.forEach {
-                it.applyNetworkCapabilities(this)
+                it.addTransportTypes(this)
             }
+            addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             connectivityManager?.registerNetworkCallback(
                 build(), networkChangeListener
             )
