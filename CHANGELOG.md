@@ -1,4 +1,9 @@
-# Blue Triangle 2.18.4 Latest, Nov 21 2025
+# Blue Triangle 2.18.5 Latest, Nov 28 2025
+### Bug Fixes
+- Resolved rare crashes in NetworkStateMonitor occurring during ConnectivityManager.registerNetworkCallback() on Android 11 and above. These crashes resulted due to a limit to registerNetworkCallback in Android 11 and above Android versions. This release reduces the number of registerNetworkCallback calls from 3 down to 1 and also adds additional try-catch guard to further crash proof this feature.
+- Fixed a low-frequency crash in Tracker.getMostRecentTimer(). The issue occurred in ArrayDeque.getLastOrNull() due to an internal state bug in Kotlin standard library that occurs under after some rare set of operations in Kotlin 1.8.x. Added Additional safety checks and synchronization improvements now prevent this crash.
+
+# Blue Triangle 2.18.4, Nov 21 2025
 ### Bug Fixes and Improvements
 - Lowercased cellular network states 2g, 3g, 4g, 5g
 - Changed remote config URL to use site ID prefix
