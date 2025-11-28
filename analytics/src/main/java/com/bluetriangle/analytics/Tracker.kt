@@ -272,6 +272,9 @@ class Tracker private constructor(
 
     private fun initializeNetworkMonitoring() {
         if (!configuration.isTrackNetworkStateEnabled) return
+        if (networkStateMonitor != null) {
+            return
+        }
 
         val appContext = context.get()
 
@@ -294,8 +297,12 @@ class Tracker private constructor(
             return
         }
 
-        networkStateMonitor = NetworkStateMonitor(configuration.logger, appContext)
-        networkTimelineTracker = NetworkTimelineTracker(networkStateMonitor!!)
+        try {
+            networkStateMonitor = NetworkStateMonitor(configuration.logger, appContext)
+            networkTimelineTracker = NetworkTimelineTracker(networkStateMonitor!!)
+        } catch (e: Exception) {
+            configuration.logger?.error("Unable to start network monitoring: ${e.message}")
+        }
 
         configuration.logger?.debug("Network state monitoring started.")
     }
@@ -319,8 +326,9 @@ class Tracker private constructor(
         timerStack.removeAll { it.get() == timer || it.get() == null }
     }
 
+    @Synchronized
     fun getMostRecentTimer(): Timer? {
-        return timerStack.lastOrNull()?.get()
+        return runCatching { timerStack.lastOrNull()?.get() }.getOrNull()
     }
 
     /**
