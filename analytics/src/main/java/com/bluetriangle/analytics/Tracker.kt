@@ -301,11 +301,10 @@ class Tracker private constructor(
         try {
             networkStateMonitor = NetworkStateMonitor(configuration.logger, appContext)
             networkTimelineTracker = NetworkTimelineTracker(networkStateMonitor!!)
+            configuration.logger?.debug("Network state tracking started.")
         } catch (e: Exception) {
             configuration.logger?.error("Unable to start network state tracking: ${e.message}")
         }
-
-        configuration.logger?.debug("Network state tracking started.")
     }
 
     private fun deInitializeNetworkStateTracking() {
