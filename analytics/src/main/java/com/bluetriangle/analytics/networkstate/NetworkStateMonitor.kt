@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Context.CONNECTIVITY_SERVICE
 import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.bluetriangle.analytics.Logger
@@ -43,17 +45,12 @@ internal class NetworkStateMonitor(logger: Logger?, context: Context) : INetwork
 
     private var networkProtocolProvider: NetworkProtocolProvider = NetworkProtocolProviderFactory.getNetworkProtocolProvider(context)
 
-    private val wifiTransportHandler = NetworkTransportHandler(
-        wifiTransports, logger, BTTNetworkState.Wifi
-    )
+    private val wifiTransportHandler = NetworkTransportHandler(BTTNetworkState.Wifi, wifiTransports)
+    private val cellularTransportHandler = NetworkTransportHandler(BTTNetworkState.Cellular("", BTTNetworkProtocol.Unknown), cellularTransports)
+    private val ethernetTransportHandler = NetworkTransportHandler(BTTNetworkState.Ethernet, ethernetTransports)
+    private val handlers = arrayOf(wifiTransportHandler, cellularTransportHandler, ethernetTransportHandler)
 
-    private val cellularTransportHandler = NetworkTransportHandler(
-        cellularTransports, logger, BTTNetworkState.Cellular("", BTTNetworkProtocol.Unknown)
-    )
-
-    private val ethernetTransportHandler = NetworkTransportHandler(
-        ethernetTransports, logger, BTTNetworkState.Ethernet
-    )
+    private val networkChangeListener = NetworkChangeListener(logger, handlers)
 
     /**
      * The arguments in the combine are based on their priority. If multiple network transports are available,
@@ -74,19 +71,20 @@ internal class NetworkStateMonitor(logger: Logger?, context: Context) : INetwork
         }
     }.stateIn(GlobalScope, SharingStarted.WhileSubscribed(), BTTNetworkState.Offline)
 
-    private val handlers = arrayOf(wifiTransportHandler, cellularTransportHandler, ethernetTransportHandler)
     init {
-        handlers.forEach {
+        NetworkRequest.Builder().apply {
+            handlers.forEach {
+                it.addTransportTypes(this)
+            }
+            addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             connectivityManager?.registerNetworkCallback(
-                it.networkRequest, it.listener
+                build(), networkChangeListener
             )
         }
         logger?.debug("-------------------Network Monitoring Started!-----------------")
     }
 
     override fun stop() {
-        handlers.forEach {
-            connectivityManager?.unregisterNetworkCallback(it.listener)
-        }
+        connectivityManager?.unregisterNetworkCallback(networkChangeListener)
     }
 }
