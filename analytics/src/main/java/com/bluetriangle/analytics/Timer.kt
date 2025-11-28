@@ -373,7 +373,7 @@ class Timer : Parcelable {
      * @return returns a new hash map with all the fields currently.
      */
     fun getFields(): Map<String, String> {
-        return fields.toMap()
+        return synchronized(fields) { fields.toMap() }
     }
 
     /**
@@ -669,7 +669,7 @@ class Timer : Parcelable {
      * @return the current value for the given field or null if not set
      */
     fun getField(fieldName: String): String? {
-        return fields[fieldName].toString()
+        return synchronized(fields) { fields[fieldName].toString() }
     }
 
     /**
@@ -680,10 +680,12 @@ class Timer : Parcelable {
      * @return the current value for the given field or null if not set
      */
     fun getField(fieldName: String, defaultValue: String): String {
-        val fieldValue = fields[fieldName]
-        return if (fieldValue.isNullOrEmpty()) {
-            defaultValue
-        } else fieldValue
+        return synchronized(fields) {
+            val fieldValue = fields[fieldName]
+            return@synchronized if (fieldValue.isNullOrEmpty()) {
+                defaultValue
+            } else fieldValue
+        }
     }
 
     /**

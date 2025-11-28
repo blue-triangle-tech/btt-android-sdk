@@ -316,19 +316,22 @@ class Tracker private constructor(
         }
     }
 
-    @Synchronized
     fun setMostRecentTimer(timer: Timer) {
-        timerStack.addLast(WeakReference(timer))
+        synchronized(timerStack) {
+            timerStack.addLast(WeakReference(timer))
+        }
     }
 
-    @Synchronized
     fun removeFromTimerStack(timer: Timer) {
-        timerStack.removeAll { it.get() == timer || it.get() == null }
+        synchronized(timerStack) {
+            timerStack.removeAll { it.get() == timer || it.get() == null }
+        }
     }
 
-    @Synchronized
     fun getMostRecentTimer(): Timer? {
-        return runCatching { timerStack.lastOrNull()?.get() }.getOrNull()
+        return synchronized(timerStack) {
+            runCatching { timerStack.lastOrNull()?.get() }.getOrNull()
+        }
     }
 
     /**

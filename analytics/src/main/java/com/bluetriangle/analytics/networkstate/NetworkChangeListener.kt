@@ -8,6 +8,7 @@ import android.os.Build.VERSION_CODES.LOLLIPOP
 import androidx.annotation.RequiresApi
 import com.bluetriangle.analytics.Logger
 import com.bluetriangle.analytics.utility.value
+import java.util.concurrent.ConcurrentHashMap
 
 @RequiresApi(LOLLIPOP)
 @SuppressLint("MissingPermission")
@@ -16,7 +17,7 @@ internal class NetworkChangeListener(
     private val handlers: Array<NetworkTransportHandler>
 ) : NetworkCallback() {
 
-    private val networkMap = mutableMapOf<Network, NetworkCapabilities?>()
+    private val networkMap = ConcurrentHashMap<Network, NetworkCapabilities?>()
 
     override fun onAvailable(network: Network) {
         super.onAvailable(network)
@@ -25,8 +26,17 @@ internal class NetworkChangeListener(
     }
 
     private fun refreshNetworkState() {
+        val currentNetworkState = synchronized(networkMap) { networkMap.toMap() }
         val handlerMap = handlers.associateWith { false }.toMutableMap()
-        for(network in networkMap) {
+        determineHandlerOnlineStatus(handlerMap, currentNetworkState)
+        applyHandlerOnlineStatus(handlerMap)
+    }
+
+    private fun determineHandlerOnlineStatus(
+        handlerMap: MutableMap<NetworkTransportHandler, Boolean>,
+        currentNetworkState: Map<Network, NetworkCapabilities?>
+    ) {
+        for(network in currentNetworkState) {
             network.value?.let { capabilities ->
                 for(handler in handlers) {
                     if(handler.isNetworkOnline(capabilities)) {
@@ -35,6 +45,9 @@ internal class NetworkChangeListener(
                 }
             }
         }
+    }
+
+    private fun applyHandlerOnlineStatus(handlerMap: MutableMap<NetworkTransportHandler, Boolean>) {
         for(handler in handlerMap) {
             handler.key.setOnline(handler.value)
             logger?.debug("NetworkMonitor: ${handler.key.state.value} - ${if(handler.value) "Online" else "Offline"}")
