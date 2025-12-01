@@ -171,7 +171,7 @@ class Tracker private constructor(
             trackCrashes()
         }
 
-        initializeNetworkMonitoring()
+        initializeNetworkStateTracking()
         configuration.logger?.debug("SDK is enabled")
     }
 
@@ -184,7 +184,7 @@ class Tracker private constructor(
         deInitializeScreenTracker()
         deInitializeANRMonitor()
         stopTrackCrashes()
-        deInitializeNetworkMonitoring()
+        deInitializeNetworkStateTracking()
         configuration.logger?.debug("SDK is disabled.")
     }
 
@@ -270,13 +270,17 @@ class Tracker private constructor(
         activityLifecycleTracker = null
     }
 
-    private fun initializeNetworkMonitoring() {
+    private fun initializeNetworkStateTracking() {
         if (!configuration.isTrackNetworkStateEnabled) return
+        if (networkStateMonitor != null) {
+            configuration.logger?.error("Network state tracking is already enabled.")
+            return
+        }
 
         val appContext = context.get()
 
         if (appContext == null) {
-            configuration.logger?.error("Unable to start network monitoring: Context is null")
+            configuration.logger?.error("Unable to start network state tracking: Context is null")
             return
         }
 
@@ -285,22 +289,25 @@ class Tracker private constructor(
         ) == PackageManager.PERMISSION_GRANTED
 
         if (!hasNetworkStatePermission) {
-            configuration.logger?.error("Unable to start network monitoring: Missing permission (ACCESS_NETWORK_STATE)")
+            configuration.logger?.error("Unable to start network state tracking: Missing permission (ACCESS_NETWORK_STATE)")
             return
         }
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            configuration.logger?.error("Unable to start network monitoring: Unsupported Android version.")
+            configuration.logger?.error("Unable to start network state tracking: Unsupported Android version.")
             return
         }
 
-        networkStateMonitor = NetworkStateMonitor(configuration.logger, appContext)
-        networkTimelineTracker = NetworkTimelineTracker(networkStateMonitor!!)
-
-        configuration.logger?.debug("Network state monitoring started.")
+        try {
+            networkStateMonitor = NetworkStateMonitor(configuration.logger, appContext)
+            networkTimelineTracker = NetworkTimelineTracker(networkStateMonitor!!)
+            configuration.logger?.debug("Network state tracking started.")
+        } catch (e: Exception) {
+            configuration.logger?.error("Unable to start network state tracking: ${e.message}")
+        }
     }
 
-    private fun deInitializeNetworkMonitoring() {
+    private fun deInitializeNetworkStateTracking() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             networkStateMonitor?.stop()
             networkTimelineTracker?.stop()
@@ -309,18 +316,22 @@ class Tracker private constructor(
         }
     }
 
-    @Synchronized
     fun setMostRecentTimer(timer: Timer) {
-        timerStack.addLast(WeakReference(timer))
+        synchronized(timerStack) {
+            timerStack.addLast(WeakReference(timer))
+        }
     }
 
-    @Synchronized
     fun removeFromTimerStack(timer: Timer) {
-        timerStack.removeAll { it.get() == timer || it.get() == null }
+        synchronized(timerStack) {
+            timerStack.removeAll { it.get() == timer || it.get() == null }
+        }
     }
 
     fun getMostRecentTimer(): Timer? {
-        return timerStack.lastOrNull()?.get()
+        return synchronized(timerStack) {
+            runCatching { timerStack.lastOrNull()?.get() }.getOrNull()
+        }
     }
 
     /**

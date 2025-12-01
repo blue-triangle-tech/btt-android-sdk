@@ -1,37 +1,33 @@
 package com.bluetriangle.analytics.networkstate
 
-import android.net.ConnectivityManager.NetworkCallback
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
 import androidx.annotation.RequiresApi
-import com.bluetriangle.analytics.Logger
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 internal class NetworkTransportHandler(
-    transports:IntArray,
-    logger: Logger?,
-    networkState: BTTNetworkState
+    val state: BTTNetworkState,
+    private val transports: IntArray,
 ) {
+    private val _isOnline = MutableStateFlow(false)
 
-    val networkRequest: NetworkRequest = getNetworkRequestFor(transports)
+    val isConnected: StateFlow<Boolean>
+        get() = _isOnline
 
-    private val _listener = NetworkChangeListener(
-        logger,
-        networkState
-    )
-    val listener:NetworkCallback
-        get() = _listener
+    fun setOnline(value: Boolean) {
+        _isOnline.value = value
+    }
 
-    val isConnected: Flow<Boolean>
-        get() = _listener.isConnected
-
-    private fun getNetworkRequestFor(transports: IntArray) = NetworkRequest.Builder()
+    fun addTransportTypes(builder: NetworkRequest.Builder): NetworkRequest.Builder = builder
         .apply {
             transports.forEach { addTransportType(it) }
         }
-        .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-        .build()
+
+    fun isSupported(capabilities: NetworkCapabilities): Boolean {
+        return transports.any { capabilities.hasTransport(it) }
+    }
 
 }
