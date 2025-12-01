@@ -1,4 +1,4 @@
-package com.bluetriangle.analytics.performancemonitor
+package com.bluetriangle.analytics.performancemonitor.monitors
 
 import android.os.Build
 import android.os.SystemClock
@@ -6,8 +6,7 @@ import android.system.Os
 import android.system.OsConstants
 import android.util.Log
 import com.bluetriangle.analytics.BlueTriangleConfiguration
-import com.bluetriangle.analytics.Timer
-import com.bluetriangle.analytics.Timer.Companion.FIELD_PAGE_NAME
+import com.bluetriangle.analytics.performancemonitor.DataPoint
 import com.bluetriangle.analytics.utility.getNumberOfCPUCores
 import java.io.BufferedReader
 import java.io.File
@@ -20,8 +19,6 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
     var totalClockTicsLastCollection = 0L
     var elapsedTimeLastCollection = 0.0
 
-    var isVerboseDebug = configuration.isDebug && configuration.debugLevel == Log.VERBOSE
-
     companion object {
         /**
          * /proc/pid/stat file contains the information about the CPU usage for the process with pid = <pid>
@@ -32,19 +29,7 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
         private val CPU_STATS_FILE = File("/proc/self/stat")
     }
 
-    override val metricFields: Map<PerformanceMetric, String>
-        get() = mapOf(
-            PerformanceMetric.MinCpu to minCpu.toString(),
-            PerformanceMetric.MaxCpu to maxCpu.toString(),
-            PerformanceMetric.AvgCpu to avgCpu.toString()
-        )
-
     private val logger = configuration.logger
-    private var minCpu = Double.MAX_VALUE
-    private var maxCpu = 0.0
-    private var cumulativeCpu = 0.0
-    private var cpuCount: Long = 0
-    private var cpuUsed = arrayListOf<Double>()
 
     private val clockSpeedHz = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
         Os.sysconf(OsConstants._SC_CLK_TCK)
@@ -52,24 +37,7 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
         0
     }
 
-    private val cpuCoresCount = getNumberOfCPUCores() ?: 0L
-
-    private val avgCpu: Double
-        get() = if (cpuCount == 0L) 0.0  else cumulativeCpu / cpuCount
-
-    private fun updateCpu(cpu: Double) {
-        if (cpu < minCpu) {
-            minCpu = cpu
-        }
-        if (cpu > maxCpu) {
-            maxCpu = cpu
-        }
-        if (isVerboseDebug) {
-            cpuUsed.add(cpu)
-        }
-        cumulativeCpu += cpu
-        cpuCount++
-    }
+    private val cpuCoresCount = getNumberOfCPUCores()?:0L
 
     private fun readCPUClocksUsed(): Long? {
         return try {
@@ -81,7 +49,7 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
         }
     }
 
-    override fun onBeforeSleep() {
+    override fun setupMetric() {
         /*
          * Only for the first time, we initialize the elapsedTime and cpu clocktics used
          * so we can use them while calculating the cpu usage
@@ -92,9 +60,9 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
         }
     }
 
-    override fun onAfterSleep() {
+    override fun captureDataPoint(): DataPoint? {
         val elapsedTime = getElapsedSystemTime()
-        val totalClockTicks = if (clockSpeedHz > 0) readCPUClocksUsed() else return
+        val totalClockTicks = if (clockSpeedHz > 0) readCPUClocksUsed() else return null
         if (totalClockTicks != null) {
             // Time delta denotes the difference between now and the last usage collection
             val timeDelta = elapsedTime - elapsedTimeLastCollection
@@ -103,11 +71,12 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
             val clockTicksDelta = totalClockTicks - totalClockTicsLastCollection
 
             val cpuUsage = calculateCPUUsage(clockTicksDelta, timeDelta).coerceAtMost(100.0)
-            updateCpu(cpuUsage)
             totalClockTicsLastCollection = totalClockTicks
             elapsedTimeLastCollection = elapsedTime
             logger?.log(Log.VERBOSE, String.format(Locale.ENGLISH, "CPU Usage: %.2f", cpuUsage))
+            return DataPoint.CPUDataPoint(cpuUsage)
         }
+        return null
     }
 
     /**
@@ -121,7 +90,7 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
         // so we just calculate how many max clock ticks could've happened in the timeDelta time duration
         val maxClockTicks = (timeDuration * clockSpeedHz)
         val totalCPUUsage = usedClockTicks / maxClockTicks * 100.0
-        return totalCPUUsage / cpuCoresCount
+        return totalCPUUsage/cpuCoresCount
     }
 
     /**
@@ -158,11 +127,4 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
         return uTime + sTime + cuTime + csTime
     }
 
-    override fun onTimerSubmit(timer: Timer) {
-        super.onTimerSubmit(timer)
-        if (isVerboseDebug) {
-            val pageName = timer.getField(FIELD_PAGE_NAME)
-            logger?.log(Log.VERBOSE, "CPU Samples for $pageName : $cpuUsed")
-        }
-    }
 }

@@ -4,6 +4,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
 import com.bluetriangle.analytics.model.NativeAppProperties
+import com.bluetriangle.analytics.performancemonitor.PerformanceSpan
 import com.bluetriangle.analytics.utility.getNumberOfCPUCores
 
 /**
@@ -143,12 +144,12 @@ class Timer : Parcelable {
     /**
      * Performance monitor thread
      */
-    internal var performanceMonitor: PerformanceMonitor? = null
+    internal var performanceSpan: PerformanceSpan? = null
 
     internal var nativeAppProperties = NativeAppProperties(
         null,
         null,
-        performanceMonitor?.maxMainThreadUsage,
+        performanceSpan?.maxMainThreadUsage,
         null
     )
 
@@ -164,7 +165,7 @@ class Timer : Parcelable {
         nativeAppProperties = NativeAppProperties(
             null,
             null,
-            performanceMonitor?.maxMainThreadUsage,
+            performanceSpan?.maxMainThreadUsage,
             null,
             getNumberOfCPUCores(),
             appVersion = tracker?.appVersion,
@@ -190,7 +191,7 @@ class Timer : Parcelable {
     constructor() : super() {
         fields = DEFAULT_VALUES.toMutableMap()
         if (tracker?.configuration?.isPerformanceMonitorEnabled == true) {
-            performanceMonitor = tracker.createPerformanceMonitor()
+            performanceSpan = tracker.createPerformanceSpan()
         }
     }
 
@@ -249,14 +250,14 @@ class Timer : Parcelable {
         } else {
             logger?.error("Timer already started")
         }
-        performanceMonitor?.start()
+        performanceSpan?.start()
         return this
     }
 
     internal fun startWithoutPerformanceMonitor(): Timer {
-        if (performanceMonitor != null) {
-            tracker?.clearPerformanceMonitor(performanceMonitor!!.id)
-            performanceMonitor = null
+        if (performanceSpan != null) {
+            tracker?.clearPerformanceSpan(performanceSpan!!.id)
+            performanceSpan = null
         }
         return start()
     }
@@ -313,12 +314,12 @@ class Timer : Parcelable {
         if(!fields.containsKey(FIELD_ORDER_TIME)) {
             setOrderTime(end)
         }
-        performanceMonitor?.let {
-            it.stopRunning()
-            val performanceReport = it.analyticsPerformanceReport
-            logger?.debug(performanceReport.toString())
-            setPerformanceReportFields(performanceReport)
-            tracker?.clearPerformanceMonitor(it.id)
+        performanceSpan?.let {
+            it.stop()
+            val performanceReport = it.performanceFields
+            logger?.debug("Performance Report: $performanceReport")
+            setPerformanceReportFields(performanceReport.mapKeys { it.key.field })
+            tracker?.clearPerformanceSpan(it.id)
         }
         tracker?.removeFromTimerStack(this)
         onEnded()
@@ -348,7 +349,7 @@ class Timer : Parcelable {
     fun isInteractive(): Boolean = start > 0 && interactive > 0
 
     fun onSubmit() {
-        performanceMonitor?.onTimerSubmit(this)
+        performanceSpan?.onTimerSubmit(this)
     }
     /**
      * Convenience method to submit this timer to the global tracker
@@ -709,9 +710,9 @@ class Timer : Parcelable {
         start = `in`.readLong()
         interactive = `in`.readLong()
         end = `in`.readLong()
-        val performanceMonitorId = `in`.readLong()
-        if (performanceMonitorId > 0) {
-            performanceMonitor = tracker?.getPerformanceMonitor(performanceMonitorId)
+        `in`.readString()?.let {
+            performanceSpan = tracker?.getPerformanceSpan(it)
+            performanceSpan?.start()
         }
         val size = `in`.readInt()
         fields = HashMap(size)
@@ -732,7 +733,8 @@ class Timer : Parcelable {
         dest.writeLong(start)
         dest.writeLong(interactive)
         dest.writeLong(end)
-        dest.writeLong(if (performanceMonitor != null) performanceMonitor!!.id else 0)
+        performanceSpan?.stop()
+        dest.writeString(performanceSpan?.id)
         dest.writeInt(fields.size)
         for ((key, value) in fields) {
             dest.writeString(key)
@@ -758,7 +760,7 @@ class Timer : Parcelable {
         } else {
             logger?.error("Timer already started")
         }
-        performanceMonitor?.start()
+        performanceSpan?.start()
         return this
     }
 
