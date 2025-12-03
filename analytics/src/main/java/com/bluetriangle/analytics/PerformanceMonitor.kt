@@ -25,11 +25,15 @@ class PerformanceMonitor(configuration: BlueTriangleConfiguration, deviceInfoPro
     private val listeners = mutableListOf<WeakReference<PerformanceListener>>()
 
     fun registerListener(listener: PerformanceListener) {
-        listeners.add(WeakReference(listener))
+        synchronized(listeners) {
+            listeners.add(WeakReference(listener))
+        }
     }
 
     fun unregisterListener(listener: PerformanceListener) {
-        listeners.removeAll { it.get() == listener }
+        synchronized(listeners) {
+            listeners.removeAll { it.get() == listener }
+        }
     }
 
     override fun run() {
@@ -59,6 +63,7 @@ class PerformanceMonitor(configuration: BlueTriangleConfiguration, deviceInfoPro
         listeners.forEach { it.get()?.onDataReceived(dataPoints) }
     }
 
+    @Synchronized
     fun stopRunning() {
         isRunning = false
     }

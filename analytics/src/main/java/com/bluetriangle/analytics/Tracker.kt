@@ -60,17 +60,15 @@ class Tracker private constructor(
     application: Application, configuration: BlueTriangleConfiguration
 ) {
     internal var performanceMonitor: PerformanceMonitor? = null
+        @Synchronized set
+
     private var anrManager: AnrManager? = null
+        @Synchronized set
 
     /**
      * Weak reference to Android application context
      */
     private val context: WeakReference<Context>
-
-    /**
-     * A weak reference to the most recently started timer
-     */
-    private var mostRecentTimer: WeakReference<Timer>? = null
 
     private var timerStack = ArrayDeque<WeakReference<Timer>>()
     /**
@@ -202,6 +200,7 @@ class Tracker private constructor(
 
     private fun stopPerformanceMonitoring() {
         performanceMonitor?.stopRunning()
+        performanceMonitor = null
     }
 
     fun trackCrashes() {
@@ -407,13 +406,15 @@ class Tracker private constructor(
     }
 
     internal fun loadCustomVariables(timer: Timer) {
-        if (customVariables.isNotEmpty()) {
-            kotlin.runCatching {
-                val extendedCustomVariables = JSONObject(customVariables as Map<*, *>?).toString()
-                if (extendedCustomVariables.length > Constants.EXTENDED_CUSTOM_VARIABLE_MAX_PAYLOAD) {
-                    configuration.logger?.warn("Dropping extended custom variables for $timer. Payload ${extendedCustomVariables.length} exceeds max size of ${Constants.EXTENDED_CUSTOM_VARIABLE_MAX_PAYLOAD}")
-                } else {
-                    timer.setField(Timer.FIELD_EXTENDED_CUSTOM_VARIABLES, extendedCustomVariables)
+        synchronized(customVariables) {
+            if (customVariables.isNotEmpty()) {
+                kotlin.runCatching {
+                    val extendedCustomVariables = JSONObject(customVariables as Map<*, *>?).toString()
+                    if (extendedCustomVariables.length > Constants.EXTENDED_CUSTOM_VARIABLE_MAX_PAYLOAD) {
+                        configuration.logger?.warn("Dropping extended custom variables for $timer. Payload ${extendedCustomVariables.length} exceeds max size of ${Constants.EXTENDED_CUSTOM_VARIABLE_MAX_PAYLOAD}")
+                    } else {
+                        timer.setField(Timer.FIELD_EXTENDED_CUSTOM_VARIABLES, extendedCustomVariables)
+                    }
                 }
             }
         }
@@ -459,6 +460,7 @@ class Tracker private constructor(
 
     private val userEvents = ConcurrentHashMap<Long, UserEventsCollection>()
 
+    @Synchronized
     internal fun submitUserEvent(userEvent: UserEvent) {
         getMostRecentTimer()?.let { timer ->
             configuration.logger?.debug("User Event Captured: $userEvent for $timer")
