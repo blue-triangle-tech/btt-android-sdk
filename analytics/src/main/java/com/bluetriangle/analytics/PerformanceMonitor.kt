@@ -60,7 +60,11 @@ class PerformanceMonitor(configuration: BlueTriangleConfiguration, deviceInfoPro
     private fun captureDataPoints() {
         val dataPoints = metricMonitors.map { it.captureDataPoint() }
 
-        listeners.forEach { it.get()?.onDataReceived(dataPoints) }
+        synchronized(listeners) {
+            listeners.forEach {
+                it.get()?.onDataReceived(dataPoints)
+            }
+        }
     }
 
     @Synchronized
