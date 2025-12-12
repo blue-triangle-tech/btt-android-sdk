@@ -6,8 +6,6 @@ import android.content.Context.CONNECTIVITY_SERVICE
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.bluetriangle.analytics.Logger
 import com.bluetriangle.analytics.networkstate.data.BTTNetworkProtocol
 import com.bluetriangle.analytics.networkstate.networkprotocol.NetworkProtocolProvider
@@ -15,7 +13,9 @@ import com.bluetriangle.analytics.networkstate.networkprotocol.NetworkProtocolPr
 import com.bluetriangle.analytics.utility.cellularTransports
 import com.bluetriangle.analytics.utility.ethernetTransports
 import com.bluetriangle.analytics.utility.wifiTransports
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -26,7 +26,6 @@ internal sealed class BTTNetworkState {
     object Wifi : BTTNetworkState()
     class Cellular(val source: String, val protocol: BTTNetworkProtocol) : BTTNetworkState()
     object Ethernet : BTTNetworkState()
-    object Other : BTTNetworkState()
     object Offline : BTTNetworkState()
 }
 
@@ -37,7 +36,6 @@ internal interface INetworkStateMonitor {
 }
 
 @SuppressLint("MissingPermission")
-@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 internal class NetworkStateMonitor(logger: Logger?, context: Context) : INetworkStateMonitor {
 
     private val connectivityManager =
@@ -51,6 +49,8 @@ internal class NetworkStateMonitor(logger: Logger?, context: Context) : INetwork
     private val handlers = arrayOf(wifiTransportHandler, cellularTransportHandler, ethernetTransportHandler)
 
     private val networkChangeListener = NetworkChangeListener(logger, handlers)
+
+    private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     /**
      * The arguments in the combine are based on their priority. If multiple network transports are available,
@@ -69,7 +69,7 @@ internal class NetworkStateMonitor(logger: Logger?, context: Context) : INetwork
             cellular -> BTTNetworkState.Cellular(protocol.source?.toString()?:"", protocol.protocol)
             else -> BTTNetworkState.Offline
         }
-    }.stateIn(GlobalScope, SharingStarted.WhileSubscribed(), BTTNetworkState.Offline)
+    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), BTTNetworkState.Offline)
 
     init {
         NetworkRequest.Builder().apply {
@@ -85,6 +85,7 @@ internal class NetworkStateMonitor(logger: Logger?, context: Context) : INetwork
     }
 
     override fun stop() {
+        coroutineScope.cancel()
         connectivityManager?.unregisterNetworkCallback(networkChangeListener)
     }
 }

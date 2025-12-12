@@ -31,13 +31,9 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
 
     private val logger = configuration.logger
 
-    private val clockSpeedHz = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-        Os.sysconf(OsConstants._SC_CLK_TCK)
-    } else {
-        0
-    }
+    private val clockSpeedHz = Os.sysconf(OsConstants._SC_CLK_TCK)
 
-    private val cpuCoresCount = getNumberOfCPUCores()?:0L
+    private val cpuCoresCount = getNumberOfCPUCores()
 
     private fun readCPUClocksUsed(): Long? {
         return try {
@@ -62,21 +58,19 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
 
     override fun captureDataPoint(): DataPoint? {
         val elapsedTime = getElapsedSystemTime()
-        val totalClockTicks = if (clockSpeedHz > 0) readCPUClocksUsed() else return null
-        if (totalClockTicks != null) {
-            // Time delta denotes the difference between now and the last usage collection
-            val timeDelta = elapsedTime - elapsedTimeLastCollection
-            // Clock tick delta denotes the amount of clock ticks used by the process
-            // since the last collection
-            val clockTicksDelta = totalClockTicks - totalClockTicsLastCollection
+        val totalClockTicks = readCPUClocksUsed()?:return null
 
-            val cpuUsage = calculateCPUUsage(clockTicksDelta, timeDelta).coerceAtMost(100.0)
-            totalClockTicsLastCollection = totalClockTicks
-            elapsedTimeLastCollection = elapsedTime
-            logger?.log(Log.VERBOSE, String.format(Locale.ENGLISH, "CPU Usage: %.2f", cpuUsage))
-            return DataPoint.CPUDataPoint(cpuUsage)
-        }
-        return null
+        // Time delta denotes the difference between now and the last usage collection
+        val timeDelta = elapsedTime - elapsedTimeLastCollection
+        // Clock tick delta denotes the amount of clock ticks used by the process
+        // since the last collection
+        val clockTicksDelta = totalClockTicks - totalClockTicsLastCollection
+
+        val cpuUsage = calculateCPUUsage(clockTicksDelta, timeDelta).coerceAtMost(100.0)
+        totalClockTicsLastCollection = totalClockTicks
+        elapsedTimeLastCollection = elapsedTime
+        logger?.log(Log.VERBOSE, String.format(Locale.ENGLISH, "CPU Usage: %.2f", cpuUsage))
+        return DataPoint.CPUDataPoint(cpuUsage)
     }
 
     /**
@@ -99,11 +93,7 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
      * instead of doing simple integer division
      */
     private fun getElapsedSystemTime(): Double {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            SystemClock.elapsedRealtimeNanos() / 1_000_000_000.0
-        } else {
-            SystemClock.elapsedRealtime() / 1_000.0
-        }
+        return SystemClock.elapsedRealtimeNanos() / 1_000_000_000.0
     }
 
     /**

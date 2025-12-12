@@ -308,11 +308,6 @@ class Tracker private constructor(
             return
         }
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            configuration.logger?.error("Unable to start network state tracking: Unsupported Android version.")
-            return
-        }
-
         try {
             networkStateMonitor = NetworkStateMonitor(configuration.logger, appContext)
             networkTimelineTracker = NetworkTimelineTracker(networkStateMonitor!!)
@@ -323,12 +318,10 @@ class Tracker private constructor(
     }
 
     private fun deInitializeNetworkStateTracking() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            networkStateMonitor?.stop()
-            networkTimelineTracker?.stop()
-            networkStateMonitor = null
-            networkTimelineTracker = null
-        }
+        networkStateMonitor?.stop()
+        networkTimelineTracker?.stop()
+        networkStateMonitor = null
+        networkTimelineTracker = null
     }
 
     fun setMostRecentTimer(timer: Timer) {
@@ -737,7 +730,7 @@ class Tracker private constructor(
         if(changesString.isNotEmpty()) {
             configuration.logger?.debug("Updated configuration $changesString")
             setSessionId(sessionData.sessionId)
-            BTTWebViewTracker.updateSession(sessionData.sessionId)
+            BTTWebViewTracker.updateSession()
         }
     }
 
