@@ -2,28 +2,37 @@ package com.bluetriangle.analytics
 
 import android.os.Process
 import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
-import com.bluetriangle.analytics.performancemonitor.CpuMonitor
-import com.bluetriangle.analytics.performancemonitor.MainThreadMonitor
-import com.bluetriangle.analytics.performancemonitor.MemoryMonitor
-import com.bluetriangle.analytics.performancemonitor.MetricMonitor
-import com.bluetriangle.analytics.performancemonitor.PerformanceMetric
+import com.bluetriangle.analytics.performancemonitor.monitors.CpuMonitor
+import com.bluetriangle.analytics.performancemonitor.monitors.MainThreadMonitor
+import com.bluetriangle.analytics.performancemonitor.monitors.MemoryMonitor
+import com.bluetriangle.analytics.performancemonitor.PerformanceListener
+import java.lang.ref.WeakReference
+import kotlin.collections.forEach
+import kotlin.collections.map
+import kotlin.collections.removeAll
 
 class PerformanceMonitor(configuration: BlueTriangleConfiguration, deviceInfoProvider: IDeviceInfoProvider) : Thread(THREAD_NAME) {
     private val logger = configuration.logger
     private var isRunning = true
     private val interval = configuration.performanceMonitorIntervalMs
 
-    private val metricMonitors = arrayListOf<MetricMonitor>()
+    private val metricMonitors = listOf(
+        CpuMonitor(configuration),
+        MemoryMonitor(configuration, deviceInfoProvider),
+        MainThreadMonitor(configuration)
+    )
 
-    init {
-        metricMonitors.add(CpuMonitor(configuration))
-        metricMonitors.add(MemoryMonitor(configuration, deviceInfoProvider))
-        metricMonitors.add(MainThreadMonitor(configuration))
+    private val listeners = mutableListOf<WeakReference<PerformanceListener>>()
+
+    fun registerListener(listener: PerformanceListener) {
+        synchronized(listeners) {
+            listeners.add(WeakReference(listener))
+        }
     }
 
-    fun onTimerSubmit(timer: Timer) {
-        metricMonitors.forEach {
-            it.onTimerSubmit(timer)
+    fun unregisterListener(listener: PerformanceListener) {
+        synchronized(listeners) {
+            listeners.removeAll { it.get() == listener }
         }
     }
 
@@ -31,47 +40,37 @@ class PerformanceMonitor(configuration: BlueTriangleConfiguration, deviceInfoPro
         Process.setThreadPriority(Process.THREAD_PRIORITY_LOWEST)
         while (isRunning) {
             try {
-                metricOnBefore()
+                setupMetrics()
 
                 if (isRunning) {
                     sleep(interval)
                 }
 
-                metricOnAfter()
+                captureDataPoints()
             } catch (e: InterruptedException) {
                 logger?.error(e, "Performance Monitor thread interrupted")
             }
         }
     }
 
-    private fun metricOnBefore() {
-        metricMonitors.forEach { it.onBeforeSleep() }
+    private fun setupMetrics() {
+        metricMonitors.forEach { it.setupMetric() }
     }
 
-    private fun metricOnAfter() {
-        metricMonitors.forEach { it.onAfterSleep() }
+    private fun captureDataPoints() {
+        val dataPoints = metricMonitors.map { it.captureDataPoint() }
+
+        synchronized(listeners) {
+            listeners.forEach {
+                it.get()?.onDataReceived(dataPoints)
+            }
+        }
     }
 
+    @Synchronized
     fun stopRunning() {
         isRunning = false
     }
-
-    val maxMainThreadUsage: Long
-        get() {
-            val mainThreadMonitor = metricMonitors.firstOrNull { it is MainThreadMonitor }
-            return (mainThreadMonitor as? MainThreadMonitor)?.maxMainThreadBlock?:0L
-        }
-
-    val performanceReport: Map<PerformanceMetric, String>
-        get() = buildMap {
-            metricMonitors.forEach { putAll(it.metricFields) }
-        }
-
-    val analyticsPerformanceReport: Map<String, String>
-        get() = performanceReport.mapKeys { it.key.field }
-
-    val wcdPerformanceReport: Map<String, String>
-        get() = performanceReport.filter { it.key != PerformanceMetric.TotalMemory }.mapKeys { it.key.field }
 
     companion object {
         private const val THREAD_NAME = "BTTPerformanceMonitor"

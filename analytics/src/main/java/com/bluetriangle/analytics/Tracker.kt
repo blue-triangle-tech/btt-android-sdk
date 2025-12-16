@@ -34,6 +34,7 @@ import com.bluetriangle.analytics.networkcapture.CapturedRequest
 import com.bluetriangle.analytics.networkcapture.CapturedRequestCollection
 import com.bluetriangle.analytics.networkstate.NetworkStateMonitor
 import com.bluetriangle.analytics.networkstate.NetworkTimelineTracker
+import com.bluetriangle.analytics.performancemonitor.PerformanceSpan
 import com.bluetriangle.analytics.screenTracking.ActivityLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.BTTScreenLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.FragmentLifecycleTracker
@@ -58,17 +59,16 @@ import java.util.concurrent.ConcurrentHashMap
 class Tracker private constructor(
     application: Application, configuration: BlueTriangleConfiguration
 ) {
+    internal var performanceMonitor: PerformanceMonitor? = null
+        @Synchronized set
+
     private var anrManager: AnrManager? = null
+        @Synchronized set
 
     /**
      * Weak reference to Android application context
      */
     private val context: WeakReference<Context>
-
-    /**
-     * A weak reference to the most recently started timer
-     */
-    private var mostRecentTimer: WeakReference<Timer>? = null
 
     private var timerStack = ArrayDeque<WeakReference<Timer>>()
     /**
@@ -94,7 +94,7 @@ class Tracker private constructor(
     /**
      * Performance monitoring threads
      */
-    private val performanceMonitors = HashMap<Long, PerformanceMonitor>()
+    private val performanceSpans = HashMap<String, PerformanceSpan>()
 
     /**
      * Captured requests awaiting to be bulk sent to Blue Triangle API
@@ -171,21 +171,36 @@ class Tracker private constructor(
             trackCrashes()
         }
 
+        if(configuration.isPerformanceMonitorEnabled) {
+            startPerformanceMonitoring()
+        }
+
         initializeNetworkStateTracking()
         configuration.logger?.debug("SDK is enabled")
     }
 
     @Synchronized
     private fun disable() {
-        performanceMonitors.forEach {
-            it.value.stopRunning()
+        performanceSpans.forEach {
+            it.value.stop()
         }
 
+        stopPerformanceMonitoring()
         deInitializeScreenTracker()
         deInitializeANRMonitor()
         stopTrackCrashes()
         deInitializeNetworkStateTracking()
         configuration.logger?.debug("SDK is disabled.")
+    }
+
+    private fun startPerformanceMonitoring() {
+        performanceMonitor = PerformanceMonitor(configuration, deviceInfoProvider)
+        performanceMonitor?.start()
+    }
+
+    private fun stopPerformanceMonitoring() {
+        performanceMonitor?.stopRunning()
+        performanceMonitor = null
     }
 
     fun trackCrashes() {
@@ -293,11 +308,6 @@ class Tracker private constructor(
             return
         }
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            configuration.logger?.error("Unable to start network state tracking: Unsupported Android version.")
-            return
-        }
-
         try {
             networkStateMonitor = NetworkStateMonitor(configuration.logger, appContext)
             networkTimelineTracker = NetworkTimelineTracker(networkStateMonitor!!)
@@ -308,12 +318,10 @@ class Tracker private constructor(
     }
 
     private fun deInitializeNetworkStateTracking() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            networkStateMonitor?.stop()
-            networkTimelineTracker?.stop()
-            networkStateMonitor = null
-            networkTimelineTracker = null
-        }
+        networkStateMonitor?.stop()
+        networkTimelineTracker?.stop()
+        networkStateMonitor = null
+        networkTimelineTracker = null
     }
 
     fun setMostRecentTimer(timer: Timer) {
@@ -355,18 +363,18 @@ class Tracker private constructor(
             return globalUserId
         }
 
-    fun createPerformanceMonitor(): PerformanceMonitor {
-        val performanceMonitor = PerformanceMonitor(configuration, deviceInfoProvider)
-        performanceMonitors[performanceMonitor.id] = performanceMonitor
-        return performanceMonitor
+    internal fun createPerformanceSpan(): PerformanceSpan {
+        val performanceSpan = PerformanceSpan(configuration)
+        performanceSpans[performanceSpan.id] = performanceSpan
+        return performanceSpan
     }
 
-    fun getPerformanceMonitor(id: Long): PerformanceMonitor? {
-        return performanceMonitors[id]
+    internal fun getPerformanceSpan(id: String): PerformanceSpan? {
+        return performanceSpans[id]
     }
 
-    fun clearPerformanceMonitor(id: Long) {
-        performanceMonitors.remove(id)
+    internal fun clearPerformanceSpan(id: String) {
+        performanceSpans.remove(id)
     }
 
     /**
@@ -391,13 +399,15 @@ class Tracker private constructor(
     }
 
     internal fun loadCustomVariables(timer: Timer) {
-        if (customVariables.isNotEmpty()) {
-            kotlin.runCatching {
-                val extendedCustomVariables = JSONObject(customVariables as Map<*, *>?).toString()
-                if (extendedCustomVariables.length > Constants.EXTENDED_CUSTOM_VARIABLE_MAX_PAYLOAD) {
-                    configuration.logger?.warn("Dropping extended custom variables for $timer. Payload ${extendedCustomVariables.length} exceeds max size of ${Constants.EXTENDED_CUSTOM_VARIABLE_MAX_PAYLOAD}")
-                } else {
-                    timer.setField(Timer.FIELD_EXTENDED_CUSTOM_VARIABLES, extendedCustomVariables)
+        synchronized(customVariables) {
+            if (customVariables.isNotEmpty()) {
+                kotlin.runCatching {
+                    val extendedCustomVariables = JSONObject(customVariables as Map<*, *>?).toString()
+                    if (extendedCustomVariables.length > Constants.EXTENDED_CUSTOM_VARIABLE_MAX_PAYLOAD) {
+                        configuration.logger?.warn("Dropping extended custom variables for $timer. Payload ${extendedCustomVariables.length} exceeds max size of ${Constants.EXTENDED_CUSTOM_VARIABLE_MAX_PAYLOAD}")
+                    } else {
+                        timer.setField(Timer.FIELD_EXTENDED_CUSTOM_VARIABLES, extendedCustomVariables)
+                    }
                 }
             }
         }
@@ -443,6 +453,7 @@ class Tracker private constructor(
 
     private val userEvents = ConcurrentHashMap<Long, UserEventsCollection>()
 
+    @Synchronized
     internal fun submitUserEvent(userEvent: UserEvent) {
         getMostRecentTimer()?.let { timer ->
             configuration.logger?.debug("User Event Captured: $userEvent for $timer")
@@ -719,7 +730,7 @@ class Tracker private constructor(
         if(changesString.isNotEmpty()) {
             configuration.logger?.debug("Updated configuration $changesString")
             setSessionId(sessionData.sessionId)
-            BTTWebViewTracker.updateSession(sessionData.sessionId)
+            BTTWebViewTracker.updateSession()
         }
     }
 

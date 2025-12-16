@@ -1,6 +1,5 @@
 package com.bluetriangle.analytics.hybrid
 
-import android.os.Build
 import android.os.Looper
 import android.webkit.WebView
 import com.bluetriangle.analytics.BuildConfig
@@ -53,7 +52,7 @@ object BTTWebViewTracker {
     }
 
     @JvmStatic
-    internal fun updateSession(sessionId: String) {
+    internal fun updateSession() {
         try {
             Looper.getMainLooper().runCatching {
                 webViews.forEach { webView ->
@@ -82,11 +81,7 @@ object BTTWebViewTracker {
     }
 
     private fun WebView.runJS(js: String) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            evaluateJavascript(js, null)
-        } else {
-            loadUrl("javascript:$js")
-        }
+        evaluateJavascript(js, null)
     }
 
 }

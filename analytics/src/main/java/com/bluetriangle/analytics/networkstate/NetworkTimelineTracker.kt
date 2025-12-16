@@ -1,6 +1,5 @@
 package com.bluetriangle.analytics.networkstate
 
-import android.os.Build
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.networkstate.data.NetworkSliceStats
 import com.bluetriangle.analytics.networkstate.data.NetworkSwitch
@@ -18,9 +17,7 @@ internal class NetworkTimelineTracker(private val networkStateMonitor: NetworkSt
 
     init {
         appScope?.launch {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                networkStateMonitor.state.collectLatest(::onNetworkChange)
-            }
+            networkStateMonitor.state.collectLatest(::onNetworkChange)
         }
     }
 
