@@ -1,7 +1,6 @@
 package com.bluetriangle.analytics
 
-import android.net.Uri
-import android.os.Build
+import androidx.core.net.toUri
 import com.bluetriangle.analytics.Constants.TIMER_MIN_PGTM
 import com.bluetriangle.analytics.Timer.Companion.FIELD_NATIVE_APP
 import com.bluetriangle.analytics.caching.classifier.CacheType
@@ -85,7 +84,7 @@ internal class CrashRunnable(
         val deviceName = Utils.deviceName
         val pageName = mostRecentTimer?.getField(Timer.FIELD_PAGE_NAME)
             ?: Constants.CRASH_PAGE_NAME
-        return Uri.parse(configuration.errorReportingUrl)
+        return configuration.errorReportingUrl.toUri()
             .buildUpon()
             .appendQueryParameter(Timer.FIELD_SITE_ID, configuration.siteId)
             .appendQueryParameter(
@@ -215,12 +214,10 @@ internal class CrashRunnable(
 
         val nativeAppProperties = ErrorNativeAppProperties()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && netStateMonitor != null) {
-            netStateMonitor.state.value.let {
-                nativeAppProperties.netState = it.value
-                if(it is BTTNetworkState.Cellular) {
-                    nativeAppProperties.netStateSource = it.source
-                }
+        netStateMonitor?.state?.value?.let {
+            nativeAppProperties.netState = it.value
+            if(it is BTTNetworkState.Cellular) {
+                nativeAppProperties.netStateSource = it.source
             }
         }
         nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())

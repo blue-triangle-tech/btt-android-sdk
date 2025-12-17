@@ -149,7 +149,7 @@ internal class BTTTimerGroup(
                 (childLoadStartTime - groupStartTime).toString(),
                 (childLoadEndTime - groupStartTime).toString(),
                 childNativeAppProp,
-                it.second.performanceMonitor?.wcdPerformanceReport
+                it.second.performanceSpan?.performanceFields?.mapKeys { it.key.field }
             )
         }
     }

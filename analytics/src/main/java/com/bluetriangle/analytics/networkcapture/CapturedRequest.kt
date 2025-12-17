@@ -127,12 +127,10 @@ class CapturedRequest {
         val netStateMonitor = Tracker.instance?.networkStateMonitor
 
         nativeAppProperties = NetworkNativeAppProperties(null)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && netStateMonitor != null) {
-            netStateMonitor.state.value.let {
-                nativeAppProperties?.netState = it.value
-                if(it is BTTNetworkState.Cellular) {
-                    nativeAppProperties?.netStateSource = it.source
-                }
+        netStateMonitor?.state?.value?.let {
+            nativeAppProperties?.netState = it.value
+            if(it is BTTNetworkState.Cellular) {
+                nativeAppProperties?.netStateSource = it.source
             }
         }
     }

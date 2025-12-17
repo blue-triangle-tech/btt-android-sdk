@@ -39,7 +39,7 @@ internal class RunnableAnrDetector(private val trackAnrIntervalSec: Int = ANR_DE
      * Stop detecting ANR.
      */
     override fun stopDetection() {
-        executor.shutdown()
+        executor.shutdownNow()
         executor = Executors.newSingleThreadExecutor()
     }
 
