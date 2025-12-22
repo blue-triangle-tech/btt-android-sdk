@@ -4,12 +4,17 @@ import android.app.Activity
 import android.app.Application
 import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
+import com.bluetriangle.analytics.BlueTriangleConfiguration
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.utility.registerFragmentLifecycleCallback
 import com.bluetriangle.analytics.utility.screen
 import com.bluetriangle.analytics.utility.unregisterFragmentLifecycleCallback
 
-internal class ActivityLifecycleTracker(private val screenTracker: ScreenLifecycleTracker, private val fragmentLifecycleTracker: FragmentLifecycleTracker):Application.ActivityLifecycleCallbacks {
+internal class ActivityLifecycleTracker(
+    private val configuration: BlueTriangleConfiguration,
+    private val screenTracker: ScreenLifecycleTracker,
+    private val fragmentLifecycleTracker: FragmentLifecycleTracker
+):Application.ActivityLifecycleCallbacks {
 
     companion object {
         const val TAG = "ActivityLifecycleTracker"
@@ -17,21 +22,53 @@ internal class ActivityLifecycleTracker(private val screenTracker: ScreenLifecyc
 
     private var activities = arrayListOf<Activity>()
 
-    @Synchronized
     fun unregister() {
-        activities.forEach {
-            (it as? FragmentActivity)?.unregisterFragmentLifecycleCallback(fragmentLifecycleTracker)
+        synchronized(activities) {
+            activities.forEach {
+                it.disableTapDetection()
+                (it as? FragmentActivity)?.unregisterFragmentLifecycleCallback(fragmentLifecycleTracker)
+            }
         }
     }
 
-    @Synchronized
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
         logEvent("onActivityCreated", activity)
-        activities.add(activity)
+        synchronized(activities) {
+            activities.add(activity)
+        }
         (activity as? FragmentActivity)?.registerFragmentLifecycleCallback(fragmentLifecycleTracker)
-        val originalCallback = activity.window.callback
-        activity.window.callback = TouchEventInterceptor(originalCallback)
+        if(configuration.shouldDetectTap) {
+            activity.enableTapDetection()
+        }
         screenTracker.onLoadStarted(activity.screen, automated = true)
+    }
+
+    fun enableTapDetection() {
+        synchronized(activities) {
+            activities.forEach {
+                it.enableTapDetection()
+            }
+        }
+    }
+
+    fun disableTapDetection() {
+        synchronized(activities) {
+            activities.forEach {
+                it.disableTapDetection()
+            }
+        }
+    }
+
+    private fun Activity.enableTapDetection() {
+        val originalCallback = window.callback
+        window.callback = TouchEventInterceptor(originalCallback)
+    }
+
+    private fun Activity.disableTapDetection() {
+        Tracker.instance?.lastTouchEventTimestamp = 0L
+        (window.callback as? TouchEventInterceptor)?.originalCallback?.let {
+            window.callback = it
+        }
     }
 
     override fun onActivityStarted(activity: Activity) {
@@ -64,10 +101,12 @@ internal class ActivityLifecycleTracker(private val screenTracker: ScreenLifecyc
         logEvent("onActivitySaveInstanceState", activity)
     }
 
-    @Synchronized
     override fun onActivityDestroyed(activity: Activity) {
         logEvent("onActivityDestroyed", activity)
-        activities.remove(activity)
+        synchronized(activities) {
+            activities.remove(activity)
+        }
+        activity.disableTapDetection()
         (activity as? FragmentActivity)?.unregisterFragmentLifecycleCallback(fragmentLifecycleTracker)
     }
 

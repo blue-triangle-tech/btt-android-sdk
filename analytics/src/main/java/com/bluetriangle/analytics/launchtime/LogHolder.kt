@@ -8,6 +8,8 @@ interface LogHolder {
 
     fun log(logData: LogData)
 
+    fun clearLogs()
+
 }
 
 data class LogData(val level:Int = Log.DEBUG, val message: String)

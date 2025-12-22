@@ -15,7 +15,7 @@ import android.view.accessibility.AccessibilityEvent
 import androidx.annotation.RequiresApi
 import com.bluetriangle.analytics.Tracker
 
-class TouchEventInterceptor(private val originalCallback: Window.Callback) : Window.Callback {
+class TouchEventInterceptor(internal val originalCallback: Window.Callback) : Window.Callback {
     override fun dispatchKeyEvent(event: KeyEvent?): Boolean {
         return originalCallback.dispatchKeyEvent(event)
     }

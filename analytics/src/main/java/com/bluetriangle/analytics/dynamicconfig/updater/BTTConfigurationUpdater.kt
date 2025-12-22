@@ -9,7 +9,6 @@ import com.bluetriangle.analytics.Logger
 import com.bluetriangle.analytics.appeventhub.AppEventConsumer
 import com.bluetriangle.analytics.dynamicconfig.fetcher.BTTConfigFetchResult
 import com.bluetriangle.analytics.dynamicconfig.fetcher.IBTTConfigurationFetcher
-import com.bluetriangle.analytics.dynamicconfig.model.BTTSavedRemoteConfiguration
 import com.bluetriangle.analytics.dynamicconfig.reporter.BTTConfigUpdateReporter
 import com.bluetriangle.analytics.dynamicconfig.repository.IBTTConfigurationRepository
 

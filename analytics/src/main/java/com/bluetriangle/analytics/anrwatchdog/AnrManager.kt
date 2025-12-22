@@ -21,13 +21,11 @@ internal class AnrManager(
     }
 
     fun start() {
-        if (configuration.isTrackAnrEnabled)
-            detector.startDetection()
+        detector.startDetection()
     }
 
     fun stop() {
-        if (configuration.isTrackAnrEnabled)
-            detector.stopDetection()
+        detector.stopDetection()
     }
 
     override fun onAppNotResponding(error: AnrException) {

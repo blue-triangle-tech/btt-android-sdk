@@ -14,6 +14,13 @@ internal class BTTSavedRemoteConfiguration(
     enableGrouping: Boolean,
     groupingIdleTime: Int,
     groupedViewSampleRate: Double?,
+    enableGroupingTapDetection: Boolean,
+    enableNetworkStateTracking: Boolean,
+    enableCrashTracking: Boolean,
+    enableANRTracking: Boolean,
+    enableMemoryWarning: Boolean,
+    enableLaunchTime: Boolean,
+    enableWebViewStitching: Boolean,
     val savedDate: Long
 ) : BTTRemoteConfiguration(
     networkSampleRate,
@@ -23,7 +30,14 @@ internal class BTTSavedRemoteConfiguration(
     enableScreenTracking,
     enableGrouping,
     groupingIdleTime,
-    groupedViewSampleRate
+    groupedViewSampleRate,
+    enableGroupingTapDetection,
+    enableNetworkStateTracking,
+    enableCrashTracking,
+    enableANRTracking,
+    enableMemoryWarning,
+    enableLaunchTime,
+    enableWebViewStitching
 ) {
 
     companion object {
@@ -36,6 +50,13 @@ internal class BTTSavedRemoteConfiguration(
             remoteConfig.enableGrouping,
             remoteConfig.groupingIdleTime,
             remoteConfig.groupedViewSampleRate,
+            remoteConfig.enableGroupingTapDetection,
+            remoteConfig.enableNetworkStateTracking,
+            remoteConfig.enableCrashTracking,
+            remoteConfig.enableANRTracking,
+            remoteConfig.enableMemoryWarning,
+            remoteConfig.enableLaunchTime,
+            remoteConfig.enableWebViewStitching,
             System.currentTimeMillis()
         )
     }

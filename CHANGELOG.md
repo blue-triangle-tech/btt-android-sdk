@@ -1,3 +1,14 @@
+# Blue Triangle 2.19.1 Latest, Dec 22 2025
+### New Improvements
+- Added remote configuration flags to enable/disable following features:
+  - Grouping tap detection
+  - Network state tracking
+  - ANR tracking
+  - Crash tracking
+  - Memory warning
+  - Launch time tracking
+  - WebView stitching.
+
 # Blue Triangle 2.19.0 Latest, Dec 16 2025
 ### Improvements and Breaking Changes
 - Updated minimum supported Android version to API 21 (minSdkVersion = 21).
