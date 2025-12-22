@@ -60,6 +60,7 @@ internal class ActivityLifecycleTracker(
     }
 
     private fun Activity.enableTapDetection() {
+        if(window.callback is TouchEventInterceptor) return
         val originalCallback = window.callback
         window.callback = TouchEventInterceptor(originalCallback)
     }

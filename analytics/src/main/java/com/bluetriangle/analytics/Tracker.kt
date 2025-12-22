@@ -722,6 +722,11 @@ class Tracker private constructor(
             changes.append("\nisGroupingEnabled: ${configuration.isGroupingEnabled} -> ${sessionData.enableGrouping}")
             configuration.isGroupingEnabled = sessionData.enableGrouping
             screenTrackMonitor?.groupingEnabled = configuration.isGroupingEnabled
+            if(configuration.shouldDetectTap) {
+                activityLifecycleTracker?.enableTapDetection()
+            } else {
+                activityLifecycleTracker?.disableTapDetection()
+            }
         }
 
         if(configuration.groupingIdleTime != sessionData.groupingIdleTime) {
