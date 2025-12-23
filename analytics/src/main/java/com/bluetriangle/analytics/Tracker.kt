@@ -11,6 +11,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.text.TextUtils
+import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
@@ -137,7 +138,7 @@ class Tracker private constructor(
         configuration.globalUserId = globalUserId
 
         enable()
-        configuration.logger?.debug("BlueTriangleSDK Initialized: $configuration")
+        Log.d("BlueTriangle","BlueTriangleSDK Initialized: $configuration")
     }
 
     private fun enableLaunchMonitor() {
