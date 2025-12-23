@@ -1,4 +1,4 @@
-# Blue Triangle 2.19.1 Latest, Dec 22 2025
+# Blue Triangle 2.19.1 Latest, Dec 23 2025
 ### New Improvements
 - Added remote configuration flags to enable/disable following features:
   - Grouping tap detection
