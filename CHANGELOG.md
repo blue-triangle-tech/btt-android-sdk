@@ -8,6 +8,7 @@
   - Memory warning
   - Launch time tracking
   - WebView stitching.
+- Changed default groupedViewSampleRate to 5%
 
 # Blue Triangle 2.19.0 Latest, Dec 16 2025
 ### Improvements and Breaking Changes
