@@ -24,8 +24,10 @@ internal class LaunchMonitor private constructor(): AppEventConsumer, LaunchEven
     companion object {
         private const val LOG_BUFFER_SIZE = 30
         private var _instance:LaunchMonitor?=null
+            @Synchronized set
 
         fun init() {
+            if(_instance != null) return
             _instance = LaunchMonitor()
         }
 
