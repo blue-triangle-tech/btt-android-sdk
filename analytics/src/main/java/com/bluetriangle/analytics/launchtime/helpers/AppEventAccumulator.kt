@@ -13,23 +13,34 @@ internal class AppEventAccumulator(private val logHolder: LogHolder) {
     private var events: Queue<AppLifecycleEvent> = LinkedList()
 
     fun accumulate(event: AppLifecycleEvent): Result? {
-        events.offer(event)
-        if (event is AppLifecycleEvent.ActivityResumed) {
-            val appEvents = events.toList()
-            events.clear()
+        synchronized(events) {
+            if(event is AppLifecycleEvent.ActivityCreated) {
+                val top = events.peek()
+                if(top is AppLifecycleEvent.AppLifecycleCreated) {
+                    // if App was created more than 2 seconds ago, then don't consider it as cold launch
+                    if(event.time - top.time >= 2000) {
+                        events.clear()
+                    }
+                }
+            }
+            events.offer(event)
+            if (event is AppLifecycleEvent.ActivityResumed) {
+                val appEvents = events.toList()
+                events.clear()
 
-            return when (appEvents.first()) {
-                is AppLifecycleEvent.AppLifecycleCreated -> Result(LaunchType.Cold, appEvents)
-                is AppLifecycleEvent.ActivityCreated -> Result(LaunchType.Warm, appEvents)
-                is AppLifecycleEvent.ActivityStarted -> Result(LaunchType.Hot, appEvents)
-                else -> {
-                    logHolder.log(
-                        LogData(
-                            level = Log.ERROR,
-                            "Invalid App Event State: Activity.onResumed received but, Application.onCreate or Activity.onStart not received."
+                return when (appEvents.first()) {
+                    is AppLifecycleEvent.AppLifecycleCreated -> Result(LaunchType.Cold, appEvents)
+                    is AppLifecycleEvent.ActivityCreated -> Result(LaunchType.Warm, appEvents)
+                    is AppLifecycleEvent.ActivityStarted -> Result(LaunchType.Hot, appEvents)
+                    else -> {
+                        logHolder.log(
+                            LogData(
+                                level = Log.ERROR,
+                                "Invalid App Event State: Activity.onResumed received but, Application.onCreate or Activity.onStart not received."
+                            )
                         )
-                    )
-                    null
+                        null
+                    }
                 }
             }
         }
@@ -37,7 +48,9 @@ internal class AppEventAccumulator(private val logHolder: LogHolder) {
     }
 
     internal fun reset() {
-        events.clear()
+        synchronized(events) {
+            events.clear()
+        }
     }
 
     class Result(val type: LaunchType, val events: List<AppLifecycleEvent>)

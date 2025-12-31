@@ -1,9 +1,7 @@
 package com.bluetriangle.analytics.performancemonitor
 
-import android.util.Log
 import com.bluetriangle.analytics.BlueTriangleConfiguration
 import com.bluetriangle.analytics.Timer
-import com.bluetriangle.analytics.Timer.Companion.FIELD_PAGE_NAME
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.performancemonitor.accumulators.CPUDataAccumulator
 import com.bluetriangle.analytics.performancemonitor.accumulators.MemoryDataAccumulator
@@ -14,8 +12,6 @@ internal class PerformanceSpan(configuration: BlueTriangleConfiguration) : Perfo
     val id = UUID.randomUUID().toString()
 
     val logger = configuration.logger
-
-    var isVerboseDebug = configuration.isDebug && configuration.debugLevel == Log.VERBOSE
 
     private var memoryData: MemoryDataAccumulator? = null
 
@@ -47,14 +43,14 @@ internal class PerformanceSpan(configuration: BlueTriangleConfiguration) : Perfo
                 when (it) {
                     is DataPoint.CPUDataPoint -> {
                         if(cpuData == null) {
-                            cpuData = CPUDataAccumulator(isVerboseDebug)
+                            cpuData = CPUDataAccumulator()
                         }
                         cpuData?.accumulate(it)
                     }
                     is DataPoint.MainThreadDataPoint -> updateMainThreadUsage(it)
                     is DataPoint.MemoryDataPoint -> {
                         if(memoryData == null) {
-                            memoryData = MemoryDataAccumulator(isVerboseDebug)
+                            memoryData = MemoryDataAccumulator()
                         }
                         memoryData?.accumulate(it)
                     }
@@ -68,14 +64,6 @@ internal class PerformanceSpan(configuration: BlueTriangleConfiguration) : Perfo
     }
 
     fun onTimerSubmit(timer: Timer) {
-        if (isVerboseDebug) {
-            val pageName = timer.getField(FIELD_PAGE_NAME)
-            cpuData?.let {
-                logger?.log(Log.VERBOSE, "CPU Samples for $pageName : ${it.cpuUsed}")
-            }
-            memoryData?.let {
-                logger?.log(Log.VERBOSE, "Memory Samples for $pageName : ${it.memoryUsed}")
-            }
-        }
+
     }
 }
