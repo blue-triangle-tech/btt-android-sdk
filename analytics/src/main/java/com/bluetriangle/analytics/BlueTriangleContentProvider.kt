@@ -8,17 +8,18 @@ import android.net.Uri
 import android.util.Log
 import com.bluetriangle.analytics.appeventhub.AppEventHub
 import com.bluetriangle.analytics.launchtime.LaunchMonitor
-import com.bluetriangle.analytics.launchtime.LogData
 
 class BlueTriangleContentProvider: ContentProvider() {
     override fun onCreate(): Boolean {
         try {
-            AppEventHub.instance.addConsumer(LaunchMonitor.instance)
-
+            LaunchMonitor.init()
+            LaunchMonitor.instance?.let {
+                AppEventHub.instance.addConsumer(it)
+            }
             val application = (context!!.applicationContext as Application)
             AppEventHub.instance.onAppCreated(application)
         } catch (e: Exception) {
-            LaunchMonitor.instance.log(LogData(Log.ERROR, "Error while getting Application instance in ContentProvider.onCreate : ${e::class.java.simpleName}(\"${e.message}\")"))
+            Log.e("BlueTriangle", "Error while getting Application instance in ContentProvider.onCreate : ${e::class.java.simpleName}(\"${e.message}\")")
         }
         return true
     }

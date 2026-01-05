@@ -30,6 +30,13 @@ internal class DisabledModeSessionManager(
         groupingIdleTime = Constants.DEFAULT_GROUPING_IDLE_TIME,
         groupedViewSampleRate = 0.0,
         shouldSampleGroupedView = false,
+        enableGroupingTapDetection = false,
+        enableNetworkStateTracking = false,
+        enableCrashTracking = false,
+        enableANRTracking = false,
+        enableMemoryWarning = false,
+        enableLaunchTime = false,
+        enableWebViewStitching = false,
         expiration = 0L
     )
 
@@ -40,12 +47,16 @@ internal class DisabledModeSessionManager(
 
     init {
         initScope()
-        updateConfig()
+        updateConfig(true)
     }
 
-    private fun updateConfig() {
+    private fun updateConfig(force: Boolean) {
         scope?.launch {
-            updater.update()
+            if(force) {
+                updater.forceUpdate()
+            } else {
+                updater.update()
+            }
         }
     }
 
@@ -64,7 +75,7 @@ internal class DisabledModeSessionManager(
     }
 
     private fun onLaunch() {
-        updateConfig()
+        updateConfig(false)
     }
 
     private fun onOffScreen() {

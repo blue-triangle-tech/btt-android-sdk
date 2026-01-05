@@ -4,6 +4,7 @@ import android.Manifest
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_GROUPING
+import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_WEB_VIEW_STITCHING
 import java.util.concurrent.TimeUnit
 
 class BlueTriangleConfiguration {
@@ -170,12 +171,19 @@ class BlueTriangleConfiguration {
             field = value.coerceAtLeast(1)
         }
 
+    internal var isGroupingTapDetectionEnabled: Boolean = Constants.DEFAULT_ENABLE_GROUPING_TAP_DETECTION
+
     internal var groupedViewSampleRate = Constants.DEFAULT_GROUPED_VIEW_SAMPLE_RATE
         set(value) {
             field = value.coerceAtLeast(0.0).coerceAtMost(1.0)
         }
 
     internal var shouldSampleGroupedView = false
+
+    internal var isWebViewStitchingEnabled: Boolean = DEFAULT_ENABLE_WEB_VIEW_STITCHING
+
+    internal val shouldDetectTap: Boolean
+        get() = isGroupingEnabled && isGroupingTapDetectionEnabled
 
     companion object {
         const val DEFAULT_TRACKER_URL = "https://d.btttag.com/analytics.rcv"

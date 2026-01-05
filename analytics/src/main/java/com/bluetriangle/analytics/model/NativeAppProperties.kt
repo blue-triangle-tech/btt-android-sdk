@@ -114,9 +114,12 @@ internal data class NativeAppProperties(
     }
 
     private fun JSONObject.putNetStateField(netStateFields: Array<Pair<String, Long?>>) {
-        val maxField = netStateFields.maxByOrNull { it.second ?: 0L }
+        val maxField = netStateFields.maxByOrNull { it.second ?: -1L }
 
         maxField?.let { max ->
+            if(max.second == null || max.second == 0L) {
+                return@let
+            }
             if (max.first == NETWORK_TYPE_CELLULAR) {
                 getMaxCellularProtocol().also { protocol ->
                     put(

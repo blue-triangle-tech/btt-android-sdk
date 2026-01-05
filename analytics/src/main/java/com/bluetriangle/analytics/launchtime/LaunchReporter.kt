@@ -8,6 +8,7 @@ import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.launchtime.model.LaunchEvent
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -16,9 +17,11 @@ internal class LaunchReporter(
     private val launchEventProducer: LaunchEventProducer
 ) {
 
-    init {
+    private var launchReporterJob: Job? = null
+
+    fun start() {
         logger?.debug("Started launch time reporting...")
-        GlobalScope.launch {
+        launchReporterJob = GlobalScope.launch {
             for (event in launchEventProducer.launchEvents) {
                 val launchPageName = when (event) {
                     is LaunchEvent.HotLaunch -> "HotLaunchTime"
@@ -42,6 +45,11 @@ internal class LaunchReporter(
                 logger?.info("Submitted launch event: ${event.data.type} Launch which took ${event.data.duration} ms")
             }
         }
+    }
+
+    fun stop() {
+        launchReporterJob?.cancel()
+        launchReporterJob = null
     }
 
     private fun reportLaunch(
