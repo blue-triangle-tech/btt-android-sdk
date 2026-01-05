@@ -1,4 +1,4 @@
-# Blue Triangle 2.19.1 Latest, Dec 30 2025
+# Blue Triangle 2.19.1 Latest, Jan 5 2026
 ### New Improvements
 - Added remote configuration flags to enable/disable following features:
   - Grouping tap detection
@@ -9,6 +9,7 @@
   - Launch time tracking
   - WebView stitching.
 - Changed default groupedViewSampleRate to 5%
+- Fixed excessive Launch time values issue. In cases where process was already created in background due to a work manager, push notification, BroadcastReceiver, etc., the Launch time was showing excessive values in hours and days even.
 
 # Blue Triangle 2.19.0 Latest, Dec 16 2025
 ### Improvements and Breaking Changes
