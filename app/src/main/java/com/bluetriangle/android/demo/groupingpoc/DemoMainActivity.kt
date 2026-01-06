@@ -3,6 +3,8 @@ package com.bluetriangle.android.demo.groupingpoc
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.widget.CheckBox
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -34,5 +36,18 @@ class DemoMainActivity : AppCompatActivity() {
                 clipboardManager.setPrimaryClip(ClipData.newPlainText("Session ID", Tracker.instance?.configuration?.sessionId?:"Unknown"))
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Handler(Looper.getMainLooper()).postDelayed({
+            try {
+                findViewById<TextView>(R.id.session_id).apply {
+                    text = "Session ID: ${Tracker.instance?.configuration?.sessionId}"
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }, 2000)
     }
 }

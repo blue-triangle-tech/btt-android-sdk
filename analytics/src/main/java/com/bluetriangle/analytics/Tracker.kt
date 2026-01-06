@@ -11,6 +11,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.text.TextUtils
+import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
@@ -118,6 +119,8 @@ class Tracker private constructor(
     private val claritySessionConnector:ClaritySessionConnector
     internal val appVersion: String
 
+    private var launchReporter: LaunchReporter? = null
+
     init {
         this.context = WeakReference(application.applicationContext)
         this.configuration = configuration
@@ -134,30 +137,42 @@ class Tracker private constructor(
         setGlobalUserId(globalUserId)
         configuration.globalUserId = globalUserId
 
-        if (configuration.isLaunchTimeEnabled) {
-            logLaunchMonitorErrors()
-            LaunchReporter(configuration.logger, LaunchMonitor.instance)
-        }
         enable()
-        configuration.logger?.debug("BlueTriangleSDK Initialized: $configuration")
+        Log.d("BlueTriangle","BlueTriangleSDK Initialized: $configuration")
+    }
+
+    private fun enableLaunchMonitor() {
+        LaunchMonitor.init()
+        LaunchMonitor.instance?.let {
+            AppEventHub.instance.addConsumer(it)
+            logLaunchMonitorErrors()
+            launchReporter = LaunchReporter(configuration.logger, it)
+            launchReporter?.start()
+        }
+    }
+
+    private fun disableLaunchMonitor() {
+        launchReporter?.stop()
+        launchReporter = null
+        LaunchMonitor.instance?.let {
+            AppEventHub.instance.removeConsumer(it)
+        }
+        LaunchMonitor.clearInstance()
     }
 
     private fun logLaunchMonitorErrors() {
-        val logs = LaunchMonitor.instance.logs
+        val logs = LaunchMonitor.instance?.logs?:return
         for (log in logs) {
             configuration.logger?.log(log.level, log.message)
         }
+        LaunchMonitor.instance?.clearLogs()
     }
 
     @Synchronized
     private fun enable() {
         val sessionData = sessionManager.sessionData
         setSessionId(sessionData.sessionId)
-        this.configuration.sessionId = sessionData.sessionId
-        this.configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
-        this.configuration.isGroupingEnabled = sessionData.enableGrouping
-        this.configuration.groupingIdleTime = sessionData.groupingIdleTime
-        this.configuration.isScreenTrackingEnabled = sessionData.enableScreenTracking
+        this.configuration.updateConfiguration(sessionData)
 
         if(configuration.isScreenTrackingEnabled) {
             initializeScreenTracker()
@@ -170,11 +185,12 @@ class Tracker private constructor(
         if (configuration.isTrackCrashesEnabled) {
             trackCrashes()
         }
-
         if(configuration.isPerformanceMonitorEnabled) {
             startPerformanceMonitoring()
         }
-
+        if(configuration.isLaunchTimeEnabled) {
+            enableLaunchMonitor()
+        }
         initializeNetworkStateTracking()
         configuration.logger?.debug("SDK is enabled")
     }
@@ -190,6 +206,7 @@ class Tracker private constructor(
         deInitializeANRMonitor()
         stopTrackCrashes()
         deInitializeNetworkStateTracking()
+        disableLaunchMonitor()
         configuration.logger?.debug("SDK is disabled.")
     }
 
@@ -257,7 +274,7 @@ class Tracker private constructor(
         ).also {
             val fragmentLifecycleTracker = FragmentLifecycleTracker(it)
             activityLifecycleTracker = ActivityLifecycleTracker(
-                it, fragmentLifecycleTracker
+                configuration, it, fragmentLifecycleTracker
             )
             (context.get()?.applicationContext as? Application)?.registerActivityLifecycleCallbacks(
                 activityLifecycleTracker
@@ -701,6 +718,84 @@ class Tracker private constructor(
             changes.append("\nshouldSampleGroupedView: ${configuration.shouldSampleGroupedView} -> ${sessionData.shouldSampleGroupedView}")
             configuration.shouldSampleGroupedView = sessionData.shouldSampleGroupedView
         }
+
+        if(configuration.isGroupingEnabled != sessionData.enableGrouping) {
+            changes.append("\nisGroupingEnabled: ${configuration.isGroupingEnabled} -> ${sessionData.enableGrouping}")
+            configuration.isGroupingEnabled = sessionData.enableGrouping
+            screenTrackMonitor?.groupingEnabled = configuration.isGroupingEnabled
+            if(configuration.shouldDetectTap) {
+                activityLifecycleTracker?.enableTapDetection()
+            } else {
+                activityLifecycleTracker?.disableTapDetection()
+            }
+        }
+
+        if(configuration.groupingIdleTime != sessionData.groupingIdleTime) {
+            changes.append("\ngroupingIdleTime: ${configuration.groupingIdleTime} -> ${sessionData.groupingIdleTime}")
+            configuration.groupingIdleTime = sessionData.groupingIdleTime
+            screenTrackMonitor?.groupIdleTime = configuration.groupingIdleTime
+        }
+
+        if(configuration.isGroupingTapDetectionEnabled != sessionData.enableGroupingTapDetection) {
+            changes.append("\nenableGroupingTapDetection: ${configuration.isGroupingTapDetectionEnabled} -> ${sessionData.enableGroupingTapDetection}")
+            configuration.isGroupingTapDetectionEnabled = sessionData.enableGroupingTapDetection
+            if(configuration.shouldDetectTap) {
+                activityLifecycleTracker?.enableTapDetection()
+            } else {
+                activityLifecycleTracker?.disableTapDetection()
+            }
+        }
+
+        if(configuration.isTrackNetworkStateEnabled != sessionData.enableNetworkStateTracking) {
+            changes.append("\nenableNetworkStateTracking: ${configuration.isTrackNetworkStateEnabled} -> ${sessionData.enableNetworkStateTracking}")
+            configuration.isTrackNetworkStateEnabled = sessionData.enableNetworkStateTracking
+            if(configuration.isTrackNetworkStateEnabled) {
+                initializeNetworkStateTracking()
+            } else {
+                deInitializeNetworkStateTracking()
+            }
+        }
+
+        if(configuration.isTrackCrashesEnabled != sessionData.enableCrashTracking) {
+            changes.append("\nenableCrashTracking: ${configuration.isTrackCrashesEnabled} -> ${sessionData.enableCrashTracking}")
+            configuration.isTrackCrashesEnabled = sessionData.enableCrashTracking
+            if(configuration.isTrackCrashesEnabled) {
+                trackCrashes()
+            } else {
+                stopTrackCrashes()
+            }
+        }
+
+        if(configuration.isTrackAnrEnabled != sessionData.enableANRTracking) {
+            changes.append("\nenableANRTracking: ${configuration.isTrackAnrEnabled} -> ${sessionData.enableANRTracking}")
+            configuration.isTrackAnrEnabled = sessionData.enableANRTracking
+            if(configuration.isTrackAnrEnabled) {
+                initializeANRMonitor()
+            } else {
+                deInitializeANRMonitor()
+            }
+        }
+
+        if(configuration.isMemoryWarningEnabled != sessionData.enableMemoryWarning) {
+            changes.append("\nenableMemoryWarning: ${configuration.isMemoryWarningEnabled} -> ${sessionData.enableMemoryWarning}")
+            configuration.isMemoryWarningEnabled = sessionData.enableMemoryWarning
+        }
+
+        if(configuration.isLaunchTimeEnabled != sessionData.enableLaunchTime) {
+            changes.append("\nenableLaunchTime: ${configuration.isLaunchTimeEnabled} -> ${sessionData.enableLaunchTime}")
+            configuration.isLaunchTimeEnabled = sessionData.enableLaunchTime
+            if(configuration.isLaunchTimeEnabled) {
+                enableLaunchMonitor()
+            } else {
+                disableLaunchMonitor()
+            }
+        }
+
+        if(configuration.isWebViewStitchingEnabled != sessionData.enableWebViewStitching) {
+            changes.append("\nenableWebViewStitching: ${configuration.isWebViewStitchingEnabled} -> ${sessionData.enableWebViewStitching}")
+            configuration.isWebViewStitchingEnabled = sessionData.enableWebViewStitching
+        }
+
         if(configuration.isScreenTrackingEnabled != sessionData.enableScreenTracking) {
             changes.append("\nisScreenTrackingEnabled: ${configuration.isScreenTrackingEnabled} -> ${sessionData.enableScreenTracking}")
             configuration.isScreenTrackingEnabled = sessionData.enableScreenTracking
@@ -712,18 +807,6 @@ class Tracker private constructor(
             }
         } else if(screenTrackMonitor?.ignoreScreens != sessionData.ignoreScreens) {
             screenTrackMonitor?.ignoreScreens = sessionData.ignoreScreens
-        }
-
-        if(configuration.isGroupingEnabled != sessionData.enableGrouping) {
-            changes.append("\nisGroupingEnabled: ${configuration.isGroupingEnabled} -> ${sessionData.enableGrouping}")
-            configuration.isGroupingEnabled = sessionData.enableGrouping
-            screenTrackMonitor?.groupingEnabled = configuration.isGroupingEnabled
-        }
-
-        if(configuration.groupingIdleTime != sessionData.groupingIdleTime) {
-            changes.append("\ngroupingIdleTime: ${configuration.groupingIdleTime} -> ${sessionData.groupingIdleTime}")
-            configuration.groupingIdleTime = sessionData.groupingIdleTime
-            screenTrackMonitor?.groupIdleTime = configuration.groupingIdleTime
         }
 
         val changesString = changes.toString()
@@ -963,7 +1046,14 @@ class Tracker private constructor(
                 enableScreenTracking = configuration.isScreenTrackingEnabled,
                 enableGrouping = configuration.isGroupingEnabled,
                 groupingIdleTime = configuration.groupingIdleTime,
-                groupedViewSampleRate = configuration.groupedViewSampleRate
+                groupedViewSampleRate = configuration.groupedViewSampleRate,
+                enableGroupingTapDetection = configuration.isGroupingTapDetectionEnabled,
+                enableNetworkStateTracking = configuration.isTrackNetworkStateEnabled,
+                enableCrashTracking = configuration.isTrackCrashesEnabled,
+                enableANRTracking = configuration.isTrackAnrEnabled,
+                enableMemoryWarning = configuration.isMemoryWarningEnabled,
+                enableLaunchTime = configuration.isLaunchTimeEnabled,
+                enableWebViewStitching = configuration.isWebViewStitchingEnabled
             )
 
             initializeConfigurationUpdater(application, configuration, defaultConfig)
@@ -1075,6 +1165,24 @@ class Tracker private constructor(
                     }
                 }
             }
+        }
+
+        private fun BlueTriangleConfiguration.updateConfiguration(sessionData: SessionData) {
+            sessionId = sessionData.sessionId
+            networkSampleRate = sessionData.networkSampleRate
+            shouldSampleNetwork = sessionData.shouldSampleNetwork
+            groupedViewSampleRate = sessionData.groupedViewSampleRate
+            shouldSampleGroupedView = sessionData.shouldSampleGroupedView
+            isGroupingEnabled = sessionData.enableGrouping
+            groupingIdleTime = sessionData.groupingIdleTime
+            isGroupingTapDetectionEnabled = sessionData.enableGroupingTapDetection
+            isTrackNetworkStateEnabled = sessionData.enableNetworkStateTracking
+            isTrackCrashesEnabled = sessionData.enableCrashTracking
+            isTrackAnrEnabled = sessionData.enableANRTracking
+            isMemoryWarningEnabled = sessionData.enableMemoryWarning
+            isLaunchTimeEnabled = sessionData.enableLaunchTime
+            isWebViewStitchingEnabled = sessionData.enableWebViewStitching
+            isScreenTrackingEnabled = sessionData.enableScreenTracking
         }
 
         private lateinit var configurationRepository: IBTTConfigurationRepository

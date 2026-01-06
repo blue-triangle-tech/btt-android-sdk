@@ -3,7 +3,7 @@ package com.bluetriangle.analytics.performancemonitor.accumulators
 import com.bluetriangle.analytics.performancemonitor.DataPoint
 import com.bluetriangle.analytics.performancemonitor.PerformanceMetric
 
-internal class CPUDataAccumulator(val isVerboseDebug: Boolean): MetricDataAccumulator<DataPoint.CPUDataPoint> {
+internal class CPUDataAccumulator(): MetricDataAccumulator<DataPoint.CPUDataPoint> {
 
     override val fields: Map<PerformanceMetric, String>
         get() = mapOf(
@@ -16,8 +16,6 @@ internal class CPUDataAccumulator(val isVerboseDebug: Boolean): MetricDataAccumu
     private var maxCpu = 0.0
     private var cumulativeCpu = 0.0
     private var cpuCount: Long = 0
-    var cpuUsed = arrayListOf<Double>()
-
     private val avgCpu: Double
         get() = if (cpuCount == 0L) 0.0 else cumulativeCpu / cpuCount
 
@@ -27,9 +25,6 @@ internal class CPUDataAccumulator(val isVerboseDebug: Boolean): MetricDataAccumu
         }
         if (data.cpuUsage > maxCpu) {
             maxCpu = data.cpuUsage
-        }
-        if (isVerboseDebug) {
-            cpuUsed.add(data.cpuUsage)
         }
         cumulativeCpu += data.cpuUsage
         cpuCount++

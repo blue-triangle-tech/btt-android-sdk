@@ -32,7 +32,14 @@ object Constants {
 
     internal const val DEFAULT_GROUPING_IDLE_TIME = 2
     internal const val DEFAULT_ENABLE_GROUPING = true
-    internal const val DEFAULT_GROUPED_VIEW_SAMPLE_RATE = 1.0
+    internal const val DEFAULT_ENABLE_GROUPING_TAP_DETECTION = true
+    internal const val DEFAULT_ENABLE_NETWORK_STATE_TRACKING = true
+    internal const val DEFAULT_ENABLE_CRASH_TRACKING = true
+    internal const val DEFAULT_ENABLE_ANR_TRACKING = true
+    internal const val DEFAULT_ENABLE_MEMORY_WARNING = true
+    internal const val DEFAULT_ENABLE_LAUNCH_TIME = true
+    internal const val DEFAULT_ENABLE_WEB_VIEW_STITCHING = true
+    internal const val DEFAULT_GROUPED_VIEW_SAMPLE_RATE = 0.05
 
     internal const val SDK_VERSION = "sdkVersion"
     internal const val APP_VERSION = "appVersion"

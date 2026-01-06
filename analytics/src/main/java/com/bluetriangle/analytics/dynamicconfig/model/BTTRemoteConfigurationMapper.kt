@@ -5,8 +5,15 @@
  */
 package com.bluetriangle.analytics.dynamicconfig.model
 
+import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_ANR_TRACKING
+import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_CRASH_TRACKING
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_GROUPING
+import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_LAUNCH_TIME
+import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_MEMORY_WARNING
+import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_NETWORK_STATE_TRACKING
+import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_WEB_VIEW_STITCHING
 import com.bluetriangle.analytics.Constants.DEFAULT_GROUPING_IDLE_TIME
+import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_GROUPING_TAP_DETECTION
 import com.bluetriangle.analytics.utility.getBooleanOrNull
 import com.bluetriangle.analytics.utility.getDoubleOrNull
 import com.bluetriangle.analytics.utility.getIntOrNull
@@ -23,6 +30,13 @@ internal object BTTRemoteConfigurationMapper {
     private const val GROUPING_IDLE_TIME = "groupingIdleTime"
     private const val ENABLE_SCREEN_TRACKING = "enableScreenTracking"
     private const val GROUPED_VIEW_SAMPLE_RATE = "groupedViewSampleRate"
+    private const val ENABLE_GROUPING_TAP_DETECTION = "enableGroupingTapDetection"
+    private const val ENABLE_NETWORK_STATE_TRACKING = "enableNetworkStateTracking"
+    private const val ENABLE_CRASH_TRACKING = "enableCrashTracking"
+    private const val ENABLE_ANR_TRACKING = "enableANRTracking"
+    private const val ENABLE_MEMORY_WARNING = "enableMemoryWarning"
+    private const val ENABLE_LAUNCH_TIME = "enableLaunchTime"
+    private const val ENABLE_WEB_VIEW_STITCHING = "enableWebViewStitching"
 
     fun fromJson(remoteConfigJson: JSONObject): BTTRemoteConfiguration {
         val networkSampleRate = remoteConfigJson.getDoubleOrNull(NETWORK_SAMPLE_RATE)?.div(100.0)
@@ -41,6 +55,13 @@ internal object BTTRemoteConfigurationMapper {
         val enableGrouping = remoteConfigJson.getBooleanOrNull(ENABLE_GROUPING) ?: DEFAULT_ENABLE_GROUPING
         val groupingIdleTime = remoteConfigJson.getIntOrNull(GROUPING_IDLE_TIME) ?: DEFAULT_GROUPING_IDLE_TIME
         val groupedViewSampleRate = remoteConfigJson.getDoubleOrNull(GROUPED_VIEW_SAMPLE_RATE)?.div(100.0)
+        val enableGroupingTapDetection = remoteConfigJson.getBooleanOrNull(ENABLE_GROUPING_TAP_DETECTION) ?: DEFAULT_ENABLE_GROUPING_TAP_DETECTION
+        val enableNetworkStateTracking = remoteConfigJson.getBooleanOrNull(ENABLE_NETWORK_STATE_TRACKING) ?: DEFAULT_ENABLE_NETWORK_STATE_TRACKING
+        val enableCrashTracking = remoteConfigJson.getBooleanOrNull(ENABLE_CRASH_TRACKING) ?: DEFAULT_ENABLE_CRASH_TRACKING
+        val enableANRTracking = remoteConfigJson.getBooleanOrNull(ENABLE_ANR_TRACKING) ?: DEFAULT_ENABLE_ANR_TRACKING
+        val enableMemoryWarning = remoteConfigJson.getBooleanOrNull(ENABLE_MEMORY_WARNING) ?: DEFAULT_ENABLE_MEMORY_WARNING
+        val enableLaunchTime = remoteConfigJson.getBooleanOrNull(ENABLE_LAUNCH_TIME) ?: DEFAULT_ENABLE_LAUNCH_TIME
+        val enableWebViewStitching = remoteConfigJson.getBooleanOrNull(ENABLE_WEB_VIEW_STITCHING) ?: DEFAULT_ENABLE_WEB_VIEW_STITCHING
 
         return BTTRemoteConfiguration(
             networkSampleRate,
@@ -50,7 +71,14 @@ internal object BTTRemoteConfigurationMapper {
             enableScreenTracking,
             enableGrouping,
             groupingIdleTime,
-            groupedViewSampleRate
+            groupedViewSampleRate,
+            enableGroupingTapDetection,
+            enableNetworkStateTracking,
+            enableCrashTracking,
+            enableANRTracking,
+            enableMemoryWarning,
+            enableLaunchTime,
+            enableWebViewStitching
         )
     }
 }

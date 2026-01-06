@@ -3,7 +3,7 @@ package com.bluetriangle.analytics.performancemonitor.accumulators
 import com.bluetriangle.analytics.performancemonitor.DataPoint
 import com.bluetriangle.analytics.performancemonitor.PerformanceMetric
 
-internal class MemoryDataAccumulator(val isVerboseDebug: Boolean): MetricDataAccumulator<DataPoint.MemoryDataPoint> {
+internal class MemoryDataAccumulator(): MetricDataAccumulator<DataPoint.MemoryDataPoint> {
 
     private val totalMemory = Runtime.getRuntime().maxMemory()
 
@@ -19,8 +19,6 @@ internal class MemoryDataAccumulator(val isVerboseDebug: Boolean): MetricDataAcc
     private var maxMemory: Long = 0
     private var cumulativeMemory: Long = 0
     private var memoryCount: Long = 0
-    var memoryUsed = arrayListOf<Long>()
-
     private val avgMemory: Long
         get() = if (memoryCount == 0L) 0 else cumulativeMemory / memoryCount
 
@@ -30,9 +28,6 @@ internal class MemoryDataAccumulator(val isVerboseDebug: Boolean): MetricDataAcc
         }
         if (data.memoryUsage > maxMemory) {
             maxMemory = data.memoryUsage
-        }
-        if (isVerboseDebug) {
-            memoryUsed.add(data.memoryUsage)
         }
         cumulativeMemory += data.memoryUsage
         memoryCount++

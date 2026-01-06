@@ -99,6 +99,13 @@ internal class SessionManager(
             config.groupingIdleTime,
             config.groupedViewSampleRate?:defaultConfig.groupedViewSampleRate!!,
             debugConfig.fullSampleRate || Utils.shouldSample(config.groupedViewSampleRate?:defaultConfig.groupedViewSampleRate!!),
+            config.enableGroupingTapDetection,
+            config.enableNetworkStateTracking,
+            config.enableCrashTracking,
+            config.enableANRTracking,
+            config.enableMemoryWarning,
+            config.enableLaunchTime,
+            config.enableWebViewStitching,
             getNewExpiration()
         )
     }
@@ -131,6 +138,13 @@ internal class SessionManager(
                 it.groupingIdleTime,
                 it.groupedViewSampleRate,
                 it.shouldSampleGroupedView,
+                it.enableGroupingTapDetection,
+                it.enableNetworkStateTracking,
+                it.enableCrashTracking,
+                it.enableANRTracking,
+                it.enableMemoryWarning,
+                it.enableLaunchTime,
+                it.enableWebViewStitching,
                 getNewExpiration()
             )
             sessionStore.storeSessionData(
@@ -176,6 +190,13 @@ internal class SessionManager(
                                 config.groupingIdleTime,
                                 config.groupedViewSampleRate?:defaultConfig.groupedViewSampleRate!!,
                                 debugConfig.fullSampleRate || Utils.shouldSample(config.networkSampleRate?:defaultConfig.networkSampleRate!!),
+                                config.enableGroupingTapDetection,
+                                config.enableNetworkStateTracking,
+                                config.enableCrashTracking,
+                                config.enableANRTracking,
+                                config.enableMemoryWarning,
+                                config.enableLaunchTime,
+                                config.enableWebViewStitching,
                                 session.expiration
                             )
                             Tracker.instance?.updateSession(sessionData)
