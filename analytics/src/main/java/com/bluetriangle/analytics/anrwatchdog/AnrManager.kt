@@ -33,15 +33,6 @@ internal class AnrManager(
 
         val timeStamp = System.currentTimeMillis().toString()
         val mostRecentTimer = Tracker.instance?.getMostRecentTimer()
-        val crashHitsTimer: Timer = Timer().startWithoutPerformanceMonitor()
-
-        crashHitsTimer.setPageName(mostRecentTimer?.getField(FIELD_PAGE_NAME)?:Tracker.BTErrorType.ANRWarning.value)
-        if(mostRecentTimer != null) {
-            mostRecentTimer.generateNativeAppProperties()
-            crashHitsTimer.nativeAppProperties = mostRecentTimer.nativeAppProperties
-        }
-        crashHitsTimer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
-        crashHitsTimer.setError(true)
         val stacktrace = Utils.exceptionToStacktrace(null, error)
 
         try {
@@ -50,8 +41,8 @@ internal class AnrManager(
                     configuration,
                     stacktrace,
                     timeStamp,
-                    crashHitsTimer,
                     Tracker.BTErrorType.ANRWarning,
+                    mostRecentTimer,
                     deviceInfoProvider = deviceInfoProvider
                 )
             )

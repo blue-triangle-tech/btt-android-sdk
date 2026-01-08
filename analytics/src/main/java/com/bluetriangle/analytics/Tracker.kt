@@ -922,13 +922,7 @@ class Tracker private constructor(
     ) {
         val timeStamp = System.currentTimeMillis().toString()
         val mostRecentTimer = getMostRecentTimer()
-        val crashHitsTimer = Timer().start()
-        if (mostRecentTimer != null) {
-            mostRecentTimer.generateNativeAppProperties()
-            crashHitsTimer.nativeAppProperties = mostRecentTimer.nativeAppProperties
-        }
-        crashHitsTimer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
-        crashHitsTimer.setError(true)
+        mostRecentTimer?.generateNativeAppProperties()
 
         val stacktrace = Utils.exceptionToStacktrace(message, exception)
         trackerExecutor.submit(
@@ -936,7 +930,6 @@ class Tracker private constructor(
                 configuration,
                 stacktrace,
                 timeStamp,
-                crashHitsTimer,
                 errorType,
                 mostRecentTimer,
                 deviceInfoProvider = deviceInfoProvider
@@ -945,10 +938,10 @@ class Tracker private constructor(
     }
 
     enum class BTErrorType(val value: String) {
-        NativeAppCrash("NativeAppCrash"),
+        NativeAppCrash("Android Crash"),
         ANRWarning("ANRWarning"),
         MemoryWarning("MemoryWarning"),
-        BTTConfigUpdateError("BTTConfigUpdateError")
+        BTTConfigUpdateError("BTTConfigUpdate")
     }
 
     fun raiseTestException() {

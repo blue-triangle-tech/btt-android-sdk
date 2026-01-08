@@ -17,17 +17,9 @@ internal class BtCrashHandler(
         val mostRecentTimer = Tracker.instance?.getMostRecentTimer()
         configuration.logger?.debug("Most Recent Timer: $mostRecentTimer")
 
-        val crashHitsTimer = Timer().startWithoutPerformanceMonitor()
-        if(mostRecentTimer != null) {
-            mostRecentTimer.generateNativeAppProperties()
-            crashHitsTimer.nativeAppProperties = mostRecentTimer.nativeAppProperties
-        }
-        crashHitsTimer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
-        crashHitsTimer.setError(true)
-
         val stacktrace = exceptionToStacktrace(null, e)
         try {
-            sendToServer(crashHitsTimer, mostRecentTimer, stacktrace, timeStamp)
+            sendToServer(mostRecentTimer, stacktrace, timeStamp)
         } catch (interruptedException: InterruptedException) {
             interruptedException.printStackTrace()
         }
@@ -35,10 +27,10 @@ internal class BtCrashHandler(
     }
 
     @Throws(InterruptedException::class)
-    private fun sendToServer(crashHitsTimer:Timer, mostRecentTimer:Timer?, stacktrace: String, timeStamp: String) {
+    private fun sendToServer(mostRecentTimer:Timer?, stacktrace: String, timeStamp: String) {
         val thread = Thread(CrashRunnable(
             configuration, stacktrace, timeStamp,
-            crashHitsTimer, mostRecentTimer = mostRecentTimer,
+            mostRecentTimer = mostRecentTimer,
             deviceInfoProvider = deviceInfoProvider
         ))
         thread.start()

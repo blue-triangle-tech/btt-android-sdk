@@ -7,6 +7,7 @@ import com.bluetriangle.analytics.Timer.Companion.FIELD_PAGE_NAME
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 import com.bluetriangle.analytics.performancemonitor.DataPoint
+import kotlinx.coroutines.GlobalScope
 
 internal class MemoryMonitor(
     val configuration: BlueTriangleConfiguration,
@@ -39,15 +40,6 @@ internal class MemoryMonitor(
         configuration.logger?.debug("Memory Warning received ${memoryWarningException.count} times: Used: ${memoryWarningException.usedMemory}MB, Total: ${memoryWarningException.totalMemory}MB")
 
         val timeStamp = System.currentTimeMillis().toString()
-        val crashHitsTimer: Timer = Timer().startWithoutPerformanceMonitor()
-        crashHitsTimer.setPageName(timer?.getField(FIELD_PAGE_NAME)?: Tracker.BTErrorType.MemoryWarning.value)
-        if(timer == null) {
-            crashHitsTimer.generateNativeAppProperties()
-        } else {
-            crashHitsTimer.nativeAppProperties = timer.nativeAppProperties
-        }
-        crashHitsTimer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
-        crashHitsTimer.setError(true)
 
         try {
             val thread = Thread(
@@ -55,8 +47,8 @@ internal class MemoryMonitor(
                     configuration,
                     memoryWarningException.message ?: "",
                     timeStamp,
-                    crashHitsTimer,
                     Tracker.BTErrorType.MemoryWarning,
+                    mostRecentTimer = timer,
                     errorCount = memoryWarningException.count,
                     deviceInfoProvider = deviceInfoProvider
                 )

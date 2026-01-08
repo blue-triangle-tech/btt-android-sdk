@@ -36,20 +36,25 @@ internal class CrashRunnable(
      * This is the epoch when the error happened
      */
     private val timeStamp: String,
-    /**
-     * Timer to track crash reporting
-     */
-    private val crashHitsTimer: Timer,
-
     private val errorType: Tracker.BTErrorType = Tracker.BTErrorType.NativeAppCrash,
-
     private val mostRecentTimer: Timer? = null,
     private val errorCount: Int = 1,
     private val deviceInfoProvider: IDeviceInfoProvider
 ) : Runnable {
+
+    private var timerFields = mutableMapOf<String, String?>()
+
     override fun run() {
         try {
-            submitTimer()
+            mostRecentTimer?.let {
+                loadTimerFields(it)
+                if(errorType == Tracker.BTErrorType.NativeAppCrash) {
+                    it.submit()
+                }
+            }
+            if(mostRecentTimer == null) {
+                submitTimer()
+            }
             submitCrashReport()
         } catch (e: Exception) {
             configuration.logger?.error("Error while submitting crash report: ${e.message}")
@@ -58,85 +63,81 @@ internal class CrashRunnable(
 
     private fun submitTimer() {
         val tracker = Tracker.instance
+
+        val crashHitsTimer = Timer().startWithoutPerformanceMonitor()
+        crashHitsTimer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
+        crashHitsTimer.setError(true)
         crashHitsTimer.pageTimeCalculator = {
             TIMER_MIN_PGTM
         }
         crashHitsTimer.end()
         crashHitsTimer.setField(Timer.FIELD_EXCLUDED, "20")
-        if (errorType == Tracker.BTErrorType.NativeAppCrash) {
-            crashHitsTimer.setPageName(
-                mostRecentTimer?.getField(Timer.FIELD_PAGE_NAME) ?: Constants.CRASH_PAGE_NAME
-            )
-            mostRecentTimer?.getField(Timer.FIELD_CONTENT_GROUP_NAME)?.let {
-                crashHitsTimer.setContentGroupName(it)
-            }
-            mostRecentTimer?.getField(Timer.FIELD_TRAFFIC_SEGMENT_NAME)?.let {
-                crashHitsTimer.setTrafficSegmentName(it)
-            }
-        }
-        crashHitsTimer.setFieldsIfAbsent(tracker?.globalFields?.toMap() ?: emptyMap())
+
+        crashHitsTimer.setPageName(errorType.value)
+        crashHitsTimer.setTrafficSegmentName(errorType.value)
+        crashHitsTimer.setContentGroupName(errorType.value)
+
+        crashHitsTimer.setFields(tracker?.globalFields?.toMap() ?: emptyMap())
         tracker?.loadCustomVariables(crashHitsTimer)
+        loadTimerFields(crashHitsTimer)
         val timerRunnable = TimerRunnable(configuration, crashHitsTimer, false)
         timerRunnable.run()
     }
 
     private fun buildCrashReportUrl(): String {
-        val deviceName = Utils.deviceName
-        val pageName = mostRecentTimer?.getField(Timer.FIELD_PAGE_NAME)
-            ?: Constants.CRASH_PAGE_NAME
         return configuration.errorReportingUrl.toUri()
             .buildUpon()
             .appendQueryParameter(Timer.FIELD_SITE_ID, configuration.siteId)
             .appendQueryParameter(
                 Timer.FIELD_NAVIGATION_START,
-                crashHitsTimer.getField(Timer.FIELD_NST)
+                timerFields[Timer.FIELD_NST]
             )
             .appendQueryParameter(
                 Timer.FIELD_PAGE_NAME,
-                crashHitsTimer.getField(Timer.FIELD_PAGE_NAME, pageName)
+                timerFields[Timer.FIELD_PAGE_NAME]
             )
             .appendQueryParameter(
                 Timer.FIELD_TRAFFIC_SEGMENT_NAME,
-                crashHitsTimer.getField(Timer.FIELD_TRAFFIC_SEGMENT_NAME, pageName)
+                timerFields[Timer.FIELD_TRAFFIC_SEGMENT_NAME]
             )
             .appendQueryParameter(
                 Timer.FIELD_NATIVE_OS,
-                crashHitsTimer.getField(Timer.FIELD_NATIVE_OS, Constants.OS)
+                timerFields[Timer.FIELD_NATIVE_OS]
             )
             .appendQueryParameter(
                 Timer.FIELD_DEVICE,
-                crashHitsTimer.getField(Timer.FIELD_DEVICE, Constants.DEVICE_MOBILE)
+                timerFields[Timer.FIELD_DEVICE]
             )
             .appendQueryParameter(Timer.FIELD_BROWSER, Constants.BROWSER)
             .appendQueryParameter(
                 Timer.FIELD_BROWSER_VERSION,
-                crashHitsTimer.getField(Timer.FIELD_BROWSER_VERSION)
+                timerFields[Timer.FIELD_BROWSER_VERSION]
             )
             .appendQueryParameter(Timer.FIELD_LONG_SESSION_ID, configuration.sessionId)
-            .appendQueryParameter(Timer.FIELD_PAGE_TIME, crashHitsTimer.getField("pgTm"))
+            .appendQueryParameter(Timer.FIELD_PAGE_TIME, timerFields[Timer.FIELD_PAGE_TIME])
             .appendQueryParameter(
                 Timer.FIELD_CONTENT_GROUP_NAME,
-                crashHitsTimer.getField(Timer.FIELD_CONTENT_GROUP_NAME, deviceName)
+                timerFields[Timer.FIELD_CONTENT_GROUP_NAME]
             )
             .appendQueryParameter(
                 Timer.FIELD_AB_TEST_ID,
-                crashHitsTimer.getField(Timer.FIELD_AB_TEST_ID, "Default")
+                timerFields[Timer.FIELD_AB_TEST_ID]
             )
             .appendQueryParameter(
                 Timer.FIELD_DATACENTER,
-                crashHitsTimer.getField(Timer.FIELD_DATACENTER, "Default")
+                timerFields[Timer.FIELD_DATACENTER]
             )
             .appendQueryParameter(
                 Timer.FIELD_CAMPAIGN_NAME,
-                crashHitsTimer.getField(Timer.FIELD_CAMPAIGN_NAME, "")
+                timerFields[Timer.FIELD_CAMPAIGN_NAME]
             )
             .appendQueryParameter(
                 Timer.FIELD_CAMPAIGN_MEDIUM,
-                crashHitsTimer.getField(Timer.FIELD_CAMPAIGN_MEDIUM, Constants.OS)
+                timerFields[Timer.FIELD_CAMPAIGN_MEDIUM]
             )
             .appendQueryParameter(
                 Timer.FIELD_CAMPAIGN_SOURCE,
-                crashHitsTimer.getField(Timer.FIELD_CAMPAIGN_SOURCE, "Crash")
+                timerFields[Timer.FIELD_CAMPAIGN_SOURCE]
             )
             .build().toString()
     }
@@ -229,4 +230,32 @@ internal class CrashRunnable(
         configuration.logger?.debug("Crash Report Data: $jsonData")
         return jsonData
     }
+
+    private fun loadTimerFields(from: Timer) {
+        val keysAndDefaults = mutableMapOf(
+            Timer.FIELD_NST to null,
+            Timer.FIELD_PAGE_NAME to errorType.value,
+            Timer.FIELD_TRAFFIC_SEGMENT_NAME to Tracker.instance?.getGlobalField(Timer.FIELD_TRAFFIC_SEGMENT_NAME),
+            Timer.FIELD_NATIVE_OS to Constants.OS,
+            Timer.FIELD_DEVICE to Constants.DEVICE_MOBILE,
+            Timer.FIELD_BROWSER_VERSION to null,
+            Timer.FIELD_PAGE_TIME to null,
+            Timer.FIELD_CONTENT_GROUP_NAME to Utils.deviceName,
+            Timer.FIELD_AB_TEST_ID to "Default",
+            Timer.FIELD_DATACENTER to "Default",
+            Timer.FIELD_CAMPAIGN_NAME to "",
+            Timer.FIELD_CAMPAIGN_MEDIUM to Constants.OS,
+            Timer.FIELD_CAMPAIGN_SOURCE to errorType.value,
+        )
+
+        keysAndDefaults.forEach {
+            val value = it.value
+            timerFields[it.key] = if(value == null) {
+                from.getField(it.key)
+            } else {
+                from.getField(it.key, value)
+            }
+        }
+    }
+
 }
