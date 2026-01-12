@@ -14,6 +14,7 @@ import java.io.DataOutputStream
 import java.io.InputStreamReader
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
+import kotlin.collections.toMap
 
 /**
  * Create a timer runnable to submit the given timer to the given URL
@@ -47,6 +48,7 @@ internal class CrashRunnable(
     override fun run() {
         try {
             mostRecentTimer?.let {
+                Tracker.instance?.applyGlobalFields(it)
                 loadTimerFields(it)
                 if(errorType == Tracker.BTErrorType.NativeAppCrash) {
                     it.submit()
@@ -77,7 +79,7 @@ internal class CrashRunnable(
         crashHitsTimer.setTrafficSegmentName(errorType.value)
         crashHitsTimer.setContentGroupName(errorType.value)
 
-        crashHitsTimer.setFields(tracker?.globalFields?.toMap() ?: emptyMap())
+        tracker?.applyGlobalFields(crashHitsTimer)
         tracker?.loadCustomVariables(crashHitsTimer)
         loadTimerFields(crashHitsTimer)
         val timerRunnable = TimerRunnable(configuration, crashHitsTimer, false)

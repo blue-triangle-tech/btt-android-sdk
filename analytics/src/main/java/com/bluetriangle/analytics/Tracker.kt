@@ -408,11 +408,19 @@ class Tracker private constructor(
         }
         claritySessionConnector.refreshClaritySessionUrlCustomVariable()
 
-        timer.setFieldsIfAbsent(globalFields.toMap())
+        applyGlobalFields(timer)
         loadCustomVariables(timer)
         timer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
         timer.setField(FIELD_SESSION_ID, sessionManager.sessionData.sessionId)
         trackerExecutor.submit(TimerRunnable(configuration, timer))
+    }
+
+    internal fun applyGlobalFields(timer: Timer) {
+        synchronized(globalFields) {
+            globalFields.forEach {
+                timer.setFieldIfNotSet(it.key, it.value)
+            }
+        }
     }
 
     internal fun loadCustomVariables(timer: Timer) {
@@ -446,6 +454,7 @@ class Tracker private constructor(
         if (configuration.shouldSampleNetwork) {
             getMostRecentTimer()?.let { timer ->
                 configuration.logger?.debug("Network Request Captured: $capturedRequest for $timer")
+                timer.setWCD(true)
                 capturedRequest.setNavigationStart(timer.start)
                 if (capturedRequests.containsKey(timer.start)) {
                     capturedRequests[timer.start]!!.add(capturedRequest)

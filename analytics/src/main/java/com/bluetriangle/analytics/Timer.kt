@@ -80,7 +80,7 @@ class Timer : Parcelable {
             FIELD_NAVIGATION_TYPE to "9",
             FIELD_RV to "0",
             FIELD_CUSTOM_VALUE_4 to "0",
-            FIELD_WCD to "1",
+            FIELD_WCD to "0",
             FIELD_DATACENTER to "Default",
             FIELD_AB_TEST_ID to "Default",
             FIELD_BRAND_VALUE to "0",
@@ -584,7 +584,7 @@ class Timer : Parcelable {
         synchronized(this.fields) {
             fields.forEach {
                 if(!this.fields.containsKey(it.key)) {
-                    this.fields.put(it.key, it.value)
+                    this.fields[it.key] = it.value
                 }
             }
         }
@@ -690,6 +690,21 @@ class Timer : Parcelable {
     }
 
     /**
+     * Sets a field if it's not already set. i.e. it still has the default value.
+     *
+     * @param fieldName name of field to remove
+     * @return this timer
+     */
+    internal fun setFieldIfNotSet(fieldName: String, value: String): Timer {
+        synchronized(fields) {
+            if (!DEFAULT_VALUES.containsKey(fieldName) || fields[fieldName] == DEFAULT_VALUES[fieldName]) {
+                setField(fieldName, value)
+            }
+        }
+        return this
+    }
+
+    /**
      * Resets a field to the default value if there is one else removes the field completely.
      *
      * @param fieldName name of field to remove
@@ -748,6 +763,10 @@ class Timer : Parcelable {
 
     fun setError(err: Boolean) {
         fields[FIELD_ERR] = if (err) "1" else "0"
+    }
+
+    fun setWCD(wcd: Boolean) {
+        fields[FIELD_WCD] = if (wcd) "1" else "0"
     }
 
     internal fun startSilent(): Timer {
