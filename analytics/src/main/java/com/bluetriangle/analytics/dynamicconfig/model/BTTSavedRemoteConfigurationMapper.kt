@@ -30,7 +30,6 @@ internal object BTTSavedRemoteConfigurationMapper {
     private const val ENABLE_GROUPING = "enableGrouping"
     private const val GROUPING_IDLE_TIME = "groupingIdleTime"
     private const val ENABLE_SCREEN_TRACKING = "enableScreenTracking"
-    private const val GROUPED_VIEW_SAMPLE_RATE = "groupedViewSampleRate"
     private const val ENABLE_GROUPING_TAP_DETECTION = "enableGroupingTapDetection"
     private const val ENABLE_NETWORK_STATE_TRACKING = "enableNetworkStateTracking"
     private const val ENABLE_CRASH_TRACKING = "enableCrashTracking"
@@ -58,7 +57,6 @@ internal object BTTSavedRemoteConfigurationMapper {
             jsonObject.getBooleanOrNull(ENABLE_SCREEN_TRACKING)?:defaultConfig.enableScreenTracking,
             jsonObject.getBooleanOrNull(ENABLE_GROUPING)?:DEFAULT_ENABLE_GROUPING,
             jsonObject.getIntOrNull(GROUPING_IDLE_TIME)?: Constants.DEFAULT_GROUPING_IDLE_TIME,
-            jsonObject.getDoubleOrNull(GROUPED_VIEW_SAMPLE_RATE),
             jsonObject.getBooleanOrNull(ENABLE_GROUPING_TAP_DETECTION) ?: DEFAULT_ENABLE_GROUPING_TAP_DETECTION,
             jsonObject.getBooleanOrNull(ENABLE_NETWORK_STATE_TRACKING) ?: DEFAULT_ENABLE_NETWORK_STATE_TRACKING,
             jsonObject.getBooleanOrNull(ENABLE_CRASH_TRACKING) ?: DEFAULT_ENABLE_CRASH_TRACKING,
@@ -82,7 +80,6 @@ internal object BTTSavedRemoteConfigurationMapper {
         put(ENABLE_SCREEN_TRACKING, config.enableScreenTracking)
         put(ENABLE_GROUPING, config.enableGrouping)
         put(GROUPING_IDLE_TIME, config.groupingIdleTime)
-        put(GROUPED_VIEW_SAMPLE_RATE, config.groupedViewSampleRate)
         put(ENABLE_GROUPING_TAP_DETECTION, config.enableGroupingTapDetection)
         put(ENABLE_NETWORK_STATE_TRACKING, config.enableNetworkStateTracking)
         put(ENABLE_CRASH_TRACKING, config.enableCrashTracking)

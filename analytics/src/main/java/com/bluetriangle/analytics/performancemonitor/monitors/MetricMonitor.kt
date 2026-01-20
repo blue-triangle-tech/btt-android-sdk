@@ -7,4 +7,8 @@ internal interface MetricMonitor {
 
     fun captureDataPoint(): DataPoint?
 
+    fun end() {
+
+    }
+
 }

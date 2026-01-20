@@ -6,21 +6,20 @@ import com.bluetriangle.analytics.performancemonitor.monitors.CpuMonitor
 import com.bluetriangle.analytics.performancemonitor.monitors.MainThreadMonitor
 import com.bluetriangle.analytics.performancemonitor.monitors.MemoryMonitor
 import com.bluetriangle.analytics.performancemonitor.PerformanceListener
+import com.bluetriangle.analytics.performancemonitor.monitors.MemoryWarningReporter
 import java.lang.ref.WeakReference
 import kotlin.collections.forEach
 import kotlin.collections.map
 import kotlin.collections.removeAll
 
-class PerformanceMonitor(configuration: BlueTriangleConfiguration, deviceInfoProvider: IDeviceInfoProvider) : Thread(THREAD_NAME) {
+class PerformanceMonitor(configuration: BlueTriangleConfiguration) : Thread(THREAD_NAME) {
     private val logger = configuration.logger
     private var isRunning = true
     private val interval = configuration.performanceMonitorIntervalMs
 
-    private val metricMonitors = listOf(
-        CpuMonitor(configuration),
-        MemoryMonitor(configuration, deviceInfoProvider),
-        MainThreadMonitor(configuration)
-    )
+    internal val cpuMonitor = CpuMonitor(configuration)
+    internal val memoryMonitor = MemoryMonitor(configuration)
+    internal val mainThreadMonitor = MainThreadMonitor(configuration)
 
     private val listeners = mutableListOf<WeakReference<PerformanceListener>>()
 
@@ -54,11 +53,17 @@ class PerformanceMonitor(configuration: BlueTriangleConfiguration, deviceInfoPro
     }
 
     private fun setupMetrics() {
-        metricMonitors.forEach { it.setupMetric() }
+        cpuMonitor.setupMetric()
+        memoryMonitor.setupMetric()
+        mainThreadMonitor.setupMetric()
     }
 
     private fun captureDataPoints() {
-        val dataPoints = metricMonitors.map { it.captureDataPoint() }
+        val dataPoints = buildList {
+            add(cpuMonitor.captureDataPoint())
+            add(memoryMonitor.captureDataPoint())
+            add(mainThreadMonitor.captureDataPoint())
+        }
 
         synchronized(listeners) {
             listeners.forEach {

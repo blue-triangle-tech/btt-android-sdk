@@ -1,16 +1,11 @@
 package com.bluetriangle.analytics.anrwatchdog
 
 import com.bluetriangle.analytics.BlueTriangleConfiguration
-import com.bluetriangle.analytics.CrashRunnable
 import com.bluetriangle.analytics.Timer
-import com.bluetriangle.analytics.Timer.Companion.FIELD_PAGE_NAME
 import com.bluetriangle.analytics.Tracker
-import com.bluetriangle.analytics.Utils
-import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 
 internal class AnrManager(
-    private val configuration: BlueTriangleConfiguration,
-    private val deviceInfoProvider: IDeviceInfoProvider
+    private val configuration: BlueTriangleConfiguration
 ) :
     AnrListener {
 
@@ -28,28 +23,18 @@ internal class AnrManager(
         detector.stopDetection()
     }
 
+    internal val anrRecordsHolder = ANRRecordsHolder()
+
     override fun onAppNotResponding(error: AnrException) {
         configuration.logger?.debug("Anr Received: ${error.message}")
 
-        val timeStamp = System.currentTimeMillis().toString()
         val mostRecentTimer = Tracker.instance?.getMostRecentTimer()
-        val stacktrace = Utils.exceptionToStacktrace(null, error)
-
-        try {
-            val thread = Thread(
-                CrashRunnable(
-                    configuration,
-                    stacktrace,
-                    timeStamp,
-                    Tracker.BTErrorType.ANRWarning,
-                    mostRecentTimer,
-                    deviceInfoProvider = deviceInfoProvider
-                )
-            )
-            thread.start()
-            thread.join()
-        } catch (interruptedException: InterruptedException) {
-            interruptedException.printStackTrace()
+        mostRecentTimer.let {
+            if(it == null) {
+                Tracker.instance?.anrReporter?.reportANR(null, error)
+            } else {
+                anrRecordsHolder.recordANR(it, error)
+            }
         }
     }
 }

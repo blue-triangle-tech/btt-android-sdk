@@ -1,4 +1,4 @@
-package com.bluetriangle.analytics.appeventhub
+package com.bluetriangle.analytics.eventhub
 
 import android.app.Activity
 import android.app.Application
@@ -23,6 +23,10 @@ internal interface AppEventConsumer {
     }
 
     fun onAppMovedToBackground(application:Application) {
+
+    }
+
+    fun onAppDestroyed(application: Application) {
 
     }
 

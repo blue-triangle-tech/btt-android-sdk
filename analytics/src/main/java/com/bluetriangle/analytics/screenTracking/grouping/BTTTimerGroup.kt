@@ -125,7 +125,7 @@ internal class BTTTimerGroup(
         generateGroupProperties(tracker)
         groupTimer.submit()
         logger?.debug("Group Submitted.. ${this.hashCode()}")
-        if(tracker.configuration.shouldSampleGroupedView) {
+        if(tracker.configuration.shouldSampleNetwork) {
             tracker.trackerExecutor.submit(
                 GroupChildRunnable(tracker.configuration, groupTimer, childViews = mapTimersToChildViews())
             )

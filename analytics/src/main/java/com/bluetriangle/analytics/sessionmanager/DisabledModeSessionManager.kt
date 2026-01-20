@@ -28,8 +28,6 @@ internal class DisabledModeSessionManager(
         enableScreenTracking = true,
         enableGrouping = false,
         groupingIdleTime = Constants.DEFAULT_GROUPING_IDLE_TIME,
-        groupedViewSampleRate = 0.0,
-        shouldSampleGroupedView = false,
         enableGroupingTapDetection = false,
         enableNetworkStateTracking = false,
         enableCrashTracking = false,

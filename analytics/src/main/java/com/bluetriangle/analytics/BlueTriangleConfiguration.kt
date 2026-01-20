@@ -178,8 +178,6 @@ class BlueTriangleConfiguration {
             field = value.coerceAtLeast(0.0).coerceAtMost(1.0)
         }
 
-    internal var shouldSampleGroupedView = false
-
     internal var isWebViewStitchingEnabled: Boolean = DEFAULT_ENABLE_WEB_VIEW_STITCHING
 
     internal val shouldDetectTap: Boolean
@@ -225,9 +223,7 @@ class BlueTriangleConfiguration {
             cacheMemoryLimit : $cacheMemoryLimit
             isTrackNetworkStateEnabled : $isTrackNetworkStateEnabled,
             isGroupingEnabled : $isGroupingEnabled,
-            groupingIdleTime : $groupingIdleTime,
-            groupedViewSampleRate: $groupedViewSampleRate,
-            shouldSampleGroupedView: $shouldSampleGroupedView
+            groupingIdleTime : $groupingIdleTime
         }
         """.trimIndent()
     }

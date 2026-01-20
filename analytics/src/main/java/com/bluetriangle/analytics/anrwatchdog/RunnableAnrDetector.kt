@@ -83,7 +83,7 @@ internal class RunnableAnrDetector(private val trackAnrIntervalSec: Int = ANR_DE
         val delay = System.currentTimeMillis() - postTime
 
         if (isAnrOccurred(delay)) {
-            notifyIfNotAlreadyNotified(delay)
+            notifyIfNotAlreadyNotified()
             return
         }
         isNotified = false
@@ -92,10 +92,10 @@ internal class RunnableAnrDetector(private val trackAnrIntervalSec: Int = ANR_DE
     /**
      * If not already notified for the current ANR then it notifies the listeners of the ANR
      */
-    private fun notifyIfNotAlreadyNotified(delay: Long) {
+    private fun notifyIfNotAlreadyNotified() {
         if (!isNotified) {
             isNotified = true
-            notifyListeners(AnrException(delay))
+            notifyListeners(AnrException(trackAnrIntervalSec))
         }
     }
 

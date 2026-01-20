@@ -15,8 +15,9 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
+import com.bluetriangle.analytics.anrwatchdog.ANRReporter
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
-import com.bluetriangle.analytics.appeventhub.AppEventHub
+import com.bluetriangle.analytics.eventhub.AppEventHub
 import com.bluetriangle.analytics.breadcrumbs.UserEvent
 import com.bluetriangle.analytics.breadcrumbs.UserEventsCollection
 import com.bluetriangle.analytics.deviceinfo.DeviceInfoProvider
@@ -36,6 +37,7 @@ import com.bluetriangle.analytics.networkcapture.CapturedRequestCollection
 import com.bluetriangle.analytics.networkstate.NetworkStateMonitor
 import com.bluetriangle.analytics.networkstate.NetworkTimelineTracker
 import com.bluetriangle.analytics.performancemonitor.PerformanceSpan
+import com.bluetriangle.analytics.performancemonitor.monitors.MemoryWarningReporter
 import com.bluetriangle.analytics.screenTracking.ActivityLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.BTTScreenLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.FragmentLifecycleTracker
@@ -63,7 +65,7 @@ class Tracker private constructor(
     internal var performanceMonitor: PerformanceMonitor? = null
         @Synchronized set
 
-    private var anrManager: AnrManager? = null
+    internal var anrManager: AnrManager? = null
         @Synchronized set
 
     /**
@@ -116,6 +118,10 @@ class Tracker private constructor(
 
     internal var deviceInfoProvider: IDeviceInfoProvider
 
+    internal var anrReporter: ANRReporter
+
+    internal var memoryWarningReporter: MemoryWarningReporter
+
     private val claritySessionConnector:ClaritySessionConnector
     internal val appVersion: String
 
@@ -125,6 +131,8 @@ class Tracker private constructor(
         this.context = WeakReference(application.applicationContext)
         this.configuration = configuration
         this.deviceInfoProvider = DeviceInfoProvider
+        this.anrReporter = ANRReporter(deviceInfoProvider)
+        this.memoryWarningReporter = MemoryWarningReporter(deviceInfoProvider)
 
         appVersion = Utils.getAppVersion(application.applicationContext)
 
@@ -211,7 +219,7 @@ class Tracker private constructor(
     }
 
     private fun startPerformanceMonitoring() {
-        performanceMonitor = PerformanceMonitor(configuration, deviceInfoProvider)
+        performanceMonitor = PerformanceMonitor(configuration)
         performanceMonitor?.start()
     }
 
@@ -254,7 +262,7 @@ class Tracker private constructor(
     }
 
     private fun initializeANRMonitor() {
-        anrManager = AnrManager(configuration, deviceInfoProvider)
+        anrManager = AnrManager(configuration)
         anrManager?.start()
     }
 
@@ -454,7 +462,6 @@ class Tracker private constructor(
         if (configuration.shouldSampleNetwork) {
             getMostRecentTimer()?.let { timer ->
                 configuration.logger?.debug("Network Request Captured: $capturedRequest for $timer")
-                timer.setWCD(true)
                 capturedRequest.setNavigationStart(timer.start)
                 if (capturedRequests.containsKey(timer.start)) {
                     capturedRequests[timer.start]!!.add(capturedRequest)
@@ -718,14 +725,6 @@ class Tracker private constructor(
         if(configuration.shouldSampleNetwork != sessionData.shouldSampleNetwork) {
             changes.append("\nshouldSampleNetwork: ${configuration.shouldSampleNetwork} -> ${sessionData.shouldSampleNetwork}")
             configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
-        }
-        if(configuration.groupedViewSampleRate != sessionData.groupedViewSampleRate) {
-            changes.append("\ngroupedViewSampleRate: ${configuration.groupedViewSampleRate} -> ${sessionData.groupedViewSampleRate}")
-            configuration.groupedViewSampleRate = sessionData.groupedViewSampleRate
-        }
-        if(configuration.shouldSampleGroupedView != sessionData.shouldSampleGroupedView) {
-            changes.append("\nshouldSampleGroupedView: ${configuration.shouldSampleGroupedView} -> ${sessionData.shouldSampleGroupedView}")
-            configuration.shouldSampleGroupedView = sessionData.shouldSampleGroupedView
         }
 
         if(configuration.isGroupingEnabled != sessionData.enableGrouping) {
@@ -1048,7 +1047,6 @@ class Tracker private constructor(
                 enableScreenTracking = configuration.isScreenTrackingEnabled,
                 enableGrouping = configuration.isGroupingEnabled,
                 groupingIdleTime = configuration.groupingIdleTime,
-                groupedViewSampleRate = configuration.groupedViewSampleRate,
                 enableGroupingTapDetection = configuration.isGroupingTapDetectionEnabled,
                 enableNetworkStateTracking = configuration.isTrackNetworkStateEnabled,
                 enableCrashTracking = configuration.isTrackCrashesEnabled,
@@ -1173,8 +1171,6 @@ class Tracker private constructor(
             sessionId = sessionData.sessionId
             networkSampleRate = sessionData.networkSampleRate
             shouldSampleNetwork = sessionData.shouldSampleNetwork
-            groupedViewSampleRate = sessionData.groupedViewSampleRate
-            shouldSampleGroupedView = sessionData.shouldSampleGroupedView
             isGroupingEnabled = sessionData.enableGrouping
             groupingIdleTime = sessionData.groupingIdleTime
             isGroupingTapDetectionEnabled = sessionData.enableGroupingTapDetection

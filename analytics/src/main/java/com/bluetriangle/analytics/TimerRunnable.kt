@@ -61,6 +61,10 @@ internal class TimerRunnable(
                     UserEventsRunnable(configuration, userEventsCollections).run()
                     userEventsCollections = null
                 }
+                Tracker.instance?.let {
+                    it.anrManager?.anrRecordsHolder?.submitANRs(timer)
+                    it.performanceMonitor?.memoryMonitor?.memoryWarningHolder?.submitMemoryWarnings(timer)
+                }
                 if (statusCode >= 300) {
                     val responseBody =
                         BufferedReader(InputStreamReader(connection.errorStream)).use { it.readText() }

@@ -3,8 +3,10 @@ package com.bluetriangle.analytics
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
+import com.bluetriangle.analytics.anrwatchdog.AnrException
 import com.bluetriangle.analytics.model.NativeAppProperties
 import com.bluetriangle.analytics.performancemonitor.PerformanceSpan
+import com.bluetriangle.analytics.performancemonitor.monitors.MemoryMonitor
 import com.bluetriangle.analytics.utility.getNumberOfCPUCores
 
 /**
@@ -362,6 +364,7 @@ class Timer : Parcelable {
             if (nativeAppProperties.loadTime == null) {
                 generateNativeAppProperties()
             }
+            setWCD(tracker.configuration.shouldSampleNetwork)
             tracker.submitTimer(this)
         } else {
             Log.e("BlueTriangle", "Tracker not initialized")
