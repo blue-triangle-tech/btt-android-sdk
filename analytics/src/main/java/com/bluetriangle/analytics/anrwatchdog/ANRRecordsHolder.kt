@@ -2,8 +2,14 @@ package com.bluetriangle.analytics.anrwatchdog
 
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Tracker
+import com.bluetriangle.analytics.eventhub.SDKEventConsumer
+import com.bluetriangle.analytics.eventhub.SDKEventHub
 
-internal class ANRRecordsHolder {
+internal class ANRRecordsHolder: SDKEventConsumer {
+
+    init {
+        SDKEventHub.instance.addConsumer(this)
+    }
 
     private val anrRecords = mutableMapOf<Long, MutableList<AnrException>>()
 
@@ -16,7 +22,7 @@ internal class ANRRecordsHolder {
         }
     }
 
-    fun submitANRs(timer: Timer) {
+    private fun submitANRs(timer: Timer) {
         synchronized(anrRecords) {
             if(anrRecords.containsKey(timer.start)) {
                 anrRecords[timer.start]?.let {
@@ -29,4 +35,12 @@ internal class ANRRecordsHolder {
         }
     }
 
+    override fun onTimerSubmitted(timer: Timer) {
+        super.onTimerSubmitted(timer)
+        submitANRs(timer)
+    }
+
+    fun stop() {
+        SDKEventHub.instance.removeConsumer(this)
+    }
 }

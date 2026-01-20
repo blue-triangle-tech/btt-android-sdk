@@ -75,6 +75,9 @@ class PerformanceMonitor(configuration: BlueTriangleConfiguration) : Thread(THRE
     @Synchronized
     fun stopRunning() {
         isRunning = false
+        cpuMonitor.end()
+        memoryMonitor.end()
+        mainThreadMonitor.end()
     }
 
     companion object {

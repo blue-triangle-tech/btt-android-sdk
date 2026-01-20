@@ -25,7 +25,7 @@ class MemoryWarningHolder: SDKEventConsumer {
         }
     }
 
-    fun submitMemoryWarnings(timer: Timer) {
+    private fun submitMemoryWarnings(timer: Timer) {
         synchronized(memoryWarnings) {
             memoryWarnings[timer.start]?.let {
                 Tracker.instance?.memoryWarningReporter?.reportMemoryWarning(timer, it)
@@ -37,10 +37,6 @@ class MemoryWarningHolder: SDKEventConsumer {
     override fun onTimerSubmitted(timer: Timer) {
         super.onTimerSubmitted(timer)
         submitMemoryWarnings(timer)
-    }
-
-    fun flush() {
-        
     }
 
     fun stop() {

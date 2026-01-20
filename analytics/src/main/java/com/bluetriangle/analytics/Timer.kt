@@ -4,6 +4,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
 import com.bluetriangle.analytics.anrwatchdog.AnrException
+import com.bluetriangle.analytics.eventhub.SDKEventHub
 import com.bluetriangle.analytics.model.NativeAppProperties
 import com.bluetriangle.analytics.performancemonitor.PerformanceSpan
 import com.bluetriangle.analytics.performancemonitor.monitors.MemoryMonitor
@@ -249,6 +250,7 @@ class Timer : Parcelable {
             setField(FIELD_UNLOAD_EVENT_START, start)
             setField(FIELD_NST, start)
             tracker?.setMostRecentTimer(this)
+            SDKEventHub.instance.onTimerStarted(this)
         } else {
             logger?.error("Timer already started")
         }
@@ -366,6 +368,7 @@ class Timer : Parcelable {
             }
             setWCD(tracker.configuration.shouldSampleNetwork)
             tracker.submitTimer(this)
+            SDKEventHub.instance.onTimerSubmitted(this)
         } else {
             Log.e("BlueTriangle", "Tracker not initialized")
         }

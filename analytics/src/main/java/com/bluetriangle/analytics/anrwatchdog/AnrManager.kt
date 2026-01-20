@@ -15,15 +15,17 @@ internal class AnrManager(
         detector.addAnrListener("AnrManager", this)
     }
 
+    internal val anrRecordsHolder = ANRRecordsHolder()
+
     fun start() {
         detector.startDetection()
     }
 
     fun stop() {
         detector.stopDetection()
+        anrRecordsHolder.stop()
     }
 
-    internal val anrRecordsHolder = ANRRecordsHolder()
 
     override fun onAppNotResponding(error: AnrException) {
         configuration.logger?.debug("Anr Received: ${error.message}")
