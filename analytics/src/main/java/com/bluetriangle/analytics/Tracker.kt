@@ -411,16 +411,25 @@ class Tracker private constructor(
      * @param timer The timer to submit
      */
     fun submitTimer(timer: Timer) {
+        val timerRunnable = prepareTimerRunnable(timer)
+        trackerExecutor.submit(timerRunnable)
+    }
+
+    internal fun prepareTimerRunnable(timer: Timer, shouldSendCapturedRequests: Boolean = true): TimerRunnable {
         if (!timer.hasEnded()) {
             timer.end()
         }
+        if (timer.nativeAppProperties.loadTime == null) {
+            timer.generateNativeAppProperties()
+        }
+        timer.setWCD(configuration.shouldSampleNetwork)
         claritySessionConnector.refreshClaritySessionUrlCustomVariable()
 
         applyGlobalFields(timer)
         loadCustomVariables(timer)
         timer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
         timer.setField(FIELD_SESSION_ID, sessionManager.sessionData.sessionId)
-        trackerExecutor.submit(TimerRunnable(configuration, timer))
+        return TimerRunnable(configuration, timer, shouldSendCapturedRequests)
     }
 
     internal fun applyGlobalFields(timer: Timer) {

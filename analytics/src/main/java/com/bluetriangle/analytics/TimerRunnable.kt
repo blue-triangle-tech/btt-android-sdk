@@ -3,6 +3,7 @@ package com.bluetriangle.analytics
 import com.bluetriangle.analytics.Timer.Companion.FIELD_NATIVE_APP
 import com.bluetriangle.analytics.breadcrumbs.UserEventsRunnable
 import com.bluetriangle.analytics.caching.classifier.CacheType
+import com.bluetriangle.analytics.eventhub.SDKEventHub
 import com.bluetriangle.analytics.networkcapture.CapturedRequestRunnable
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -40,7 +41,6 @@ internal class TimerRunnable(
             }
             var userEventsCollections = Tracker.instance?.getUserEventsCollectionsForTimer(timer)
 
-            timer.onSubmit()
             try {
                 val url = URL(configuration.trackerUrl)
                 connection = url.openConnection() as HttpsURLConnection
@@ -61,6 +61,7 @@ internal class TimerRunnable(
                     UserEventsRunnable(configuration, userEventsCollections).run()
                     userEventsCollections = null
                 }
+                SDKEventHub.instance.onTimerSubmitted(timer)
                 if (statusCode >= 300) {
                     val responseBody =
                         BufferedReader(InputStreamReader(connection.errorStream)).use { it.readText() }

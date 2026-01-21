@@ -51,11 +51,12 @@ internal class CrashRunnable(
                 Tracker.instance?.applyGlobalFields(it)
                 loadTimerFields(it)
                 if(errorType == Tracker.BTErrorType.NativeAppCrash) {
-                    it.submit()
+                    submitTimer(it, true)
                 }
             }
             if(mostRecentTimer == null) {
-                submitTimer()
+                val timer = buildCrashHitsTimer()
+                submitTimer(timer, false)
             }
             submitCrashReport()
         } catch (e: Exception) {
@@ -63,26 +64,24 @@ internal class CrashRunnable(
         }
     }
 
-    private fun submitTimer() {
-        val tracker = Tracker.instance
-
-        val crashHitsTimer = Timer().startWithoutPerformanceMonitor()
-        crashHitsTimer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
-        crashHitsTimer.setError(true)
-        crashHitsTimer.pageTimeCalculator = {
+    private fun buildCrashHitsTimer() = Timer().apply {
+        startWithoutPerformanceMonitor()
+        nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
+        setError(true)
+        pageTimeCalculator = {
             TIMER_MIN_PGTM
         }
-        crashHitsTimer.end()
-        crashHitsTimer.setField(Timer.FIELD_EXCLUDED, "20")
+        setField(Timer.FIELD_EXCLUDED, "20")
+        setPageName(errorType.value)
+        setTrafficSegmentName(errorType.value)
+        setContentGroupName(errorType.value)
+    }
 
-        crashHitsTimer.setPageName(errorType.value)
-        crashHitsTimer.setTrafficSegmentName(errorType.value)
-        crashHitsTimer.setContentGroupName(errorType.value)
+    private fun submitTimer(timer: Timer, shouldSendCapturedRequests: Boolean) {
+        val tracker = Tracker.instance ?: return
 
-        tracker?.applyGlobalFields(crashHitsTimer)
-        tracker?.loadCustomVariables(crashHitsTimer)
-        loadTimerFields(crashHitsTimer)
-        val timerRunnable = TimerRunnable(configuration, crashHitsTimer, false)
+        val timerRunnable = tracker.prepareTimerRunnable(timer, shouldSendCapturedRequests)
+        loadTimerFields(timer)
         timerRunnable.run()
     }
 
@@ -237,12 +236,12 @@ internal class CrashRunnable(
         val keysAndDefaults = mutableMapOf(
             Timer.FIELD_NST to null,
             Timer.FIELD_PAGE_NAME to errorType.value,
-            Timer.FIELD_TRAFFIC_SEGMENT_NAME to Tracker.instance?.getGlobalField(Timer.FIELD_TRAFFIC_SEGMENT_NAME),
+            Timer.FIELD_TRAFFIC_SEGMENT_NAME to null,
             Timer.FIELD_NATIVE_OS to Constants.OS,
             Timer.FIELD_DEVICE to Constants.DEVICE_MOBILE,
             Timer.FIELD_BROWSER_VERSION to null,
             Timer.FIELD_PAGE_TIME to null,
-            Timer.FIELD_CONTENT_GROUP_NAME to Utils.deviceName,
+            Timer.FIELD_CONTENT_GROUP_NAME to null,
             Timer.FIELD_AB_TEST_ID to "Default",
             Timer.FIELD_DATACENTER to "Default",
             Timer.FIELD_CAMPAIGN_NAME to "",

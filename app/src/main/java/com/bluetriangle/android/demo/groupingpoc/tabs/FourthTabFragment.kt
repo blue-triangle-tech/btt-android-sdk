@@ -12,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import com.bluetriangle.android.demo.R
 import com.bluetriangle.android.demo.compose.ComposeMainActivity
 import com.bluetriangle.android.demo.groupingpoc.QuoteRequestHelper
+import com.bluetriangle.android.demo.kotlin.MemoryTestViewModel.MemoryBlock
 
 class FourthTabFragment : Fragment() {
 
@@ -21,6 +22,21 @@ class FourthTabFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.fragment_fourth_tab_group, container, false)
+    }
+
+    private var memoryBlock: ArrayList<MemoryBlock>? = null
+
+    fun useMemory() {
+        if(memoryBlock == null) {
+            memoryBlock = arrayListOf()
+        }
+        memoryBlock?.add(MemoryBlock())
+    }
+
+    fun clearMemory() {
+        memoryBlock?.clear()
+        memoryBlock = null
+        Runtime.getRuntime().gc()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -37,6 +53,14 @@ class FourthTabFragment : Fragment() {
         }
         view.findViewById<Button>(R.id.launch_compose).setOnClickListener {
             startActivity(Intent(context, ComposeMainActivity::class.java))
+        }
+
+        view.findViewById<Button>(R.id.use_memory).setOnClickListener {
+            useMemory()
+        }
+
+        view.findViewById<Button>(R.id.release_memory).setOnClickListener {
+            clearMemory()
         }
     }
 }

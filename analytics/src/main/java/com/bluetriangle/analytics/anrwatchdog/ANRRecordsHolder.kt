@@ -1,5 +1,6 @@
 package com.bluetriangle.analytics.anrwatchdog
 
+import android.util.Log
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.eventhub.SDKEventConsumer
@@ -37,6 +38,7 @@ internal class ANRRecordsHolder: SDKEventConsumer {
 
     override fun onTimerSubmitted(timer: Timer) {
         super.onTimerSubmitted(timer)
+        Log.d("BlueTriangle", "ANRRecordsHolder::onTimerSubmitted")
         submitANRs(timer)
     }
 

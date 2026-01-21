@@ -1,5 +1,6 @@
 package com.bluetriangle.analytics.performancemonitor.monitors
 
+import android.util.Log
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.eventhub.SDKEventConsumer
@@ -15,7 +16,7 @@ class MemoryWarningHolder: SDKEventConsumer {
 
     internal fun recordMemoryWarning(timer: Timer, memoryWarning: MemoryMonitor.MemoryWarningException) {
         synchronized(memoryWarnings) {
-            if(memoryWarnings.contains(timer.start)) {
+            if(!memoryWarnings.containsKey(timer.start)) {
                 memoryWarnings[timer.start] = memoryWarning
             } else {
                 memoryWarnings[timer.start]?.let {
@@ -36,6 +37,7 @@ class MemoryWarningHolder: SDKEventConsumer {
 
     override fun onTimerSubmitted(timer: Timer) {
         super.onTimerSubmitted(timer)
+        Log.d("BlueTriangle", "MemoryWarningHolder::onTimerSubmitted")
         submitMemoryWarnings(timer)
     }
 

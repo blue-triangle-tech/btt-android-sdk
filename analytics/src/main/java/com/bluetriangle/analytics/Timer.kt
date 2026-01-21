@@ -352,9 +352,6 @@ class Timer : Parcelable {
      */
     fun isInteractive(): Boolean = start > 0 && interactive > 0
 
-    fun onSubmit() {
-        performanceSpan?.onTimerSubmit(this)
-    }
     /**
      * Convenience method to submit this timer to the global tracker
      */
@@ -363,15 +360,14 @@ class Timer : Parcelable {
 
         val tracker = Tracker.instance
         if (tracker != null) {
-            if (nativeAppProperties.loadTime == null) {
-                generateNativeAppProperties()
-            }
-            setWCD(tracker.configuration.shouldSampleNetwork)
             tracker.submitTimer(this)
-            SDKEventHub.instance.onTimerSubmitted(this)
         } else {
             Log.e("BlueTriangle", "Tracker not initialized")
         }
+    }
+
+    internal fun submitBlocking() {
+
     }
 
     /**
@@ -696,15 +692,18 @@ class Timer : Parcelable {
     }
 
     /**
-     * Sets a field if it's not already set. i.e. it still has the default value.
+     * Sets a field if it's not already set. i.e. it still has the default value or doesn't exist at all
      *
      * @param fieldName name of field to remove
      * @return this timer
      */
     internal fun setFieldIfNotSet(fieldName: String, value: String): Timer {
         synchronized(fields) {
-            if (!DEFAULT_VALUES.containsKey(fieldName) || fields[fieldName] == DEFAULT_VALUES[fieldName]) {
-                setField(fieldName, value)
+            val exists = fields.containsKey(fieldName)
+            val hasDefaultValue = DEFAULT_VALUES.containsKey(fieldName) && fields[fieldName] == DEFAULT_VALUES[fieldName]
+
+            if(!exists || hasDefaultValue) {
+                fields[fieldName] = value
             }
         }
         return this
