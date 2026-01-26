@@ -2,7 +2,7 @@ package com.bluetriangle.analytics.anrwatchdog
 
 import android.os.Looper
 
-internal class AnrException(anrInterval: Int) :
+internal class ANRWarningException(anrInterval: Int) :
     Exception("App not responding for more than ${anrInterval * 1000L}ms") {
     val timestamp = System.currentTimeMillis()
 

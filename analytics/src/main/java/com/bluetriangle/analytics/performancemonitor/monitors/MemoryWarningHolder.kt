@@ -16,10 +16,11 @@ class MemoryWarningHolder: SDKEventConsumer {
 
     internal fun recordMemoryWarning(timer: Timer, memoryWarning: MemoryMonitor.MemoryWarningException) {
         synchronized(memoryWarnings) {
-            if(!memoryWarnings.containsKey(timer.start)) {
-                memoryWarnings[timer.start] = memoryWarning
+            val key = timer.start
+            if(!memoryWarnings.containsKey(key)) {
+                memoryWarnings[key] = memoryWarning
             } else {
-                memoryWarnings[timer.start]?.let {
+                memoryWarnings[key]?.let {
                     it.count++
                 }
             }
@@ -28,10 +29,9 @@ class MemoryWarningHolder: SDKEventConsumer {
 
     private fun submitMemoryWarnings(timer: Timer) {
         synchronized(memoryWarnings) {
-            memoryWarnings[timer.start]?.let {
+            memoryWarnings.remove(timer.start)?.let {
                 Tracker.instance?.memoryWarningReporter?.reportMemoryWarning(timer, it)
             }
-            memoryWarnings.remove(timer.start)
         }
     }
 

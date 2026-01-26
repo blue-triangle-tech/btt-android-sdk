@@ -95,7 +95,7 @@ internal class RunnableAnrDetector(private val trackAnrIntervalSec: Int = ANR_DE
     private fun notifyIfNotAlreadyNotified() {
         if (!isNotified) {
             isNotified = true
-            notifyListeners(AnrException(trackAnrIntervalSec))
+            notifyListeners(ANRWarningException(trackAnrIntervalSec))
         }
     }
 

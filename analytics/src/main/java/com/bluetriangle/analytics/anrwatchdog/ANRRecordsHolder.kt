@@ -1,6 +1,5 @@
 package com.bluetriangle.analytics.anrwatchdog
 
-import android.util.Log
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.eventhub.SDKEventConsumer
@@ -12,33 +11,37 @@ internal class ANRRecordsHolder: SDKEventConsumer {
         SDKEventHub.instance.addConsumer(this)
     }
 
-    private val anrRecords = mutableMapOf<Long, MutableList<AnrException>>()
+    private val anrRecords = mutableMapOf<Long, MutableList<ANRWarningException>>()
 
-    fun recordANR(timer: Timer, error: AnrException) {
+    /**
+     * Records the ANR warning
+     */
+    fun recordANR(timer: Timer, warning: ANRWarningException) {
         synchronized(anrRecords) {
-            if(!anrRecords.containsKey(timer.start)) {
-                anrRecords[timer.start] = mutableListOf()
+            val key = timer.start
+            if(!anrRecords.containsKey(key)) {
+                anrRecords[key] = mutableListOf()
             }
-            anrRecords[timer.start]?.add(error)
+            anrRecords[key]?.add(warning)
         }
     }
 
     private fun submitANRs(timer: Timer) {
-        synchronized(anrRecords) {
-            if(anrRecords.containsKey(timer.start)) {
-                anrRecords[timer.start]?.let {
-                    for(record in it) {
-                        Tracker.instance?.anrReporter?.reportANR(timer, record)
-                    }
-                }
-                anrRecords.remove(timer.start)
+        val anrRecord = synchronized(anrRecords) {
+            anrRecords.remove(timer.start)
+        }
+        anrRecord?.let {
+            for(record in it) {
+                Tracker.instance?.anrReporter?.reportANR(timer, record)
             }
         }
     }
 
+    /**
+     * called by SDKEventHub when any Timer is submitted
+     */
     override fun onTimerSubmitted(timer: Timer) {
         super.onTimerSubmitted(timer)
-        Log.d("BlueTriangle", "ANRRecordsHolder::onTimerSubmitted")
         submitANRs(timer)
     }
 

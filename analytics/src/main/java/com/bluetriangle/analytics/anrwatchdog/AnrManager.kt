@@ -1,7 +1,6 @@
 package com.bluetriangle.analytics.anrwatchdog
 
 import com.bluetriangle.analytics.BlueTriangleConfiguration
-import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Tracker
 
 internal class AnrManager(
@@ -27,7 +26,7 @@ internal class AnrManager(
     }
 
 
-    override fun onAppNotResponding(error: AnrException) {
+    override fun onAppNotResponding(error: ANRWarningException) {
         configuration.logger?.debug("Anr Received: ${error.message}")
 
         val mostRecentTimer = Tracker.instance?.getMostRecentTimer()

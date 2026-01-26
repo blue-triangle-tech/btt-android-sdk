@@ -14,7 +14,7 @@ internal abstract class AnrDetector {
         listeners.remove(tag)
     }
 
-    protected fun notifyListeners(error: AnrException) {
+    protected fun notifyListeners(error: ANRWarningException) {
         listeners.forEach { listener ->
             listener.value.get()?.onAppNotResponding(error)
         }
