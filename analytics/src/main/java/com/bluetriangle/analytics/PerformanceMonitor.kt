@@ -1,30 +1,21 @@
 package com.bluetriangle.analytics
 
 import android.os.Process
-import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
+import com.bluetriangle.analytics.performancemonitor.PerformanceListener
 import com.bluetriangle.analytics.performancemonitor.monitors.CpuMonitor
 import com.bluetriangle.analytics.performancemonitor.monitors.MainThreadMonitor
 import com.bluetriangle.analytics.performancemonitor.monitors.MemoryMonitor
-import com.bluetriangle.analytics.performancemonitor.PerformanceListener
-import com.bluetriangle.analytics.performancemonitor.monitors.MemoryWarningReporter
 import java.lang.ref.WeakReference
-import kotlin.collections.forEach
-import kotlin.collections.map
-import kotlin.collections.removeAll
 
 class PerformanceMonitor(configuration: BlueTriangleConfiguration) : Thread(THREAD_NAME) {
     private val logger = configuration.logger
     private var isRunning = true
     private val interval = configuration.performanceMonitorIntervalMs
 
-    internal val cpuMonitor = CpuMonitor(configuration)
-    internal val memoryMonitor = MemoryMonitor(configuration)
-    internal val mainThreadMonitor = MainThreadMonitor(configuration)
-
     private val metricMonitors = listOf(
-        cpuMonitor,
-        memoryMonitor,
-        mainThreadMonitor
+        CpuMonitor(configuration),
+        MemoryMonitor(configuration),
+        MainThreadMonitor(configuration)
     )
 
     private val listeners = mutableListOf<WeakReference<PerformanceListener>>()

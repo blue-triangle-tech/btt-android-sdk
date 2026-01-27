@@ -21,7 +21,7 @@ internal class MemoryMonitor(
     private val Long.mb: Long
         get() = this / (1024 * 1024)
 
-    internal val memoryWarningHolder = MemoryWarningHolder()
+    private val memoryWarningHolder = MemoryWarningHolder()
 
     class MemoryWarningException(val usedMemory: Long, val totalMemory: Long) :
         RuntimeException("Critical memory usage detected. App using more than 80% of App\'s limit ${totalMemory}MB") {
