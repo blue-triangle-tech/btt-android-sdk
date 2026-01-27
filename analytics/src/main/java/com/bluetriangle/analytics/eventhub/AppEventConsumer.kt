@@ -26,8 +26,4 @@ internal interface AppEventConsumer {
 
     }
 
-    fun onAppDestroyed(application: Application) {
-
-    }
-
 }
