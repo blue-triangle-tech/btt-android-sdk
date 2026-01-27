@@ -21,6 +21,12 @@ class PerformanceMonitor(configuration: BlueTriangleConfiguration) : Thread(THRE
     internal val memoryMonitor = MemoryMonitor(configuration)
     internal val mainThreadMonitor = MainThreadMonitor(configuration)
 
+    private val metricMonitors = listOf(
+        cpuMonitor,
+        memoryMonitor,
+        mainThreadMonitor
+    )
+
     private val listeners = mutableListOf<WeakReference<PerformanceListener>>()
 
     fun registerListener(listener: PerformanceListener) {
@@ -53,17 +59,11 @@ class PerformanceMonitor(configuration: BlueTriangleConfiguration) : Thread(THRE
     }
 
     private fun setupMetrics() {
-        cpuMonitor.setupMetric()
-        memoryMonitor.setupMetric()
-        mainThreadMonitor.setupMetric()
+        metricMonitors.forEach { it.setupMetric() }
     }
 
     private fun captureDataPoints() {
-        val dataPoints = buildList {
-            add(cpuMonitor.captureDataPoint())
-            add(memoryMonitor.captureDataPoint())
-            add(mainThreadMonitor.captureDataPoint())
-        }
+        val dataPoints = metricMonitors.map { it.captureDataPoint() }
 
         synchronized(listeners) {
             listeners.forEach {
@@ -75,9 +75,7 @@ class PerformanceMonitor(configuration: BlueTriangleConfiguration) : Thread(THRE
     @Synchronized
     fun stopRunning() {
         isRunning = false
-        cpuMonitor.end()
-        memoryMonitor.end()
-        mainThreadMonitor.end()
+        metricMonitors.forEach { it.end() }
     }
 
     companion object {
