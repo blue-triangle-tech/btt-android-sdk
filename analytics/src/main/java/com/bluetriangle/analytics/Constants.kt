@@ -61,4 +61,7 @@ object Constants {
     internal const val CONFIDENCE_RATE = "confidenceRate"
     internal const val CONFIDENCE_MSG = "confidenceMsg"
 
+    internal const val DEFAULT_TRAFFIC_SEGMENT_NAME = "Main Segment"
+    internal const val DEFAULT_CONTENT_GROUP_NAME = "Main Group"
+
 }

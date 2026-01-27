@@ -258,6 +258,8 @@ class Tracker private constructor(
             )
             put(Timer.FIELD_BROWSER_VERSION, "${Constants.BROWSER}-$appVersion-${Utils.os}")
             put(Timer.FIELD_SDK_VERSION, BuildConfig.SDK_VERSION)
+            put(Timer.FIELD_TRAFFIC_SEGMENT_NAME, Constants.DEFAULT_TRAFFIC_SEGMENT_NAME)
+            put(Timer.FIELD_CONTENT_GROUP_NAME, Constants.DEFAULT_CONTENT_GROUP_NAME)
         }
     }
 
