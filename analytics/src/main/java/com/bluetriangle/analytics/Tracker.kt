@@ -65,7 +65,7 @@ class Tracker private constructor(
     internal var performanceMonitor: PerformanceMonitor? = null
         @Synchronized set
 
-    internal var anrManager: AnrManager? = null
+    private var anrManager: AnrManager? = null
         @Synchronized set
 
     /**
