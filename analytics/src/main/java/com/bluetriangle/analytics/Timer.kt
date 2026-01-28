@@ -364,10 +364,6 @@ class Timer : Parcelable {
         }
     }
 
-    internal fun submitBlocking() {
-
-    }
-
     /**
      * Get all the fields currently associated with this timer.
      *
