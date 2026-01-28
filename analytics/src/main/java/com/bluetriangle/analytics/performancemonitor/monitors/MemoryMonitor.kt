@@ -7,10 +7,10 @@ import com.bluetriangle.analytics.Timer.Companion.FIELD_PAGE_NAME
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 import com.bluetriangle.analytics.performancemonitor.DataPoint
+import kotlinx.coroutines.GlobalScope
 
 internal class MemoryMonitor(
-    val configuration: BlueTriangleConfiguration,
-    private val deviceInfoProvider: IDeviceInfoProvider
+    val configuration: BlueTriangleConfiguration
 ) : MetricMonitor {
 
     private val totalMemory = Runtime.getRuntime().maxMemory()
@@ -21,9 +21,13 @@ internal class MemoryMonitor(
     private val Long.mb: Long
         get() = this / (1024 * 1024)
 
+    private val memoryWarningHolder = MemoryWarningHolder()
+
     class MemoryWarningException(val usedMemory: Long, val totalMemory: Long) :
-        RuntimeException("Critical memory usage detected. App using ${usedMemory}MB of App's limit ${totalMemory}MB") {
+        RuntimeException("Critical memory usage detected. App using more than 80% of App\'s limit ${totalMemory}MB") {
         var count: Int = 1
+
+        val timestamp: Long = System.currentTimeMillis()
     }
 
     private var isFirst = true
@@ -38,33 +42,10 @@ internal class MemoryMonitor(
     ) {
         configuration.logger?.debug("Memory Warning received ${memoryWarningException.count} times: Used: ${memoryWarningException.usedMemory}MB, Total: ${memoryWarningException.totalMemory}MB")
 
-        val timeStamp = System.currentTimeMillis().toString()
-        val crashHitsTimer: Timer = Timer().startWithoutPerformanceMonitor()
-        crashHitsTimer.setPageName(timer?.getField(FIELD_PAGE_NAME)?: Tracker.BTErrorType.MemoryWarning.value)
         if(timer == null) {
-            crashHitsTimer.generateNativeAppProperties()
+            Tracker.instance?.memoryWarningReporter?.reportMemoryWarning(null, memoryWarningException)
         } else {
-            crashHitsTimer.nativeAppProperties = timer.nativeAppProperties
-        }
-        crashHitsTimer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
-        crashHitsTimer.setError(true)
-
-        try {
-            val thread = Thread(
-                CrashRunnable(
-                    configuration,
-                    memoryWarningException.message ?: "",
-                    timeStamp,
-                    crashHitsTimer,
-                    Tracker.BTErrorType.MemoryWarning,
-                    errorCount = memoryWarningException.count,
-                    deviceInfoProvider = deviceInfoProvider
-                )
-            )
-            thread.start()
-            thread.join()
-        } catch (interruptedException: InterruptedException) {
-            interruptedException.printStackTrace()
+            memoryWarningHolder.recordMemoryWarning(timer, memoryWarningException)
         }
     }
 
@@ -85,6 +66,11 @@ internal class MemoryMonitor(
         }
         isFirst = false
         return DataPoint.MemoryDataPoint(usedMemory)
+    }
+
+    override fun end() {
+        super.end()
+        memoryWarningHolder.stop()
     }
 
 }

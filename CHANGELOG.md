@@ -1,4 +1,13 @@
-# Blue Triangle 2.19.1 Latest, Jan 5 2026
+# Blue Triangle 2.19.2 Latest, Jan 28 2026
+### New Improvements
+- Removed Redundant HITS from errors. Errors are now associated with the most recent timer if it exists.
+- Unifying the sample rates for network and classes/fragments. Removed groupedViewSampleRate field.
+- WCD flag to denote whether the session has WCD data
+- Matching pageType/Traffic segment between error and HITS beacons.
+- Improved memory warning message for consistency. 
+- Improved ANR warning message for consistency
+
+# Blue Triangle 2.19.1, Jan 5 2026
 ### New Improvements
 - Added remote configuration flags to enable/disable following features:
   - Grouping tap detection

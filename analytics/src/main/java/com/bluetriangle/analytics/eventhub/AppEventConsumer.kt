@@ -1,4 +1,4 @@
-package com.bluetriangle.analytics.appeventhub
+package com.bluetriangle.analytics.eventhub
 
 import android.app.Activity
 import android.app.Application

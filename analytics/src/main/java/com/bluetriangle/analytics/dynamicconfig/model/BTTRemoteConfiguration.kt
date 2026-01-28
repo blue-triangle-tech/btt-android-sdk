@@ -13,7 +13,6 @@ internal open class BTTRemoteConfiguration(
     val enableScreenTracking: Boolean,
     val enableGrouping: Boolean,
     val groupingIdleTime: Int,
-    val groupedViewSampleRate: Double?,
     val enableGroupingTapDetection: Boolean,
     val enableNetworkStateTracking: Boolean,
     val enableCrashTracking: Boolean,
@@ -31,7 +30,6 @@ internal open class BTTRemoteConfiguration(
                     other.enableScreenTracking == enableScreenTracking &&
                     other.enableGrouping == enableGrouping &&
                     other.groupingIdleTime == groupingIdleTime &&
-                    other.groupedViewSampleRate == groupedViewSampleRate &&
                     other.enableGroupingTapDetection == enableGroupingTapDetection &&
                     other.enableNetworkStateTracking == enableNetworkStateTracking &&
                     other.enableCrashTracking == enableCrashTracking &&
@@ -44,7 +42,7 @@ internal open class BTTRemoteConfiguration(
     }
 
     override fun toString(): String {
-        return "RemoteConfig { networkSampleRate: $networkSampleRate, ignoreList: ${ignoreScreens}, enableRemoteConfigAck: $enableRemoteConfigAck, enableAllTracking: $enableAllTracking,  enableScreenTracking: $enableScreenTracking, enableGrouping: $enableGrouping, groupingIdleTime: $groupingIdleTime, groupedViewSampleRate: $groupedViewSampleRate, enableGroupingTapDetection: $enableGroupingTapDetection, enableNetworkStateTracking: $enableNetworkStateTracking, enableCrashTracking: $enableCrashTracking, enableANRTracking: $enableANRTracking, enableMemoryWarning: $enableMemoryWarning, enableLaunchTime: $enableLaunchTime, enableWebViewStitching: $enableWebViewStitching }"
+        return "RemoteConfig { networkSampleRate: $networkSampleRate, ignoreList: ${ignoreScreens}, enableRemoteConfigAck: $enableRemoteConfigAck, enableAllTracking: $enableAllTracking,  enableScreenTracking: $enableScreenTracking, enableGrouping: $enableGrouping, groupingIdleTime: $groupingIdleTime, enableGroupingTapDetection: $enableGroupingTapDetection, enableNetworkStateTracking: $enableNetworkStateTracking, enableCrashTracking: $enableCrashTracking, enableANRTracking: $enableANRTracking, enableMemoryWarning: $enableMemoryWarning, enableLaunchTime: $enableLaunchTime, enableWebViewStitching: $enableWebViewStitching }"
     }
 
     override fun hashCode(): Int {
@@ -55,7 +53,6 @@ internal open class BTTRemoteConfiguration(
         result = 31 * result + enableGrouping.hashCode()
         result = 31 * result + groupingIdleTime
         result = 31 * result + ignoreScreens.hashCode()
-        result = 31 * result + groupedViewSampleRate.hashCode()
         result = 31 * result + enableGroupingTapDetection.hashCode()
         result = 31 * result + enableNetworkStateTracking.hashCode()
         result = 31 * result + enableCrashTracking.hashCode()

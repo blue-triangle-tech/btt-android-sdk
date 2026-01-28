@@ -156,7 +156,7 @@ internal object Utils {
         return Base64.encode(data.toByteArray(), Base64.DEFAULT)
     }
 
-    fun exceptionToStacktrace(message: String?, e: Throwable): String {
+    fun exceptionToStacktrace(message: String?, e: Throwable, hideExceptionName: Boolean = false): String {
         val result: Writer = StringWriter()
         val printWriter = PrintWriter(result)
         e.printStackTrace(printWriter)
@@ -166,8 +166,12 @@ internal object Utils {
             if (!message.isNullOrBlank()) {
                 append(message)
                 append("~~")
+            } else if(hideExceptionName) {
+                append(e.message)
+                append("~~")
             }
-            for (line in lines.take(lines.size - 1)) {
+
+            for (line in lines.takeLast(if(hideExceptionName) lines.size - 1 else lines.size)) {
                 if (line.isNotBlank()) {
                     append(line)
                     append("~~")
