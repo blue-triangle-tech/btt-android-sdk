@@ -73,8 +73,6 @@ internal class CrashRunnable(
         }
         setField(Timer.FIELD_EXCLUDED, "20")
         setPageName(errorType.value)
-        setTrafficSegmentName(errorType.value)
-        setContentGroupName(errorType.value)
     }
 
     private fun submitTimer(timer: Timer, shouldSendCapturedRequests: Boolean) {
