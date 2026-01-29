@@ -1,16 +1,10 @@
 package com.bluetriangle.analytics.anrwatchdog
 
 import com.bluetriangle.analytics.BlueTriangleConfiguration
-import com.bluetriangle.analytics.CrashRunnable
-import com.bluetriangle.analytics.Timer
-import com.bluetriangle.analytics.Timer.Companion.FIELD_PAGE_NAME
 import com.bluetriangle.analytics.Tracker
-import com.bluetriangle.analytics.Utils
-import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 
 internal class AnrManager(
-    private val configuration: BlueTriangleConfiguration,
-    private val deviceInfoProvider: IDeviceInfoProvider
+    private val configuration: BlueTriangleConfiguration
 ) :
     AnrListener {
 
@@ -20,45 +14,28 @@ internal class AnrManager(
         detector.addAnrListener("AnrManager", this)
     }
 
+    internal val anrRecordsHolder = ANRRecordsHolder()
+
     fun start() {
         detector.startDetection()
     }
 
     fun stop() {
         detector.stopDetection()
+        anrRecordsHolder.stop()
     }
 
-    override fun onAppNotResponding(error: AnrException) {
+
+    override fun onAppNotResponding(error: ANRWarningException) {
         configuration.logger?.debug("Anr Received: ${error.message}")
 
-        val timeStamp = System.currentTimeMillis().toString()
         val mostRecentTimer = Tracker.instance?.getMostRecentTimer()
-        val crashHitsTimer: Timer = Timer().startWithoutPerformanceMonitor()
-
-        crashHitsTimer.setPageName(mostRecentTimer?.getField(FIELD_PAGE_NAME)?:Tracker.BTErrorType.ANRWarning.value)
-        if(mostRecentTimer != null) {
-            mostRecentTimer.generateNativeAppProperties()
-            crashHitsTimer.nativeAppProperties = mostRecentTimer.nativeAppProperties
-        }
-        crashHitsTimer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
-        crashHitsTimer.setError(true)
-        val stacktrace = Utils.exceptionToStacktrace(null, error)
-
-        try {
-            val thread = Thread(
-                CrashRunnable(
-                    configuration,
-                    stacktrace,
-                    timeStamp,
-                    crashHitsTimer,
-                    Tracker.BTErrorType.ANRWarning,
-                    deviceInfoProvider = deviceInfoProvider
-                )
-            )
-            thread.start()
-            thread.join()
-        } catch (interruptedException: InterruptedException) {
-            interruptedException.printStackTrace()
+        mostRecentTimer.let {
+            if(it == null) {
+                Tracker.instance?.anrReporter?.reportANR(null, error)
+            } else {
+                anrRecordsHolder.recordANR(it, error)
+            }
         }
     }
 }

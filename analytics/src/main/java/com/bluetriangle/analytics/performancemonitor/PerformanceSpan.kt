@@ -63,7 +63,4 @@ internal class PerformanceSpan(configuration: BlueTriangleConfiguration) : Perfo
         maxMainThreadUsage = maxMainThreadUsage.coerceAtLeast(mainThreadUsageData.mainThreadUsage)
     }
 
-    fun onTimerSubmit(timer: Timer) {
-
-    }
 }

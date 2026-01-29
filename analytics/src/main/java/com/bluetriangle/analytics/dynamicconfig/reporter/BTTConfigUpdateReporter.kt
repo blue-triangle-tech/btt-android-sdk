@@ -30,21 +30,12 @@ internal class BTTConfigUpdateReporter(
     }
 
     override fun reportError(error: BTTConfigFetchError) {
-        val crashHitsTimer: Timer = Timer().startWithoutPerformanceMonitor()
-
-        crashHitsTimer.setPageName(CONFIG_UPDATE_PAGE_NAME)
-        crashHitsTimer.setTrafficSegmentName(CONFIG_UPDATE_PAGE_NAME)
-        crashHitsTimer.setContentGroupName(CONFIG_UPDATE_PAGE_NAME)
-        crashHitsTimer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
-        crashHitsTimer.setError(true)
-
         try {
             val thread = Thread(
                 CrashRunnable(
                     configuration,
                     "${Tracker.BTErrorType.BTTConfigUpdateError.value} : ${error.reason}",
                     System.currentTimeMillis().toString(),
-                    crashHitsTimer,
                     Tracker.BTErrorType.BTTConfigUpdateError,
                     deviceInfoProvider = deviceInfoProvider
                 )

@@ -8,7 +8,7 @@ import android.os.Process
 import android.os.SystemClock
 import android.util.Log
 import com.bluetriangle.analytics.Tracker
-import com.bluetriangle.analytics.appeventhub.AppEventConsumer
+import com.bluetriangle.analytics.eventhub.AppEventConsumer
 import com.bluetriangle.analytics.launchtime.model.AppLifecycleEvent
 import com.bluetriangle.analytics.launchtime.model.LaunchEvent
 import com.bluetriangle.analytics.launchtime.helpers.AppEventAccumulator

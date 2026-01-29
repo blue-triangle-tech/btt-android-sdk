@@ -1,11 +1,11 @@
-package com.bluetriangle.analytics.appeventhub
+package com.bluetriangle.analytics.eventhub
 
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
 import androidx.lifecycle.ProcessLifecycleOwner
-import com.bluetriangle.analytics.appeventhub.helpers.ActivityEventHandler
-import com.bluetriangle.analytics.appeventhub.helpers.AppBackgroundNotifier
+import com.bluetriangle.analytics.eventhub.helpers.ActivityEventHandler
+import com.bluetriangle.analytics.eventhub.helpers.AppBackgroundNotifier
 import java.lang.ref.WeakReference
 
 internal class AppEventHub private constructor(): AppEventConsumer {

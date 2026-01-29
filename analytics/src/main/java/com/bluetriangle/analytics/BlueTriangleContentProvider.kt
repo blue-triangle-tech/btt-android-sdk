@@ -6,7 +6,7 @@ import android.content.ContentValues
 import android.database.Cursor
 import android.net.Uri
 import android.util.Log
-import com.bluetriangle.analytics.appeventhub.AppEventHub
+import com.bluetriangle.analytics.eventhub.AppEventHub
 import com.bluetriangle.analytics.launchtime.LaunchMonitor
 
 class BlueTriangleContentProvider: ContentProvider() {

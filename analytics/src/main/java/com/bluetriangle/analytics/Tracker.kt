@@ -15,8 +15,9 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
+import com.bluetriangle.analytics.anrwatchdog.ANRReporter
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
-import com.bluetriangle.analytics.appeventhub.AppEventHub
+import com.bluetriangle.analytics.eventhub.AppEventHub
 import com.bluetriangle.analytics.breadcrumbs.UserEvent
 import com.bluetriangle.analytics.breadcrumbs.UserEventsCollection
 import com.bluetriangle.analytics.deviceinfo.DeviceInfoProvider
@@ -36,6 +37,7 @@ import com.bluetriangle.analytics.networkcapture.CapturedRequestCollection
 import com.bluetriangle.analytics.networkstate.NetworkStateMonitor
 import com.bluetriangle.analytics.networkstate.NetworkTimelineTracker
 import com.bluetriangle.analytics.performancemonitor.PerformanceSpan
+import com.bluetriangle.analytics.performancemonitor.monitors.MemoryWarningReporter
 import com.bluetriangle.analytics.screenTracking.ActivityLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.BTTScreenLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.FragmentLifecycleTracker
@@ -116,6 +118,10 @@ class Tracker private constructor(
 
     internal var deviceInfoProvider: IDeviceInfoProvider
 
+    internal var anrReporter: ANRReporter
+
+    internal var memoryWarningReporter: MemoryWarningReporter
+
     private val claritySessionConnector:ClaritySessionConnector
     internal val appVersion: String
 
@@ -125,6 +131,8 @@ class Tracker private constructor(
         this.context = WeakReference(application.applicationContext)
         this.configuration = configuration
         this.deviceInfoProvider = DeviceInfoProvider
+        this.anrReporter = ANRReporter(deviceInfoProvider)
+        this.memoryWarningReporter = MemoryWarningReporter(deviceInfoProvider)
 
         appVersion = Utils.getAppVersion(application.applicationContext)
 
@@ -211,7 +219,7 @@ class Tracker private constructor(
     }
 
     private fun startPerformanceMonitoring() {
-        performanceMonitor = PerformanceMonitor(configuration, deviceInfoProvider)
+        performanceMonitor = PerformanceMonitor(configuration)
         performanceMonitor?.start()
     }
 
@@ -250,11 +258,13 @@ class Tracker private constructor(
             )
             put(Timer.FIELD_BROWSER_VERSION, "${Constants.BROWSER}-$appVersion-${Utils.os}")
             put(Timer.FIELD_SDK_VERSION, BuildConfig.SDK_VERSION)
+            put(Timer.FIELD_TRAFFIC_SEGMENT_NAME, Constants.DEFAULT_TRAFFIC_SEGMENT_NAME)
+            put(Timer.FIELD_CONTENT_GROUP_NAME, Constants.DEFAULT_CONTENT_GROUP_NAME)
         }
     }
 
     private fun initializeANRMonitor() {
-        anrManager = AnrManager(configuration, deviceInfoProvider)
+        anrManager = AnrManager(configuration)
         anrManager?.start()
     }
 
@@ -403,16 +413,33 @@ class Tracker private constructor(
      * @param timer The timer to submit
      */
     fun submitTimer(timer: Timer) {
+        val timerRunnable = prepareTimerRunnable(timer)
+        trackerExecutor.submit(timerRunnable)
+    }
+
+    internal fun prepareTimerRunnable(timer: Timer, shouldSendCapturedRequests: Boolean = true): TimerRunnable {
         if (!timer.hasEnded()) {
             timer.end()
         }
+        if (timer.nativeAppProperties.loadTime == null) {
+            timer.generateNativeAppProperties()
+        }
+        timer.setWCD(configuration.shouldSampleNetwork)
         claritySessionConnector.refreshClaritySessionUrlCustomVariable()
 
-        timer.setFieldsIfAbsent(globalFields.toMap())
+        applyGlobalFields(timer)
         loadCustomVariables(timer)
         timer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
         timer.setField(FIELD_SESSION_ID, sessionManager.sessionData.sessionId)
-        trackerExecutor.submit(TimerRunnable(configuration, timer))
+        return TimerRunnable(configuration, timer, shouldSendCapturedRequests)
+    }
+
+    internal fun applyGlobalFields(timer: Timer) {
+        synchronized(globalFields) {
+            globalFields.forEach {
+                timer.setFieldIfNotSet(it.key, it.value)
+            }
+        }
     }
 
     internal fun loadCustomVariables(timer: Timer) {
@@ -710,14 +737,6 @@ class Tracker private constructor(
             changes.append("\nshouldSampleNetwork: ${configuration.shouldSampleNetwork} -> ${sessionData.shouldSampleNetwork}")
             configuration.shouldSampleNetwork = sessionData.shouldSampleNetwork
         }
-        if(configuration.groupedViewSampleRate != sessionData.groupedViewSampleRate) {
-            changes.append("\ngroupedViewSampleRate: ${configuration.groupedViewSampleRate} -> ${sessionData.groupedViewSampleRate}")
-            configuration.groupedViewSampleRate = sessionData.groupedViewSampleRate
-        }
-        if(configuration.shouldSampleGroupedView != sessionData.shouldSampleGroupedView) {
-            changes.append("\nshouldSampleGroupedView: ${configuration.shouldSampleGroupedView} -> ${sessionData.shouldSampleGroupedView}")
-            configuration.shouldSampleGroupedView = sessionData.shouldSampleGroupedView
-        }
 
         if(configuration.isGroupingEnabled != sessionData.enableGrouping) {
             changes.append("\nisGroupingEnabled: ${configuration.isGroupingEnabled} -> ${sessionData.enableGrouping}")
@@ -922,13 +941,7 @@ class Tracker private constructor(
     ) {
         val timeStamp = System.currentTimeMillis().toString()
         val mostRecentTimer = getMostRecentTimer()
-        val crashHitsTimer = Timer().start()
-        if (mostRecentTimer != null) {
-            mostRecentTimer.generateNativeAppProperties()
-            crashHitsTimer.nativeAppProperties = mostRecentTimer.nativeAppProperties
-        }
-        crashHitsTimer.nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
-        crashHitsTimer.setError(true)
+        mostRecentTimer?.generateNativeAppProperties()
 
         val stacktrace = Utils.exceptionToStacktrace(message, exception)
         trackerExecutor.submit(
@@ -936,7 +949,6 @@ class Tracker private constructor(
                 configuration,
                 stacktrace,
                 timeStamp,
-                crashHitsTimer,
                 errorType,
                 mostRecentTimer,
                 deviceInfoProvider = deviceInfoProvider
@@ -945,10 +957,10 @@ class Tracker private constructor(
     }
 
     enum class BTErrorType(val value: String) {
-        NativeAppCrash("NativeAppCrash"),
+        NativeAppCrash("Android Crash"),
         ANRWarning("ANRWarning"),
         MemoryWarning("MemoryWarning"),
-        BTTConfigUpdateError("BTTConfigUpdateError")
+        BTTConfigUpdateError("BTTConfigUpdate")
     }
 
     fun raiseTestException() {
@@ -1046,7 +1058,6 @@ class Tracker private constructor(
                 enableScreenTracking = configuration.isScreenTrackingEnabled,
                 enableGrouping = configuration.isGroupingEnabled,
                 groupingIdleTime = configuration.groupingIdleTime,
-                groupedViewSampleRate = configuration.groupedViewSampleRate,
                 enableGroupingTapDetection = configuration.isGroupingTapDetectionEnabled,
                 enableNetworkStateTracking = configuration.isTrackNetworkStateEnabled,
                 enableCrashTracking = configuration.isTrackCrashesEnabled,
@@ -1171,8 +1182,6 @@ class Tracker private constructor(
             sessionId = sessionData.sessionId
             networkSampleRate = sessionData.networkSampleRate
             shouldSampleNetwork = sessionData.shouldSampleNetwork
-            groupedViewSampleRate = sessionData.groupedViewSampleRate
-            shouldSampleGroupedView = sessionData.shouldSampleGroupedView
             isGroupingEnabled = sessionData.enableGrouping
             groupingIdleTime = sessionData.groupingIdleTime
             isGroupingTapDetectionEnabled = sessionData.enableGroupingTapDetection

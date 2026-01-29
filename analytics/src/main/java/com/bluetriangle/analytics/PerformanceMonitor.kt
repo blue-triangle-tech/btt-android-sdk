@@ -1,24 +1,20 @@
 package com.bluetriangle.analytics
 
 import android.os.Process
-import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
+import com.bluetriangle.analytics.performancemonitor.PerformanceListener
 import com.bluetriangle.analytics.performancemonitor.monitors.CpuMonitor
 import com.bluetriangle.analytics.performancemonitor.monitors.MainThreadMonitor
 import com.bluetriangle.analytics.performancemonitor.monitors.MemoryMonitor
-import com.bluetriangle.analytics.performancemonitor.PerformanceListener
 import java.lang.ref.WeakReference
-import kotlin.collections.forEach
-import kotlin.collections.map
-import kotlin.collections.removeAll
 
-class PerformanceMonitor(configuration: BlueTriangleConfiguration, deviceInfoProvider: IDeviceInfoProvider) : Thread(THREAD_NAME) {
+class PerformanceMonitor(configuration: BlueTriangleConfiguration) : Thread(THREAD_NAME) {
     private val logger = configuration.logger
     private var isRunning = true
     private val interval = configuration.performanceMonitorIntervalMs
 
     private val metricMonitors = listOf(
         CpuMonitor(configuration),
-        MemoryMonitor(configuration, deviceInfoProvider),
+        MemoryMonitor(configuration),
         MainThreadMonitor(configuration)
     )
 
@@ -70,6 +66,7 @@ class PerformanceMonitor(configuration: BlueTriangleConfiguration, deviceInfoPro
     @Synchronized
     fun stopRunning() {
         isRunning = false
+        metricMonitors.forEach { it.end() }
     }
 
     companion object {

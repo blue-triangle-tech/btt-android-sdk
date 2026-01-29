@@ -34,8 +34,6 @@ internal data class SessionData(
     val enableScreenTracking: Boolean,
     val enableGrouping: Boolean,
     val groupingIdleTime: Int,
-    val groupedViewSampleRate: Double,
-    val shouldSampleGroupedView: Boolean,
     val enableGroupingTapDetection: Boolean,
     val enableNetworkStateTracking: Boolean,
     val enableCrashTracking: Boolean,
@@ -82,8 +80,6 @@ internal data class SessionData(
                     enableScreenTracking = getBooleanOrNull(ENABLE_SCREEN_TRACKING) != false,
                     enableGrouping = getBooleanOrNull(ENABLE_GROUPING)?:DEFAULT_ENABLE_GROUPING,
                     groupingIdleTime = getIntOrNull(GROUPING_IDLE_TIME) ?: Constants.DEFAULT_GROUPING_IDLE_TIME,
-                    groupedViewSampleRate = getDoubleOrNull(GROUPED_VIEW_SAMPLE_RATE)?:DEFAULT_GROUPED_VIEW_SAMPLE_RATE,
-                    shouldSampleGroupedView = getBooleanOrNull(SHOULD_SAMPLE_GROUPED_VIEW) == true,
                     enableGroupingTapDetection = getBooleanOrNull(ENABLE_GROUPING_TAP_DETECTION) ?: DEFAULT_ENABLE_GROUPING_TAP_DETECTION,
                     enableNetworkStateTracking = getBooleanOrNull(ENABLE_NETWORK_STATE_TRACKING) ?: DEFAULT_ENABLE_NETWORK_STATE_TRACKING,
                     enableCrashTracking = getBooleanOrNull(ENABLE_CRASH_TRACKING) ?: DEFAULT_ENABLE_CRASH_TRACKING,
@@ -108,8 +104,6 @@ internal data class SessionData(
             put(ENABLE_SCREEN_TRACKING, enableScreenTracking)
             put(ENABLE_GROUPING, enableGrouping)
             put(GROUPING_IDLE_TIME, groupingIdleTime)
-            put(GROUPED_VIEW_SAMPLE_RATE, groupedViewSampleRate)
-            put(SHOULD_SAMPLE_GROUPED_VIEW, shouldSampleGroupedView)
             put(ENABLE_GROUPING_TAP_DETECTION, enableGroupingTapDetection)
             put(ENABLE_NETWORK_STATE_TRACKING, enableNetworkStateTracking)
             put(ENABLE_CRASH_TRACKING, enableCrashTracking)

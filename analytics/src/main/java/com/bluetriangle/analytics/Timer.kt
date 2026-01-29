@@ -3,6 +3,7 @@ package com.bluetriangle.analytics
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
+import com.bluetriangle.analytics.eventhub.SDKEventHub
 import com.bluetriangle.analytics.model.NativeAppProperties
 import com.bluetriangle.analytics.performancemonitor.PerformanceSpan
 import com.bluetriangle.analytics.utility.getNumberOfCPUCores
@@ -80,7 +81,7 @@ class Timer : Parcelable {
             FIELD_NAVIGATION_TYPE to "9",
             FIELD_RV to "0",
             FIELD_CUSTOM_VALUE_4 to "0",
-            FIELD_WCD to "1",
+            FIELD_WCD to "0",
             FIELD_DATACENTER to "Default",
             FIELD_AB_TEST_ID to "Default",
             FIELD_BRAND_VALUE to "0",
@@ -247,6 +248,7 @@ class Timer : Parcelable {
             setField(FIELD_UNLOAD_EVENT_START, start)
             setField(FIELD_NST, start)
             tracker?.setMostRecentTimer(this)
+            SDKEventHub.instance.onTimerStarted(this)
         } else {
             logger?.error("Timer already started")
         }
@@ -348,9 +350,6 @@ class Timer : Parcelable {
      */
     fun isInteractive(): Boolean = start > 0 && interactive > 0
 
-    fun onSubmit() {
-        performanceSpan?.onTimerSubmit(this)
-    }
     /**
      * Convenience method to submit this timer to the global tracker
      */
@@ -359,9 +358,6 @@ class Timer : Parcelable {
 
         val tracker = Tracker.instance
         if (tracker != null) {
-            if (nativeAppProperties.loadTime == null) {
-                generateNativeAppProperties()
-            }
             tracker.submitTimer(this)
         } else {
             Log.e("BlueTriangle", "Tracker not initialized")
@@ -584,7 +580,7 @@ class Timer : Parcelable {
         synchronized(this.fields) {
             fields.forEach {
                 if(!this.fields.containsKey(it.key)) {
-                    this.fields.put(it.key, it.value)
+                    this.fields[it.key] = it.value
                 }
             }
         }
@@ -690,6 +686,24 @@ class Timer : Parcelable {
     }
 
     /**
+     * Sets a field if it's not already set. i.e. it still has the default value or doesn't exist at all
+     *
+     * @param fieldName name of field to remove
+     * @return this timer
+     */
+    internal fun setFieldIfNotSet(fieldName: String, value: String): Timer {
+        synchronized(fields) {
+            val exists = fields.containsKey(fieldName)
+            val hasDefaultValue = DEFAULT_VALUES.containsKey(fieldName) && fields[fieldName] == DEFAULT_VALUES[fieldName]
+
+            if(!exists || hasDefaultValue) {
+                fields[fieldName] = value
+            }
+        }
+        return this
+    }
+
+    /**
      * Resets a field to the default value if there is one else removes the field completely.
      *
      * @param fieldName name of field to remove
@@ -748,6 +762,10 @@ class Timer : Parcelable {
 
     fun setError(err: Boolean) {
         fields[FIELD_ERR] = if (err) "1" else "0"
+    }
+
+    fun setWCD(wcd: Boolean) {
+        fields[FIELD_WCD] = if (wcd) "1" else "0"
     }
 
     internal fun startSilent(): Timer {
