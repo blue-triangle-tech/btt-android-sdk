@@ -1,18 +1,23 @@
 package com.bluetriangle.analytics.launchtime.model
 
-internal sealed class LaunchEvent private constructor(val data: LaunchData) {
+import com.bluetriangle.analytics.screenTracking.EventID
 
-    constructor(activityName:String, startTime:Long, type: LaunchType):this(LaunchData(activityName, startTime, System.currentTimeMillis(), type))
+internal sealed class LaunchEvent private constructor(val eventID: EventID, val name: String, val data: LaunchData) {
 
-    class HotLaunch(activityName:String, startTime:Long) : LaunchEvent(activityName, startTime,
+    constructor(eventID: EventID, name: String, activityName:String, startTime:Long, type: LaunchType):this(eventID, name, LaunchData(activityName, startTime, System.currentTimeMillis(), type))
+
+    class HotLaunch(activityName:String, startTime:Long) : LaunchEvent(
+        EventID.HotLaunch, "HotLaunchTime", activityName, startTime,
         LaunchType.Hot
     )
 
-    class WarmLaunch(activityName:String, startTime:Long) : LaunchEvent(activityName, startTime,
+    class WarmLaunch(activityName:String, startTime:Long) : LaunchEvent(
+        EventID.WarmLaunch, "WarmLaunchTime", activityName, startTime,
         LaunchType.Warm
     )
 
-    class ColdLaunch(activityName: String, startTime: Long) : LaunchEvent(activityName, startTime,
+    class ColdLaunch(activityName: String, startTime: Long) : LaunchEvent(
+        EventID.ColdLaunch, "ColdLaunchTime", activityName, startTime,
         LaunchType.Cold
     )
     companion object {

@@ -40,6 +40,7 @@ import com.bluetriangle.analytics.performancemonitor.PerformanceSpan
 import com.bluetriangle.analytics.performancemonitor.monitors.MemoryWarningReporter
 import com.bluetriangle.analytics.screenTracking.ActivityLifecycleTracker
 import com.bluetriangle.analytics.screenTracking.BTTScreenLifecycleTracker
+import com.bluetriangle.analytics.screenTracking.EventID
 import com.bluetriangle.analytics.screenTracking.FragmentLifecycleTracker
 import com.bluetriangle.analytics.sessionmanager.DisabledModeSessionManager
 import com.bluetriangle.analytics.sessionmanager.ISessionManager
@@ -956,10 +957,10 @@ class Tracker private constructor(
         )
     }
 
-    enum class BTErrorType(val value: String) {
-        NativeAppCrash("Android Crash"),
-        ANRWarning("ANRWarning"),
-        MemoryWarning("MemoryWarning"),
+    enum class BTErrorType(val value: String, val eventID: EventID? = null) {
+        NativeAppCrash("Android Crash", EventID.Crash),
+        ANRWarning("ANRWarning", EventID.ANRWarning),
+        MemoryWarning("MemoryWarning", EventID.MemoryWarning),
         BTTConfigUpdateError("BTTConfigUpdate")
     }
 

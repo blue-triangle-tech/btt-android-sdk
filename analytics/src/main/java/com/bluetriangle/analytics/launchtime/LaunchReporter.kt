@@ -23,12 +23,6 @@ internal class LaunchReporter(
         logger?.debug("Started launch time reporting...")
         launchReporterJob = GlobalScope.launch {
             for (event in launchEventProducer.launchEvents) {
-                val launchPageName = when (event) {
-                    is LaunchEvent.HotLaunch -> "HotLaunchTime"
-                    is LaunchEvent.WarmLaunch -> "WarmLaunchTime"
-                    is LaunchEvent.ColdLaunch -> "ColdLaunchTime"
-                }
-
                 // As Reporter is initialized inside the Tracker constructor.
                 // The Tracker instance won't be immediately available in the singleton.
                 // So if we already have some launch event in the channel when the Reporter was initialized,
@@ -36,12 +30,7 @@ internal class LaunchReporter(
                 // due to Tracker.instance being null. So we wait till the Tracker.instance has something in it before reporting launch.
                 while (Tracker.instance == null) delay(5)
 
-                reportLaunch(
-                    launchPageName,
-                    event.data.startTime,
-                    event.data.duration,
-                    event.data.activityName
-                )
+                reportLaunch(event)
                 logger?.info("Submitted launch event: ${event.data.type} Launch which took ${event.data.duration} ms")
             }
         }
@@ -53,8 +42,13 @@ internal class LaunchReporter(
     }
 
     private fun reportLaunch(
-        launchPageName: String, startTime: Long, duration: Long, launchActivityName: String
+        event: LaunchEvent
     ) {
+        val launchPageName = event.name
+        val startTime = event.data.startTime
+        val duration = event.data.duration
+        val launchActivityName = event.data.activityName
+
         Timer().apply {
             startWithoutPerformanceMonitor()
             setField(Timer.FIELD_UNLOAD_EVENT_START, startTime)
@@ -67,6 +61,7 @@ internal class LaunchReporter(
             generateNativeAppProperties()
             nativeAppProperties.loadTime = duration
             nativeAppProperties.launchScreenName = launchActivityName
+            nativeAppProperties.eventID = event.eventID
             submit()
         }
 

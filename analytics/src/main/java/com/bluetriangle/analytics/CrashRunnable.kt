@@ -67,6 +67,7 @@ internal class CrashRunnable(
     private fun buildCrashHitsTimer() = Timer().apply {
         startWithoutPerformanceMonitor()
         nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
+        nativeAppProperties.eventID = errorType.eventID
         setError(true)
         pageTimeCalculator = {
             TIMER_MIN_PGTM
