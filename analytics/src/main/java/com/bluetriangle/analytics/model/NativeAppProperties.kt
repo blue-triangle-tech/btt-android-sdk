@@ -25,7 +25,7 @@ import com.bluetriangle.analytics.networkcapture.CapturedRequest
 import com.bluetriangle.analytics.networkcapture.CapturedRequest.Companion.FIELD_DEVICE_MODEL
 import com.bluetriangle.analytics.networkstate.BTTNetworkState
 import com.bluetriangle.analytics.networkstate.data.BTTNetworkProtocol
-import com.bluetriangle.analytics.screenTracking.EventID
+import com.bluetriangle.analytics.event.BTTEvent
 import com.bluetriangle.analytics.utility.value
 import kotlinx.parcelize.Parcelize
 import org.json.JSONObject
@@ -51,13 +51,12 @@ internal data class NativeAppProperties(
     var confidenceMsg: String? = null,
     var groupingCause: String? = null,
     var groupingCauseInterval: Long? = null,
-    var eventID: EventID? = null
+    var loadStartTime: Long = 0,
+    var loadEndTime: Long = 0,
+    var disappearTime: Long = 0,
+    var className: String = "",
+    var event: BTTEvent? = null,
 ) : Parcelable {
-
-    internal var loadStartTime: Long = 0
-    internal var loadEndTime: Long = 0
-    internal var disappearTime: Long = 0
-    internal var className: String = ""
 
     private val cellularTotal
         get() = cellular?.entries?.map { it.value }?.let {
@@ -76,7 +75,7 @@ internal data class NativeAppProperties(
         obj.put(GROUPED, grouped)
         obj.put(GROUPING_CAUSE, groupingCause)
         obj.put(GROUPING_CAUSE_INTERVAL, groupingCauseInterval)
-        obj.put(EVENT_ID, eventID?.id?.toString())
+        obj.put(EVENT_ID, event?.id?.toString())
 
         networkStates.apply {
             forEach { obj.put(it) }

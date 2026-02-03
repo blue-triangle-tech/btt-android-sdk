@@ -2,6 +2,7 @@ package com.bluetriangle.analytics.screenTracking
 
 import com.bluetriangle.analytics.Constants.TIMER_MIN_PGTM
 import com.bluetriangle.analytics.Timer
+import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.model.Screen
 import com.bluetriangle.analytics.screenTracking.grouping.BTTTimerGroupManager
 import com.bluetriangle.analytics.model.ScreenType
@@ -29,6 +30,7 @@ internal class BTTScreenLifecycleTracker(
 
     companion object {
         const val AUTOMATED_TIMERS_PAGE_TYPE = "ScreenTracker"
+        const val AUTOMATED_TIMERS_TRAFFIC_SEGMENT = "ScreenTracker"
     }
 
     fun grouped(automated: Boolean): Boolean = groupingEnabled && automated
@@ -75,7 +77,7 @@ internal class BTTScreenLifecycleTracker(
 
     @Synchronized
     private fun createTimerAndCaptureLoadTime(screen: Screen, isGrouped: Boolean) {
-        val timer = Timer(screen.pageName(isGrouped), AUTOMATED_TIMERS_PAGE_TYPE)
+        val timer = Timer(screen.pageName(isGrouped), null)
         timers[screen.toString()] = timer
         if(isGrouped) {
             groupManager.add(screen, timer)
@@ -135,7 +137,13 @@ internal class BTTScreenLifecycleTracker(
         }
         val disappearTm = System.currentTimeMillis()
 
-        timer.setContentGroupName(AUTOMATED_TIMERS_PAGE_TYPE)
+        val tracker = Tracker.instance
+        if(tracker == null || !tracker.isGlobalFieldSet(Timer.FIELD_CONTENT_GROUP_NAME)) {
+            timer.setContentGroupName(AUTOMATED_TIMERS_PAGE_TYPE)
+        }
+        if(tracker == null || !tracker.isGlobalFieldSet(Timer.FIELD_TRAFFIC_SEGMENT_NAME)) {
+            timer.setTrafficSegmentName(AUTOMATED_TIMERS_TRAFFIC_SEGMENT)
+        }
         timer.pageTimeCalculator = {
             (pgTm).coerceAtLeast(TIMER_MIN_PGTM)
         }

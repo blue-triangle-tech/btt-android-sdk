@@ -7,6 +7,7 @@ import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.model.Screen
 import com.bluetriangle.analytics.screenTracking.BTTScreenLifecycleTracker.Companion.AUTOMATED_TIMERS_PAGE_TYPE
+import com.bluetriangle.analytics.screenTracking.BTTScreenLifecycleTracker.Companion.AUTOMATED_TIMERS_TRAFFIC_SEGMENT
 
 sealed class GroupingCause(val name: String, val timeInterval: Long) {
     class Timeout(timeInterval: Long): GroupingCause("timeout", timeInterval)
@@ -61,8 +62,15 @@ internal class BTTTimerGroup(
     init {
         logger?.debug("Group Started.. ${this.hashCode()}")
         groupTimer.start()
-        groupTimer.setTrafficSegmentName(AUTOMATED_TIMERS_PAGE_TYPE)
-        groupTimer.setContentGroupName(AUTOMATED_TIMERS_PAGE_TYPE)
+
+        val tracker = Tracker.instance
+
+        if(tracker == null || !tracker.isGlobalFieldSet(Timer.FIELD_TRAFFIC_SEGMENT_NAME)) {
+            groupTimer.setTrafficSegmentName(AUTOMATED_TIMERS_TRAFFIC_SEGMENT)
+        }
+        if(tracker == null || !tracker.isGlobalFieldSet(Timer.FIELD_CONTENT_GROUP_NAME)) {
+            groupTimer.setContentGroupName(AUTOMATED_TIMERS_PAGE_TYPE)
+        }
         resetIdleTimeout()
     }
 

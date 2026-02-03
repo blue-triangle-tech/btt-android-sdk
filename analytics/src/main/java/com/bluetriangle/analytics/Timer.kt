@@ -693,14 +693,26 @@ class Timer : Parcelable {
      */
     internal fun setFieldIfNotSet(fieldName: String, value: String): Timer {
         synchronized(fields) {
-            val exists = fields.containsKey(fieldName)
-            val hasDefaultValue = DEFAULT_VALUES.containsKey(fieldName) && fields[fieldName] == DEFAULT_VALUES[fieldName]
-
-            if(!exists || hasDefaultValue) {
-                fields[fieldName] = value
+            if(!isFieldSet(fieldName)) {
+                setField(fieldName, value)
             }
         }
         return this
+    }
+
+    /**
+     * Checks if a field is set or not. i.e. it still has the default value or doesn't exist at all
+     *
+     * @param fieldName name of field to remove
+     * @return true if the field exists or false otherwise
+     */
+    internal fun isFieldSet(fieldName: String): Boolean {
+        return synchronized(fields) {
+            val exists = fields.containsKey(fieldName)
+            val hasDefaultValue = DEFAULT_VALUES.containsKey(fieldName) && fields[fieldName] == DEFAULT_VALUES[fieldName]
+
+            exists && !hasDefaultValue
+        }
     }
 
     /**

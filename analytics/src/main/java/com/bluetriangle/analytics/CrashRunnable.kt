@@ -67,13 +67,13 @@ internal class CrashRunnable(
     private fun buildCrashHitsTimer() = Timer().apply {
         startWithoutPerformanceMonitor()
         nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
-        nativeAppProperties.eventID = errorType.eventID
+        nativeAppProperties.event = errorType.event
         setError(true)
         pageTimeCalculator = {
             TIMER_MIN_PGTM
         }
         setField(Timer.FIELD_EXCLUDED, "20")
-        setPageName(errorType.value)
+        setPageName(errorType.errorName)
     }
 
     private fun submitTimer(timer: Timer, shouldSendCapturedRequests: Boolean) {
@@ -203,7 +203,7 @@ internal class CrashRunnable(
     private fun buildCrashReportData(): String {
         val crashReport = mutableMapOf<String, Any?>(
             "msg" to stackTrace,
-            "eTp" to errorType.value,
+            "eTp" to errorType.errorName,
             "eCnt" to errorCount.toString(),
             "url" to configuration.applicationName,
             "line" to "1",
@@ -234,7 +234,7 @@ internal class CrashRunnable(
     private fun loadTimerFields(from: Timer) {
         val keysAndDefaults = mutableMapOf(
             Timer.FIELD_NST to null,
-            Timer.FIELD_PAGE_NAME to errorType.value,
+            Timer.FIELD_PAGE_NAME to errorType.errorName,
             Timer.FIELD_TRAFFIC_SEGMENT_NAME to null,
             Timer.FIELD_NATIVE_OS to Constants.OS,
             Timer.FIELD_DEVICE to Constants.DEVICE_MOBILE,
@@ -245,7 +245,7 @@ internal class CrashRunnable(
             Timer.FIELD_DATACENTER to "Default",
             Timer.FIELD_CAMPAIGN_NAME to "",
             Timer.FIELD_CAMPAIGN_MEDIUM to Constants.OS,
-            Timer.FIELD_CAMPAIGN_SOURCE to errorType.value,
+            Timer.FIELD_CAMPAIGN_SOURCE to errorType.errorName,
         )
 
         keysAndDefaults.forEach {

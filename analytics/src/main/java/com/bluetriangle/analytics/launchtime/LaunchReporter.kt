@@ -44,7 +44,7 @@ internal class LaunchReporter(
     private fun reportLaunch(
         event: LaunchEvent
     ) {
-        val launchPageName = event.name
+        val launchPageName = event.pageName
         val startTime = event.data.startTime
         val duration = event.data.duration
         val launchActivityName = event.data.activityName
@@ -61,7 +61,7 @@ internal class LaunchReporter(
             generateNativeAppProperties()
             nativeAppProperties.loadTime = duration
             nativeAppProperties.launchScreenName = launchActivityName
-            nativeAppProperties.eventID = event.eventID
+            nativeAppProperties.event = event.event
             submit()
         }
 
