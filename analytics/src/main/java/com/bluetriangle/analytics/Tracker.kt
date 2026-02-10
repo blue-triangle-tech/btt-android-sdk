@@ -20,6 +20,7 @@ import com.bluetriangle.analytics.anrwatchdog.ANRReporter
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
 import com.bluetriangle.analytics.breadcrumbs.UserEvent
 import com.bluetriangle.analytics.breadcrumbs.UserEventsCollection
+import com.bluetriangle.analytics.checkout.config.CheckoutConfig
 import com.bluetriangle.analytics.deviceinfo.DeviceInfoProvider
 import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 import com.bluetriangle.analytics.dynamicconfig.fetcher.BTTConfigurationFetcher
@@ -1244,7 +1245,8 @@ class Tracker private constructor(
                 enableANRTracking = configuration.isTrackAnrEnabled,
                 enableMemoryWarning = configuration.isMemoryWarningEnabled,
                 enableLaunchTime = configuration.isLaunchTimeEnabled,
-                enableWebViewStitching = configuration.isWebViewStitchingEnabled
+                enableWebViewStitching = configuration.isWebViewStitchingEnabled,
+                checkoutConfig = CheckoutConfig(false,"","","",1.0,1,1,"",1)
             )
 
             initializeConfigurationUpdater(application, configuration, defaultConfig)
