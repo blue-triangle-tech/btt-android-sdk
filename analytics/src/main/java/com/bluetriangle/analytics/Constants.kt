@@ -41,6 +41,7 @@ object Constants {
     internal const val DEFAULT_ENABLE_WEB_VIEW_STITCHING = true
     internal const val DEFAULT_GROUPED_VIEW_SAMPLE_RATE = 0.05
 
+    internal const val DEFAULT_CHECKOUT_TRACKING_ENABLED = false
     internal const val DEFAULT_CHECKOUT_AMOUNT = 1.0
     internal const val DEFAULT_CART_COUNT = 1
     internal const val DEFAULT_CART_COUNT_CHECKOUT = 1
