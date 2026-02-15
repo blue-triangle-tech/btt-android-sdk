@@ -19,11 +19,13 @@ import com.bluetriangle.analytics.networkstate.BTTNetworkState
 import java.io.File
 
 fun logD(tag: String? = null, message: String) {
-    Tracker.instance?.configuration?.logger?.debug("${tag?.plus(": ")}$message")
+    val prefix = tag?.plus(": ").orEmpty()
+    Tracker.instance?.configuration?.logger?.debug("$prefix$message")
 }
 
 fun logV(tag: String? = null, message: String) {
-    Tracker.instance?.configuration?.logger?.verbose("${tag?.plus(": ")}$message")
+    val prefix = tag?.plus(": ").orEmpty()
+    Tracker.instance?.configuration?.logger?.verbose("$prefix$message")
 }
 
 internal val Fragment.screen: Screen
