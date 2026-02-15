@@ -8,6 +8,8 @@ import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.model.Screen
 import com.bluetriangle.analytics.screenTracking.BTTScreenLifecycleTracker.Companion.AUTOMATED_TIMERS_PAGE_TYPE
 import com.bluetriangle.analytics.screenTracking.BTTScreenLifecycleTracker.Companion.AUTOMATED_TIMERS_TRAFFIC_SEGMENT
+import com.bluetriangle.analytics.utility.logD
+import com.bluetriangle.analytics.utility.logV
 
 sealed class GroupingCause(val name: String, val timeInterval: Long) {
     class Timeout(timeInterval: Long): GroupingCause("timeout", timeInterval)
@@ -76,7 +78,7 @@ internal class BTTTimerGroup(
 
     fun add(screen: Screen, timer: Timer) {
         if(isClosed) {
-            logger?.info("Tried to add timer to closed group.")
+            logD(message = "aborting-add-timer (reason: grouped-already-closed)")
             return
         }
 
@@ -123,9 +125,19 @@ internal class BTTTimerGroup(
     }
 
     fun submit() {
-        val tracker = Tracker.instance?:return
+        if(!isClosed) {
+            close()
+        }
 
-        if(timers.isEmpty()) return
+        val tracker = Tracker.instance?:let{
+            logD(message = "aborting-submit-group (reason: timer-instance-is-null)")
+            return@submit
+        }
+
+        if(timers.isEmpty()) {
+            logD(message = "aborting-submit-group (reason: no-timer-to-submit)")
+            return
+        }
 
         val groupPageName = (manualGroupName ?: (groupName ?: namingStrategy.getName(timers.map { it.second })))
         groupTimer.setPageName(groupPageName)
@@ -137,6 +149,8 @@ internal class BTTTimerGroup(
             tracker.trackerExecutor.submit(
                 GroupChildRunnable(tracker.configuration, groupTimer, childViews = mapTimersToChildViews())
             )
+        } else {
+            logV(message = "skip-sending-classes-and-fragments (reason: sampling-off-in-session)")
         }
     }
 
@@ -186,7 +200,7 @@ internal class BTTTimerGroup(
 
     private fun calculateGroupPgTm(loadTimes: List<Pair<Long, Long>>): Long {
         val sortedTimes = loadTimes.sortedBy { it.first }
-        val mergedTimes = mutableListOf<Pair<Long, Long>>(
+        val mergedTimes = mutableListOf(
             sortedTimes[0]
         )
         if(sortedTimes.size > 1) {

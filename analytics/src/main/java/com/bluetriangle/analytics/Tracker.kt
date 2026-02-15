@@ -21,6 +21,8 @@ import com.bluetriangle.analytics.anrwatchdog.AnrManager
 import com.bluetriangle.analytics.breadcrumbs.UserEvent
 import com.bluetriangle.analytics.breadcrumbs.UserEventsCollection
 import com.bluetriangle.analytics.checkout.config.CheckoutConfig
+import com.bluetriangle.analytics.checkout.event.CheckoutEvent
+import com.bluetriangle.analytics.checkout.event.CheckoutEventReporter
 import com.bluetriangle.analytics.deviceinfo.DeviceInfoProvider
 import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 import com.bluetriangle.analytics.dynamicconfig.fetcher.BTTConfigurationFetcher
@@ -134,6 +136,8 @@ class Tracker private constructor(
 
     private var globalPropertiesStore: GlobalPropertiesStore
 
+    internal var checkoutEventReporter: CheckoutEventReporter? = null
+
     init {
         this.context = WeakReference(application.applicationContext)
         this.configuration = configuration
@@ -190,6 +194,8 @@ class Tracker private constructor(
         setSessionId(sessionData.sessionId)
         this.configuration.updateConfiguration(sessionData)
 
+        checkoutEventReporter = CheckoutEventReporter(sessionData.checkoutConfig)
+
         if(configuration.isScreenTrackingEnabled) {
             initializeScreenTracker()
         }
@@ -216,6 +222,8 @@ class Tracker private constructor(
         performanceSpans.forEach {
             it.value.stop()
         }
+
+        checkoutEventReporter = null
 
         stopPerformanceMonitoring()
         deInitializeScreenTracker()
@@ -484,6 +492,9 @@ class Tracker private constructor(
     @Synchronized
     fun submitCapturedRequest(capturedRequest: CapturedRequest?) {
         if (capturedRequest == null) return
+
+        checkoutEventReporter?.onCheckoutEvent(CheckoutEvent.NetworkEvent(capturedRequest.url, capturedRequest.responseStatusCode))
+
         if (configuration.shouldSampleNetwork) {
             getMostRecentTimer()?.let { timer ->
                 configuration.logger?.debug("Network Request Captured: $capturedRequest for $timer")
@@ -907,6 +918,11 @@ class Tracker private constructor(
             screenTrackMonitor?.ignoreScreens = sessionData.ignoreScreens
         }
 
+        if(checkoutEventReporter?.config != sessionData.checkoutConfig) {
+            changes.append("\ncheckoutConfig: ${checkoutEventReporter?.config} -> ${sessionData.checkoutConfig}")
+            checkoutEventReporter?.updateConfig(sessionData.checkoutConfig)
+        }
+
         val changesString = changes.toString()
         if(changesString.isNotEmpty()) {
             configuration.logger?.debug("Updated configuration $changesString")
@@ -1246,7 +1262,7 @@ class Tracker private constructor(
                 enableMemoryWarning = configuration.isMemoryWarningEnabled,
                 enableLaunchTime = configuration.isLaunchTimeEnabled,
                 enableWebViewStitching = configuration.isWebViewStitchingEnabled,
-                checkoutConfig = CheckoutConfig(false,"","","",1.0,1,1,"",1)
+                checkoutConfig = CheckoutConfig.DEFAULT
             )
 
             initializeConfigurationUpdater(application, configuration, defaultConfig)
@@ -1255,7 +1271,7 @@ class Tracker private constructor(
                 initializeSessionManager(application, configuration, defaultConfig)
                 instance = Tracker(application, configuration)
             } else {
-                deInitializeSessionManager(configuration)
+                deInitializeSessionManager()
                 configuration.logger?.debug("enableAllTracking is false, no need to initialize SDK")
             }
 
@@ -1352,7 +1368,7 @@ class Tracker private constructor(
                     } else {
                         if(instance != null) {
                             instance?.disable()
-                            deInitializeSessionManager(configuration)
+                            deInitializeSessionManager()
                             instance = null
                         }
                     }
@@ -1421,12 +1437,12 @@ class Tracker private constructor(
             AppEventHub.instance.addConsumer(this.sessionManager)
         }
 
-        private fun deInitializeSessionManager(configuration: BlueTriangleConfiguration) {
+        private fun deInitializeSessionManager() {
             if(::sessionManager.isInitialized) {
                 sessionManager.endSession()
                 AppEventHub.instance.removeConsumer(sessionManager)
             }
-            sessionManager = DisabledModeSessionManager(configuration, configurationUpdater)
+            sessionManager = DisabledModeSessionManager(configurationUpdater)
             AppEventHub.instance.addConsumer(sessionManager)
         }
 

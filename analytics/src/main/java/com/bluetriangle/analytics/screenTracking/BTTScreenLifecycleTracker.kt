@@ -3,6 +3,7 @@ package com.bluetriangle.analytics.screenTracking
 import com.bluetriangle.analytics.Constants.TIMER_MIN_PGTM
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Tracker
+import com.bluetriangle.analytics.checkout.event.CheckoutEvent
 import com.bluetriangle.analytics.model.Screen
 import com.bluetriangle.analytics.screenTracking.grouping.BTTTimerGroupManager
 import com.bluetriangle.analytics.model.ScreenType
@@ -15,8 +16,8 @@ internal class BTTScreenLifecycleTracker(
     internal var ignoreScreens: List<String>
 ) : ScreenLifecycleTracker {
 
-    private var loadTime = hashMapOf<String, Long>()
-    private var viewTime = hashMapOf<String, Long>()
+    private var loadStartTime = hashMapOf<String, Long>()
+    private var viewStartTime = hashMapOf<String, Long>()
     private val timers = hashMapOf<String, Timer>()
     private val TAG = this::class.java.simpleName
 
@@ -44,7 +45,7 @@ internal class BTTScreenLifecycleTracker(
         if (shouldIgnore(screen.pageName(grouped(automated)))) return
 
         logD(TAG, "onLoadStarted: $screen")
-        createTimerAndCaptureLoadTime(screen, grouped(automated))
+        createTimerAndCaptureLoadStartTime(screen, grouped(automated))
     }
 
     override fun onLoadEnded(screen: Screen, automated: Boolean) {
@@ -54,7 +55,7 @@ internal class BTTScreenLifecycleTracker(
         timers[screen.toString()]?.setPageName(screen.pageName(grouped(automated)))
         logD(TAG, "onLoadEnded: $screen")
         if (timers[screen.toString()] == null) {
-            createTimerAndCaptureLoadTime(screen, grouped(automated))
+            createTimerAndCaptureLoadStartTime(screen, grouped(automated))
         }
     }
 
@@ -63,12 +64,14 @@ internal class BTTScreenLifecycleTracker(
         if (shouldIgnore(screen.pageName(grouped(automated)))) return
 
         if (timers[screen.toString()] == null) {
-            createTimerAndCaptureLoadTime(screen, grouped(automated))
+            createTimerAndCaptureLoadStartTime(screen, grouped(automated))
         }
         logD(TAG, "onViewStarted: $screen")
-        viewTime[screen.toString()] = System.currentTimeMillis()
+        viewStartTime[screen.toString()] = System.currentTimeMillis()
 
         if(grouped(automated)) {
+            // the title isn't available instantly. Hence, it's not fetched in onViewStarted instantly.
+            // Once the title is stabilized then the title property in the screen would be updated and this callback will be called.
             screen.onTitleUpdated = {
                 timers[screen.toString()]?.setPageName(screen.pageName(grouped(automated)))
             }
@@ -76,7 +79,7 @@ internal class BTTScreenLifecycleTracker(
     }
 
     @Synchronized
-    private fun createTimerAndCaptureLoadTime(screen: Screen, isGrouped: Boolean) {
+    private fun createTimerAndCaptureLoadStartTime(screen: Screen, isGrouped: Boolean) {
         val timer = Timer(screen.pageName(isGrouped), null)
         timers[screen.toString()] = timer
         if(isGrouped) {
@@ -85,7 +88,8 @@ internal class BTTScreenLifecycleTracker(
         } else {
             timer.start()
         }
-        loadTime[screen.toString()] = System.currentTimeMillis()
+        loadStartTime[screen.toString()] = System.currentTimeMillis()
+        Tracker.instance?.checkoutEventReporter?.onCheckoutEvent(CheckoutEvent.ClassEvent(screen.name))
     }
 
     override fun onViewEnded(screen: Screen, automated: Boolean) {
@@ -108,22 +112,22 @@ internal class BTTScreenLifecycleTracker(
 
     override fun generateMetaData(screen: Screen, timer: Timer) {
         val scr  = screen.toString()
-        val loadTm = loadTime[scr] ?: 0L
-        val viewTm = viewTime[scr] ?: 0L
+        val loadStartTm = loadStartTime[scr] ?: 0L
+        val viewStartTm = viewStartTime[scr] ?: 0L
 
         var confidenceRate = 100
         var confidenceMsg: String? = null
 
-        var pgTm = viewTm - loadTm
+        var pgTm = viewStartTm - loadStartTm
 
-        if(loadTm == 0L) {
+        if(loadStartTm == 0L) {
             confidenceRate = 0
             confidenceMsg = when(screen.type) {
                 ScreenType.Activity, ScreenType.Fragment -> "onCreate/onStart not called on ${screen.name}"
                 ScreenType.Composable -> "Composable load time could not be calculated"
                 is ScreenType.Custom -> "onLoadStarted/onLoadEnded methods were not called"
             }
-        } else if(viewTm == 0L) {
+        } else if(viewStartTm == 0L) {
             confidenceRate = 0
             confidenceMsg = when(screen.type) {
                 ScreenType.Activity, ScreenType.Fragment -> "onResume not called on ${screen.name}"
@@ -150,14 +154,14 @@ internal class BTTScreenLifecycleTracker(
 
         timer.generateNativeAppProperties()
 
-        timer.nativeAppProperties.loadStartTime = loadTm
-        timer.nativeAppProperties.loadEndTime = viewTm
+        timer.nativeAppProperties.loadStartTime = loadStartTm
+        timer.nativeAppProperties.loadEndTime = viewStartTm
         timer.nativeAppProperties.disappearTime = disappearTm
         timer.nativeAppProperties.className = screen.name
 
-        timer.nativeAppProperties.loadTime = viewTm - loadTm
+        timer.nativeAppProperties.loadTime = viewStartTm - loadStartTm
         timer.nativeAppProperties.loadTime = pgTm
-        timer.nativeAppProperties.fullTime = disappearTm - loadTm
+        timer.nativeAppProperties.fullTime = disappearTm - loadStartTm
         timer.nativeAppProperties.screenType = screen.type
         timer.nativeAppProperties.confidenceRate = confidenceRate
         timer.nativeAppProperties.confidenceMsg = confidenceMsg

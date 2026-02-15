@@ -25,6 +25,17 @@ abstract class Logger {
      */
     abstract fun log(logLevel: Int, throwable: Throwable?, message: String)
 
+
+    /**
+     * Log a VERBOSE message
+     *
+     * @param message message to log
+     * @param args optional args to format the message
+     */
+    fun verbose(message: String) {
+        log(Log.VERBOSE, message)
+    }
+
     /**
      * Log a DEBUG message
      *

@@ -18,8 +18,12 @@ import com.bluetriangle.analytics.model.ScreenType
 import com.bluetriangle.analytics.networkstate.BTTNetworkState
 import java.io.File
 
-fun logD(tag: String, message: String) {
-    Tracker.instance?.configuration?.logger?.debug("$tag: $message")
+fun logD(tag: String? = null, message: String) {
+    Tracker.instance?.configuration?.logger?.debug("${tag?.plus(": ")}$message")
+}
+
+fun logV(tag: String? = null, message: String) {
+    Tracker.instance?.configuration?.logger?.verbose("${tag?.plus(": ")}$message")
 }
 
 internal val Fragment.screen: Screen
