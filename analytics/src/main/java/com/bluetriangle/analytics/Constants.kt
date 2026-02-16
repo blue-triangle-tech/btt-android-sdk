@@ -67,6 +67,8 @@ object Constants {
     internal const val CONFIDENCE_RATE = "confidenceRate"
     internal const val CONFIDENCE_MSG = "confidenceMsg"
 
+    internal const val AUTO_CHECKOUT = "autoCheckout"
+
     internal const val DEFAULT_TRAFFIC_SEGMENT_NAME = "Main Segment"
     internal const val DEFAULT_CONTENT_GROUP_NAME = "Main Group"
     internal const val MAX_FIELD_CHAR_LENGTH: Int = 512

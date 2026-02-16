@@ -1,5 +1,6 @@
 package com.bluetriangle.analytics.checkout.event
 
+import com.bluetriangle.analytics.Constants.TIMER_MIN_PGTM
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.checkout.config.CheckoutConfig
 import com.bluetriangle.analytics.utility.logD
@@ -12,6 +13,7 @@ class CheckoutEventReporter(private var _config: CheckoutConfig) {
 
     companion object {
         const val TAG = "CheckoutEventReporter"
+        const val CHECKOUT_PAGE_NAME = "PurchaseConfirmation"
     }
 
     private var lastEvent: CheckoutEvent? = null
@@ -37,13 +39,18 @@ class CheckoutEventReporter(private var _config: CheckoutConfig) {
     }
 
     private fun reportCheckout() {
-        val checkoutTimer = Timer("PurchaseConfirmation", null)
+        val checkoutTimer = Timer(CHECKOUT_PAGE_NAME, null)
         checkoutTimer.startWithoutPerformanceMonitor()
         checkoutTimer.setCartCount(config.cartCount)
         checkoutTimer.setCartCountCheckout(config.cartCountCheckout)
         config.orderNumber?.let {
             checkoutTimer.setOrderNumber(it)
         }
+        checkoutTimer.pageTimeCalculator = {
+            TIMER_MIN_PGTM
+        }
+        checkoutTimer.nativeAppProperties.loadTime = TIMER_MIN_PGTM
+        checkoutTimer.nativeAppProperties.autoCheckout = true
         checkoutTimer.setCartValue(config.checkoutAmount)
         checkoutTimer.submit()
         logD(TAG, "checkout-event-submitted")

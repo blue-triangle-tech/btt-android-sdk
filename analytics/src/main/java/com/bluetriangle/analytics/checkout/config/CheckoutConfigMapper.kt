@@ -15,7 +15,7 @@ object CheckoutConfigMapper {
     private const val CHECKOUT_TRACKING_ENABLED = "checkoutTrackingEnabled"
     private const val CLASS_NAME = "checkoutClassName"
     private const val CHECKOUT_AMOUNT = "checkoutAmount"
-    private const val CHECKOUT_URL = "checkoutURLPattern"
+    private const val CHECKOUT_URL = "checkoutURL"
     private const val CART_COUNT = "checkoutCartCount"
     private const val CART_COUNT_CHECKOUT = "checkoutCartCountCheckout"
     private const val ORDER_NUMBER = "checkoutOrderNumber"

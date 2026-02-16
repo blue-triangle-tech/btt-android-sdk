@@ -2,6 +2,7 @@ package com.bluetriangle.analytics.model
 
 import android.os.Parcelable
 import com.bluetriangle.analytics.Constants.APP_VERSION
+import com.bluetriangle.analytics.Constants.AUTO_CHECKOUT
 import com.bluetriangle.analytics.Constants.CONFIDENCE_MSG
 import com.bluetriangle.analytics.Constants.CONFIDENCE_RATE
 import com.bluetriangle.analytics.Constants.EVENT_ID
@@ -56,6 +57,7 @@ internal data class NativeAppProperties(
     var disappearTime: Long = 0,
     var className: String = "",
     var event: BTTEvent? = null,
+    var autoCheckout: Boolean? = null
 ) : Parcelable {
 
     private val cellularTotal
@@ -76,6 +78,10 @@ internal data class NativeAppProperties(
         obj.put(GROUPING_CAUSE, groupingCause)
         obj.put(GROUPING_CAUSE_INTERVAL, groupingCauseInterval)
         obj.put(EVENT_ID, event?.id?.toString())
+
+        autoCheckout?.let {
+            obj.put(AUTO_CHECKOUT, it)
+        }
 
         networkStates.apply {
             forEach { obj.put(it) }
