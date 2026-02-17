@@ -109,6 +109,13 @@ internal val Context.isDebugBuild: Boolean
         }
     }
 
+internal inline fun Boolean.onFalse(block: () -> Unit): Boolean {
+    if(!this) {
+        block()
+    }
+    return this
+}
+
 internal fun postDelayedMain(runnable: ()->Unit, delayInMillis: Long) {
     Handler(Looper.getMainLooper()).postDelayed(runnable, delayInMillis)
 }

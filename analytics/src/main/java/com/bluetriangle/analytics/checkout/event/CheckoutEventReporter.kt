@@ -16,7 +16,7 @@ class CheckoutEventReporter(private var _config: CheckoutConfig) {
         const val CHECKOUT_PAGE_NAME = "PurchaseConfirmation"
     }
 
-    private var lastEvent: CheckoutEvent? = null
+    private var lastEvents = mutableMapOf<Int, CheckoutEvent>()
 
     fun onCheckoutEvent(event: CheckoutEvent) {
         if(!config.isEnabled) {
@@ -24,11 +24,12 @@ class CheckoutEventReporter(private var _config: CheckoutConfig) {
             return
         }
 
+        val lastEvent = lastEvents[event.eventID]
         logV(TAG, "checkout-event-received (data: ${event::class.java.simpleName}())")
         val shouldReport: Boolean = event.shouldReport(config, lastEvent)
+        lastEvents[event.eventID] = event
 
         if(shouldReport) {
-            lastEvent = event
             reportCheckout()
         }
     }

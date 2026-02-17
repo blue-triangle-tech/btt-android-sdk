@@ -8,7 +8,7 @@ import com.bluetriangle.analytics.Constants.DEFAULT_TIMER_VALUE
 
 class CheckoutConfig(
     val isEnabled: Boolean,
-    val className: String?,
+    val classNames: List<String>,
     val networkUrlPattern: String?,
     val checkoutAmount: Double,
     val cartCount: Int,
@@ -19,7 +19,7 @@ class CheckoutConfig(
     companion object {
         val DEFAULT = CheckoutConfig(
             DEFAULT_CHECKOUT_TRACKING_ENABLED,
-            null,
+            emptyList(),
             null,
             DEFAULT_CHECKOUT_AMOUNT,
             DEFAULT_CART_COUNT,
@@ -32,7 +32,7 @@ class CheckoutConfig(
     override fun equals(other: Any?): Boolean {
         if(other !is CheckoutConfig) return false
         return other.isEnabled == isEnabled &&
-                other.className == className &&
+                other.classNames.joinToString() == classNames.joinToString() &&
                 other.networkUrlPattern == networkUrlPattern &&
                 other.checkoutAmount == checkoutAmount &&
                 other.cartCount == cartCount &&
@@ -43,7 +43,7 @@ class CheckoutConfig(
 
     override fun hashCode(): Int {
         var result = isEnabled.hashCode()
-        result = 31 * result + className.hashCode()
+        result = 31 * result + classNames.hashCode()
         result = 31 * result + networkUrlPattern.hashCode()
         result = 31 * result + checkoutAmount.hashCode()
         result = 31 * result + cartCount.hashCode()
@@ -56,7 +56,7 @@ class CheckoutConfig(
     override fun toString(): String {
         return """CheckoutConfig(
             |isEnabled: $isEnabled
-            |className: "$className"
+            |classNames: "${classNames.joinToString()}"
             |networkUrlPattern: "$networkUrlPattern"
             |checkoutAmount: $checkoutAmount
             |cartCount: $cartCount

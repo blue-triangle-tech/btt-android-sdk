@@ -8,7 +8,9 @@ import com.bluetriangle.analytics.Constants.DEFAULT_TIMER_VALUE
 import com.bluetriangle.analytics.utility.getBooleanOrNull
 import com.bluetriangle.analytics.utility.getDoubleOrNull
 import com.bluetriangle.analytics.utility.getIntOrNull
+import com.bluetriangle.analytics.utility.getJsonArrayOrNull
 import com.bluetriangle.analytics.utility.getStringOrNull
+import org.json.JSONArray
 import org.json.JSONObject
 
 object CheckoutConfigMapper {
@@ -23,7 +25,15 @@ object CheckoutConfigMapper {
 
     fun loadFromJsonObject(jsonObject: JSONObject): CheckoutConfig {
         val isEnabled = jsonObject.getBooleanOrNull(CHECKOUT_TRACKING_ENABLED)?:DEFAULT_CHECKOUT_TRACKING_ENABLED
-        val className = jsonObject.getStringOrNull(CLASS_NAME)
+        val className = jsonObject.getJsonArrayOrNull(CLASS_NAME)?.let { array ->
+            buildList {
+                for (i in 0 until array.length()) {
+                    array.optString(i, null)?.also { screen ->
+                        add(screen.trim())
+                    }
+                }
+            }
+        } ?: listOf()
         val networkUrlPattern = jsonObject.getStringOrNull(CHECKOUT_URL)
         val checkoutAmount = jsonObject.getDoubleOrNull(CHECKOUT_AMOUNT)?:DEFAULT_CHECKOUT_AMOUNT
         val cartCount = jsonObject.getIntOrNull(CART_COUNT)?:DEFAULT_CART_COUNT
@@ -44,8 +54,12 @@ object CheckoutConfigMapper {
     }
 
     fun loadIntoJsonObject(jsonObject: JSONObject, config: CheckoutConfig) {
+        val classNamesArray = JSONArray()
+        config.classNames.forEach {
+            classNamesArray.put(it)
+        }
         jsonObject.put(CHECKOUT_TRACKING_ENABLED, config.isEnabled)
-        jsonObject.put(CLASS_NAME, config.className)
+        jsonObject.put(CLASS_NAME, classNamesArray)
         jsonObject.put(CHECKOUT_URL, config.networkUrlPattern)
         jsonObject.put(CHECKOUT_AMOUNT, config.checkoutAmount)
         jsonObject.put(CART_COUNT, config.cartCount)
