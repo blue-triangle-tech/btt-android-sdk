@@ -25,7 +25,7 @@ class CheckoutEventReporter(private var _config: CheckoutConfig) {
         }
 
         val lastEvent = lastEvents[event.eventID]
-        logV(TAG, "checkout-event-received (data: ${event::class.java.simpleName}())")
+        logV(TAG, "checkout-event-received (data: ${event})")
         val shouldReport: Boolean = event.shouldReport(config, lastEvent)
         lastEvents[event.eventID] = event
 
