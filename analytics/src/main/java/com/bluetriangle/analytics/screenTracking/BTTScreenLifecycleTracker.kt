@@ -46,6 +46,7 @@ internal class BTTScreenLifecycleTracker(
 
         logD(TAG, "onLoadStarted: $screen")
         createTimerAndCaptureLoadStartTime(screen, grouped(automated))
+        Tracker.instance?.checkoutEventReporter?.onCheckoutEvent(CheckoutEvent.ClassEvent(screen.name))
     }
 
     override fun onLoadEnded(screen: Screen, automated: Boolean) {
@@ -89,7 +90,6 @@ internal class BTTScreenLifecycleTracker(
             timer.start()
         }
         loadStartTime[screen.toString()] = System.currentTimeMillis()
-        Tracker.instance?.checkoutEventReporter?.onCheckoutEvent(CheckoutEvent.ClassEvent(screen.name))
     }
 
     override fun onViewEnded(screen: Screen, automated: Boolean) {
