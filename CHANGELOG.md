@@ -4,7 +4,7 @@
 - Added eventID to the NATIVEAPP property for all event types.
 - Added support for custom categories and additional parameters abTestID, campaignMedium, campaignName, campaignSource, and dataCenter.
 
-# Blue Triangle 2.19.2 Latest, Jan 28 2026
+# Blue Triangle 2.19.2, Jan 28 2026
 ### New Improvements
 - Removed Redundant HITS from errors. Errors are now associated with the most recent timer if it exists.
 - Unifying the sample rates for network and classes/fragments. Removed groupedViewSampleRate field.
