@@ -387,6 +387,8 @@ Tracker.instance?.setSessionDataCenter("MY_DATA_CENTER")
 Tracker.instance?.setSessionTrafficSegmentName("MY_SEGMENT_NAME")
 ```
 
+> The value for the above fields will be persisted unless explicitly changed.
+
 ### Custom Timers 
 While **Screen Views are automatically tracked upon installation**, Custom Timers can also be configured if needed. 
 
@@ -640,6 +642,27 @@ Once the value is set, it will be sent with each page view until it is cleared b
 
 To view one of the values on the portal, navigate to the path 'Menu > Native App Monitoring > Native App Performance Detail' or go to the Session Lookup Page. Then, search by session ID and see the Performance Measurement Details for the specific page.
 [**for more detail**](https://help.bluetriangle.com/hc/en-us/articles/12299711775635-Where-can-I-see-Custom-Variables)
+
+### Custom Categories
+Custom Categories are developer-defined filter fields that are attached to screen views. They allow you to filter and break down native screen analytics inside the Blue Triangle portal.
+
+The SDK supports up to five Custom Category fields, which can be set as follows:
+
+```kotlin
+Tracker.instance?.setCustomCategory1("VALUE_1")
+Tracker.instance?.setCustomCategory2("VALUE_2")
+Tracker.instance?.setCustomCategory3("VALUE_3")
+Tracker.instance?.setCustomCategory4("VALUE_4")
+Tracker.instance?.setCustomCategory5("VALUE_5")
+```
+
+Once set, Custom Category values are persisted locally and will be included with every subsequent Screen View event until overridden or cleared by setting null.
+
+Common use cases include Logged-in vs guest users, Feature flag segmentation, Different versions of the same screen flow.
+
+Custom Categories can be used as filters in the Blue Triangle portal after data has been processed.
+
+> Custom Category currently requires help from a Blue Triangle representative for configuration. Please reach out and they will be able to help you with this!
 
 ## How to Test the Android SDK Integration
 
