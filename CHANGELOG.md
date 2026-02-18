@@ -1,5 +1,5 @@
 # Blue Triangle 2.19.3 Latest, Feb 18 2026
-### Improvements
+### New Improvements
 - Added support for auto checkout reporting via remote configuration.
 - Added eventID to the NATIVEAPP property for all event types.
 - Added support for custom categories and additional parameters abTestID, campaignMedium, campaignName, campaignSource, and dataCenter.
