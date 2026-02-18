@@ -51,7 +51,6 @@ internal class MemoryMonitor(
 
     override fun captureDataPoint(): DataPoint {
         val usedMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()
-        logger?.debug("Used Memory: $usedMemory (${usedMemory.mb}MB), Total Memory: $totalMemory (${totalMemory.mb}MB)")
         if (usedMemory / totalMemory.toFloat() >= 0.8) {
             if(isFirst) {
                 isMemoryThresholdReached = true

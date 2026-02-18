@@ -104,6 +104,7 @@ internal class SessionManager(
             config.enableMemoryWarning,
             config.enableLaunchTime,
             config.enableWebViewStitching,
+            config.checkoutConfig,
             getNewExpiration()
         )
     }
@@ -141,6 +142,7 @@ internal class SessionManager(
                 it.enableMemoryWarning,
                 it.enableLaunchTime,
                 it.enableWebViewStitching,
+                it.checkoutConfig,
                 getNewExpiration()
             )
             sessionStore.storeSessionData(
@@ -191,6 +193,7 @@ internal class SessionManager(
                                 config.enableMemoryWarning,
                                 config.enableLaunchTime,
                                 config.enableWebViewStitching,
+                                config.checkoutConfig,
                                 session.expiration
                             )
                             Tracker.instance?.updateSession(sessionData)

@@ -1,0 +1,60 @@
+package com.bluetriangle.analytics.checkout.event
+
+import com.bluetriangle.analytics.Constants.TIMER_MIN_PGTM
+import com.bluetriangle.analytics.Timer
+import com.bluetriangle.analytics.checkout.config.CheckoutConfig
+import com.bluetriangle.analytics.utility.logD
+import com.bluetriangle.analytics.utility.logV
+
+class CheckoutEventReporter(private var _config: CheckoutConfig) {
+
+    val config: CheckoutConfig
+        get() = _config
+
+    companion object {
+        const val TAG = "CheckoutEventReporter"
+        const val CHECKOUT_PAGE_NAME = "PurchaseConfirmation"
+    }
+
+    private var lastEvents = mutableMapOf<Int, CheckoutEvent>()
+
+    fun onCheckoutEvent(event: CheckoutEvent) {
+        if(!config.isEnabled) {
+            logV(TAG, "sdk-event-ignored (reason:checkout-config-disabled)")
+            return
+        }
+
+        val lastEvent = lastEvents[event.eventID]
+        logV(TAG, "checkout-event-received (data: ${event})")
+        val shouldReport: Boolean = event.shouldReport(config, lastEvent)
+        lastEvents[event.eventID] = event
+
+        if(shouldReport) {
+            reportCheckout()
+        }
+    }
+
+    fun updateConfig(config: CheckoutConfig) {
+        this._config = config
+        logD(TAG, "received-updated-checkout-config (data: ${config})")
+    }
+
+    private fun reportCheckout() {
+        val checkoutTimer = Timer(CHECKOUT_PAGE_NAME, null)
+        checkoutTimer.startWithoutPerformanceMonitor()
+        checkoutTimer.setCartCount(config.cartCount)
+        checkoutTimer.setCartCountCheckout(config.cartCountCheckout)
+        config.orderNumber?.let {
+            checkoutTimer.setOrderNumber(it)
+        }
+        val pgTm = config.timerValue.toLong().coerceAtLeast(TIMER_MIN_PGTM)
+        checkoutTimer.pageTimeCalculator = { pgTm }
+        checkoutTimer.nativeAppProperties.loadTime = pgTm
+
+        checkoutTimer.nativeAppProperties.autoCheckout = true
+        checkoutTimer.setCartValue(config.checkoutAmount)
+        checkoutTimer.submit()
+        logD(TAG, "checkout-event-submitted")
+    }
+
+}

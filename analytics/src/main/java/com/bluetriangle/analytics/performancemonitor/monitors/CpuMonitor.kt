@@ -69,7 +69,6 @@ internal class CpuMonitor(configuration: BlueTriangleConfiguration) : MetricMoni
         val cpuUsage = calculateCPUUsage(clockTicksDelta, timeDelta).coerceAtMost(100.0)
         totalClockTicsLastCollection = totalClockTicks
         elapsedTimeLastCollection = elapsedTime
-        logger?.log(Log.VERBOSE, String.format(Locale.ENGLISH, "CPU Usage: %.2f", cpuUsage))
         return DataPoint.CPUDataPoint(cpuUsage)
     }
 

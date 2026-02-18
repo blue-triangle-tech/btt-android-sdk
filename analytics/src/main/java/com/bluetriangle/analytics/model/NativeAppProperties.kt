@@ -2,8 +2,10 @@ package com.bluetriangle.analytics.model
 
 import android.os.Parcelable
 import com.bluetriangle.analytics.Constants.APP_VERSION
+import com.bluetriangle.analytics.Constants.AUTO_CHECKOUT
 import com.bluetriangle.analytics.Constants.CONFIDENCE_MSG
 import com.bluetriangle.analytics.Constants.CONFIDENCE_RATE
+import com.bluetriangle.analytics.Constants.EVENT_ID
 import com.bluetriangle.analytics.Constants.FULL_TIME
 import com.bluetriangle.analytics.Constants.GROUPED
 import com.bluetriangle.analytics.Constants.GROUPING_CAUSE
@@ -24,6 +26,7 @@ import com.bluetriangle.analytics.networkcapture.CapturedRequest
 import com.bluetriangle.analytics.networkcapture.CapturedRequest.Companion.FIELD_DEVICE_MODEL
 import com.bluetriangle.analytics.networkstate.BTTNetworkState
 import com.bluetriangle.analytics.networkstate.data.BTTNetworkProtocol
+import com.bluetriangle.analytics.event.BTTEvent
 import com.bluetriangle.analytics.utility.value
 import kotlinx.parcelize.Parcelize
 import org.json.JSONObject
@@ -48,13 +51,14 @@ internal data class NativeAppProperties(
     var confidenceRate: Int? = null,
     var confidenceMsg: String? = null,
     var groupingCause: String? = null,
-    var groupingCauseInterval: Long? = null
+    var groupingCauseInterval: Long? = null,
+    var loadStartTime: Long = 0,
+    var loadEndTime: Long = 0,
+    var disappearTime: Long = 0,
+    var className: String = "",
+    var event: BTTEvent? = null,
+    var autoCheckout: Boolean? = null
 ) : Parcelable {
-
-    internal var loadStartTime: Long = 0
-    internal var loadEndTime: Long = 0
-    internal var disappearTime: Long = 0
-    internal var className: String = ""
 
     private val cellularTotal
         get() = cellular?.entries?.map { it.value }?.let {
@@ -73,6 +77,11 @@ internal data class NativeAppProperties(
         obj.put(GROUPED, grouped)
         obj.put(GROUPING_CAUSE, groupingCause)
         obj.put(GROUPING_CAUSE_INTERVAL, groupingCauseInterval)
+        obj.put(EVENT_ID, event?.id?.toString())
+
+        autoCheckout?.let {
+            obj.put(AUTO_CHECKOUT, it)
+        }
 
         networkStates.apply {
             forEach { obj.put(it) }

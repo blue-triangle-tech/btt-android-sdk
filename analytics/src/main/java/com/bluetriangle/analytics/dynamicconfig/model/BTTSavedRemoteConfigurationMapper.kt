@@ -14,6 +14,8 @@ import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_MEMORY_WARNING
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_NETWORK_STATE_TRACKING
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_WEB_VIEW_STITCHING
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_GROUPING_TAP_DETECTION
+import com.bluetriangle.analytics.checkout.config.CheckoutConfig
+import com.bluetriangle.analytics.checkout.config.CheckoutConfigMapper
 import com.bluetriangle.analytics.utility.getBooleanOrNull
 import com.bluetriangle.analytics.utility.getDoubleOrNull
 import com.bluetriangle.analytics.utility.getIntOrNull
@@ -64,6 +66,7 @@ internal object BTTSavedRemoteConfigurationMapper {
             jsonObject.getBooleanOrNull(ENABLE_MEMORY_WARNING) ?: DEFAULT_ENABLE_MEMORY_WARNING,
             jsonObject.getBooleanOrNull(ENABLE_LAUNCH_TIME) ?: DEFAULT_ENABLE_LAUNCH_TIME,
             jsonObject.getBooleanOrNull(ENABLE_WEB_VIEW_STITCHING) ?: DEFAULT_ENABLE_WEB_VIEW_STITCHING,
+            CheckoutConfigMapper.loadFromJsonObject(jsonObject),
             jsonObject.getLong(SAVED_DATE)
         )
     }
@@ -87,6 +90,7 @@ internal object BTTSavedRemoteConfigurationMapper {
         put(ENABLE_MEMORY_WARNING, config.enableMemoryWarning)
         put(ENABLE_LAUNCH_TIME, config.enableLaunchTime)
         put(ENABLE_WEB_VIEW_STITCHING, config.enableWebViewStitching)
+        CheckoutConfigMapper.loadIntoJsonObject(this, config.checkoutConfig)
         put(SAVED_DATE, config.savedDate)
     }
 

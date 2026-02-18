@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatDelegate
 import com.bluetriangle.analytics.BlueTriangleConfiguration
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.Tracker.Companion.init
-import com.bluetriangle.android.demo.groupingpoc.GroupingConfig
 import com.bluetriangle.android.demo.tests.ANRTest
 import com.bluetriangle.android.demo.tests.ANRTestFactory
 import com.bluetriangle.android.demo.tests.ANRTestScenario
@@ -63,7 +62,7 @@ class DemoApplication : Application() {
         checkLaunchTest(LaunchTestScenario.OnApplicationCreate)
     }
 
-    private fun initTracker(siteId: String?) {
+    fun initTracker(siteId: String?) {
         if (siteId.isNullOrBlank()) return
 
         val configuration = BlueTriangleConfiguration()
