@@ -387,7 +387,7 @@ Tracker.instance?.setSessionDataCenter("MY_DATA_CENTER")
 Tracker.instance?.setSessionTrafficSegmentName("MY_SEGMENT_NAME")
 ```
 
-> The value for the above fields will be persisted unless explicitly changed.
+> The value for the above fields will be persisted across app restarts, device restarts and session changes unless explicitly changed.
 
 ### Custom Timers 
 While **Screen Views are automatically tracked upon installation**, Custom Timers can also be configured if needed. 
@@ -656,7 +656,7 @@ Tracker.instance?.setCustomCategory4("VALUE_4")
 Tracker.instance?.setCustomCategory5("VALUE_5")
 ```
 
-Once set, Custom Category values are persisted locally and will be included with every subsequent Screen View event until overridden or cleared by setting null.
+Once set, Custom Category values are persisted locally across app kills, device restarts and session changes and will be included with every subsequent Screen View event until overridden or cleared by setting null. 
 
 Common use cases include Logged-in vs guest users, Feature flag segmentation, Different versions of the same screen flow.
 
