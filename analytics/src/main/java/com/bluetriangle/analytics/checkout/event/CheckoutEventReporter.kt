@@ -47,10 +47,10 @@ class CheckoutEventReporter(private var _config: CheckoutConfig) {
         config.orderNumber?.let {
             checkoutTimer.setOrderNumber(it)
         }
-        checkoutTimer.pageTimeCalculator = {
-            TIMER_MIN_PGTM
-        }
-        checkoutTimer.nativeAppProperties.loadTime = TIMER_MIN_PGTM
+        val pgTm = config.timerValue.toLong().coerceAtLeast(TIMER_MIN_PGTM)
+        checkoutTimer.pageTimeCalculator = { pgTm }
+        checkoutTimer.nativeAppProperties.loadTime = pgTm
+
         checkoutTimer.nativeAppProperties.autoCheckout = true
         checkoutTimer.setCartValue(config.checkoutAmount)
         checkoutTimer.submit()
