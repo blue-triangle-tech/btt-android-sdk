@@ -2,8 +2,8 @@ package com.bluetriangle.analytics.sessionmanager
 
 import android.app.Activity
 import android.app.Application
-import com.bluetriangle.analytics.BlueTriangleConfiguration
 import com.bluetriangle.analytics.Constants
+import com.bluetriangle.analytics.checkout.config.CheckoutConfig
 import com.bluetriangle.analytics.dynamicconfig.updater.IBTTConfigurationUpdater
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -13,7 +13,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 internal class DisabledModeSessionManager(
-    private val configuration: BlueTriangleConfiguration,
     private val updater: IBTTConfigurationUpdater
 ) : ISessionManager {
 
@@ -35,6 +34,7 @@ internal class DisabledModeSessionManager(
         enableMemoryWarning = false,
         enableLaunchTime = false,
         enableWebViewStitching = false,
+        checkoutConfig = CheckoutConfig.DEFAULT,
         expiration = 0L
     )
 

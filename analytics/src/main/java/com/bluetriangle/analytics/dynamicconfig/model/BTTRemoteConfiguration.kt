@@ -5,6 +5,8 @@
  */
 package com.bluetriangle.analytics.dynamicconfig.model
 
+import com.bluetriangle.analytics.checkout.config.CheckoutConfig
+
 internal open class BTTRemoteConfiguration(
     val networkSampleRate: Double?,
     val ignoreScreens:List<String>,
@@ -19,7 +21,8 @@ internal open class BTTRemoteConfiguration(
     val enableANRTracking: Boolean,
     val enableMemoryWarning: Boolean,
     val enableLaunchTime: Boolean,
-    val enableWebViewStitching: Boolean
+    val enableWebViewStitching: Boolean,
+    val checkoutConfig: CheckoutConfig
 ) {
     override fun equals(other: Any?): Boolean {
         if(other is BTTRemoteConfiguration) {
@@ -36,13 +39,14 @@ internal open class BTTRemoteConfiguration(
                     other.enableANRTracking == enableANRTracking &&
                     other.enableMemoryWarning == enableMemoryWarning &&
                     other.enableLaunchTime == enableLaunchTime &&
-                    other.enableWebViewStitching == enableWebViewStitching
+                    other.enableWebViewStitching == enableWebViewStitching &&
+                    other.checkoutConfig == checkoutConfig
         }
         return false
     }
 
     override fun toString(): String {
-        return "RemoteConfig { networkSampleRate: $networkSampleRate, ignoreList: ${ignoreScreens}, enableRemoteConfigAck: $enableRemoteConfigAck, enableAllTracking: $enableAllTracking,  enableScreenTracking: $enableScreenTracking, enableGrouping: $enableGrouping, groupingIdleTime: $groupingIdleTime, enableGroupingTapDetection: $enableGroupingTapDetection, enableNetworkStateTracking: $enableNetworkStateTracking, enableCrashTracking: $enableCrashTracking, enableANRTracking: $enableANRTracking, enableMemoryWarning: $enableMemoryWarning, enableLaunchTime: $enableLaunchTime, enableWebViewStitching: $enableWebViewStitching }"
+        return "RemoteConfig { networkSampleRate: $networkSampleRate, ignoreList: ${ignoreScreens}, enableRemoteConfigAck: $enableRemoteConfigAck, enableAllTracking: $enableAllTracking,  enableScreenTracking: $enableScreenTracking, enableGrouping: $enableGrouping, groupingIdleTime: $groupingIdleTime, enableGroupingTapDetection: $enableGroupingTapDetection, enableNetworkStateTracking: $enableNetworkStateTracking, enableCrashTracking: $enableCrashTracking, enableANRTracking: $enableANRTracking, enableMemoryWarning: $enableMemoryWarning, enableLaunchTime: $enableLaunchTime, enableWebViewStitching: $enableWebViewStitching, checkoutConfig: $checkoutConfig }"
     }
 
     override fun hashCode(): Int {
@@ -60,6 +64,7 @@ internal open class BTTRemoteConfiguration(
         result = 31 * result + enableMemoryWarning.hashCode()
         result = 31 * result + enableLaunchTime.hashCode()
         result = 31 * result + enableWebViewStitching.hashCode()
+        result = 31 * result + checkoutConfig.hashCode()
         return result
     }
 

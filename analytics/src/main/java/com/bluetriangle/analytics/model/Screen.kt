@@ -26,6 +26,7 @@ internal data class Screen(
     fun fetchTitle(activity: Activity?) {
         if(activity == null) return
 
+        // Since the title of the screen isn't available instantly. We wait for 400 ms for the screen's title to stabilize.
         postDelayedMain({
             val name = activity.getToolbarTitle()
             title = name

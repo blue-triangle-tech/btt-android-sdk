@@ -41,6 +41,12 @@ object Constants {
     internal const val DEFAULT_ENABLE_WEB_VIEW_STITCHING = true
     internal const val DEFAULT_GROUPED_VIEW_SAMPLE_RATE = 0.05
 
+    internal const val DEFAULT_CHECKOUT_TRACKING_ENABLED = false
+    internal const val DEFAULT_CHECKOUT_AMOUNT = 1.0
+    internal const val DEFAULT_CART_COUNT = 1
+    internal const val DEFAULT_CART_COUNT_CHECKOUT = 1
+    internal const val DEFAULT_TIMER_VALUE = 100
+
     internal const val SDK_VERSION = "sdkVersion"
     internal const val APP_VERSION = "appVersion"
     internal const val NUMBER_OF_CPU_CORES = "numberOfCPUCores"
@@ -57,11 +63,13 @@ object Constants {
     internal const val GROUPED = "grouped"
     internal const val GROUPING_CAUSE = "groupingCause"
     internal const val GROUPING_CAUSE_INTERVAL = "groupingCauseInterval"
-
+    internal const val EVENT_ID = "eventID"
     internal const val CONFIDENCE_RATE = "confidenceRate"
     internal const val CONFIDENCE_MSG = "confidenceMsg"
 
+    internal const val AUTO_CHECKOUT = "autoCheckout"
+
     internal const val DEFAULT_TRAFFIC_SEGMENT_NAME = "Main Segment"
     internal const val DEFAULT_CONTENT_GROUP_NAME = "Main Group"
-
+    internal const val MAX_FIELD_CHAR_LENGTH: Int = 512
 }

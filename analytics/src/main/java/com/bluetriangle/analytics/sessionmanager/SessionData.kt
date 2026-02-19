@@ -8,7 +8,6 @@ package com.bluetriangle.analytics.sessionmanager
 import com.bluetriangle.analytics.Constants
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_ANR_TRACKING
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_CRASH_TRACKING
-import com.bluetriangle.analytics.Constants.DEFAULT_GROUPED_VIEW_SAMPLE_RATE
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_GROUPING
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_GROUPING_TAP_DETECTION
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_LAUNCH_TIME
@@ -17,6 +16,8 @@ import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_NETWORK_STATE_TRACKIN
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_WEB_VIEW_STITCHING
 import com.bluetriangle.analytics.Constants.DEFAULT_NETWORK_SAMPLE_RATE
 import com.bluetriangle.analytics.Tracker
+import com.bluetriangle.analytics.checkout.config.CheckoutConfig
+import com.bluetriangle.analytics.checkout.config.CheckoutConfigMapper
 import com.bluetriangle.analytics.utility.getBooleanOrNull
 import com.bluetriangle.analytics.utility.getDoubleOrNull
 import com.bluetriangle.analytics.utility.getIntOrNull
@@ -41,6 +42,7 @@ internal data class SessionData(
     val enableMemoryWarning: Boolean,
     val enableLaunchTime: Boolean,
     val enableWebViewStitching: Boolean,
+    val checkoutConfig: CheckoutConfig,
     val expiration: Long
 ) {
     companion object {
@@ -53,8 +55,6 @@ internal data class SessionData(
         private const val ENABLE_SCREEN_TRACKING = "enableScreenTracking"
         private const val ENABLE_GROUPING = "enableGrouping"
         private const val GROUPING_IDLE_TIME = "groupingIdleTime"
-        private const val GROUPED_VIEW_SAMPLE_RATE = "groupedViewSampleRate"
-        private const val SHOULD_SAMPLE_GROUPED_VIEW = "shouldSampleGroupedView"
         private const val ENABLE_GROUPING_TAP_DETECTION = "enableGroupingTapDetection"
         private const val ENABLE_NETWORK_STATE_TRACKING = "enableNetworkStateTracking"
         private const val ENABLE_CRASH_TRACKING = "enableCrashTracking"
@@ -87,6 +87,7 @@ internal data class SessionData(
                     enableMemoryWarning = getBooleanOrNull(ENABLE_MEMORY_WARNING) ?: DEFAULT_ENABLE_MEMORY_WARNING,
                     enableLaunchTime = getBooleanOrNull(ENABLE_LAUNCH_TIME) ?: DEFAULT_ENABLE_LAUNCH_TIME,
                     enableWebViewStitching = getBooleanOrNull(ENABLE_WEB_VIEW_STITCHING) ?: DEFAULT_ENABLE_WEB_VIEW_STITCHING,
+                    checkoutConfig = CheckoutConfigMapper.loadFromJsonObject(this),
                     expiration = getLong(EXPIRATION)
                 )
             } catch (e: Exception) {
@@ -111,6 +112,7 @@ internal data class SessionData(
             put(ENABLE_MEMORY_WARNING, enableMemoryWarning)
             put(ENABLE_LAUNCH_TIME, enableLaunchTime)
             put(ENABLE_WEB_VIEW_STITCHING, enableWebViewStitching)
+            CheckoutConfigMapper.loadIntoJsonObject(this, checkoutConfig)
             put(EXPIRATION, expiration)
         }
     }

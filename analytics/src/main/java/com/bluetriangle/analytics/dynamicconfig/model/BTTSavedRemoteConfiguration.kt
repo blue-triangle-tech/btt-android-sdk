@@ -5,6 +5,8 @@
  */
 package com.bluetriangle.analytics.dynamicconfig.model
 
+import com.bluetriangle.analytics.checkout.config.CheckoutConfig
+
 internal class BTTSavedRemoteConfiguration(
     networkSampleRate: Double?,
     ignoreScreens: List<String>,
@@ -20,6 +22,7 @@ internal class BTTSavedRemoteConfiguration(
     enableMemoryWarning: Boolean,
     enableLaunchTime: Boolean,
     enableWebViewStitching: Boolean,
+    checkoutConfig: CheckoutConfig,
     val savedDate: Long
 ) : BTTRemoteConfiguration(
     networkSampleRate,
@@ -35,7 +38,8 @@ internal class BTTSavedRemoteConfiguration(
     enableANRTracking,
     enableMemoryWarning,
     enableLaunchTime,
-    enableWebViewStitching
+    enableWebViewStitching,
+    checkoutConfig
 ) {
 
     companion object {
@@ -54,6 +58,7 @@ internal class BTTSavedRemoteConfiguration(
             remoteConfig.enableMemoryWarning,
             remoteConfig.enableLaunchTime,
             remoteConfig.enableWebViewStitching,
+            remoteConfig.checkoutConfig,
             System.currentTimeMillis()
         )
     }

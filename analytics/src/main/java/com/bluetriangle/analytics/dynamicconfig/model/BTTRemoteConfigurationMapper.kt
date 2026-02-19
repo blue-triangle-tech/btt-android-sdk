@@ -14,6 +14,7 @@ import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_NETWORK_STATE_TRACKIN
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_WEB_VIEW_STITCHING
 import com.bluetriangle.analytics.Constants.DEFAULT_GROUPING_IDLE_TIME
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_GROUPING_TAP_DETECTION
+import com.bluetriangle.analytics.checkout.config.CheckoutConfigMapper
 import com.bluetriangle.analytics.utility.getBooleanOrNull
 import com.bluetriangle.analytics.utility.getDoubleOrNull
 import com.bluetriangle.analytics.utility.getIntOrNull
@@ -60,6 +61,7 @@ internal object BTTRemoteConfigurationMapper {
         val enableMemoryWarning = remoteConfigJson.getBooleanOrNull(ENABLE_MEMORY_WARNING) ?: DEFAULT_ENABLE_MEMORY_WARNING
         val enableLaunchTime = remoteConfigJson.getBooleanOrNull(ENABLE_LAUNCH_TIME) ?: DEFAULT_ENABLE_LAUNCH_TIME
         val enableWebViewStitching = remoteConfigJson.getBooleanOrNull(ENABLE_WEB_VIEW_STITCHING) ?: DEFAULT_ENABLE_WEB_VIEW_STITCHING
+        val checkoutConfig = CheckoutConfigMapper.loadFromJsonObject(remoteConfigJson)
 
         return BTTRemoteConfiguration(
             networkSampleRate,
@@ -75,7 +77,8 @@ internal object BTTRemoteConfigurationMapper {
             enableANRTracking,
             enableMemoryWarning,
             enableLaunchTime,
-            enableWebViewStitching
+            enableWebViewStitching,
+            checkoutConfig
         )
     }
 }

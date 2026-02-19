@@ -18,8 +18,14 @@ import com.bluetriangle.analytics.model.ScreenType
 import com.bluetriangle.analytics.networkstate.BTTNetworkState
 import java.io.File
 
-fun logD(tag: String, message: String) {
-    Tracker.instance?.configuration?.logger?.debug("$tag: $message")
+fun logD(tag: String? = null, message: String) {
+    val prefix = tag?.plus(": ").orEmpty()
+    Tracker.instance?.configuration?.logger?.debug("$prefix$message")
+}
+
+fun logV(tag: String? = null, message: String) {
+    val prefix = tag?.plus(": ").orEmpty()
+    Tracker.instance?.configuration?.logger?.verbose("$prefix$message")
 }
 
 internal val Fragment.screen: Screen
@@ -102,6 +108,13 @@ internal val Context.isDebugBuild: Boolean
             false
         }
     }
+
+internal inline fun Boolean.onFalse(block: () -> Unit): Boolean {
+    if(!this) {
+        block()
+    }
+    return this
+}
 
 internal fun postDelayedMain(runnable: ()->Unit, delayInMillis: Long) {
     Handler(Looper.getMainLooper()).postDelayed(runnable, delayInMillis)

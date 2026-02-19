@@ -14,12 +14,15 @@ import android.text.TextUtils
 import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
+import com.bluetriangle.analytics.Constants.MAX_FIELD_CHAR_LENGTH
 import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
 import com.bluetriangle.analytics.anrwatchdog.ANRReporter
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
-import com.bluetriangle.analytics.eventhub.AppEventHub
 import com.bluetriangle.analytics.breadcrumbs.UserEvent
 import com.bluetriangle.analytics.breadcrumbs.UserEventsCollection
+import com.bluetriangle.analytics.checkout.config.CheckoutConfig
+import com.bluetriangle.analytics.checkout.event.CheckoutEvent
+import com.bluetriangle.analytics.checkout.event.CheckoutEventReporter
 import com.bluetriangle.analytics.deviceinfo.DeviceInfoProvider
 import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 import com.bluetriangle.analytics.dynamicconfig.fetcher.BTTConfigurationFetcher
@@ -29,6 +32,10 @@ import com.bluetriangle.analytics.dynamicconfig.repository.BTTConfigurationRepos
 import com.bluetriangle.analytics.dynamicconfig.repository.IBTTConfigurationRepository
 import com.bluetriangle.analytics.dynamicconfig.updater.BTTConfigurationUpdater
 import com.bluetriangle.analytics.dynamicconfig.updater.IBTTConfigurationUpdater
+import com.bluetriangle.analytics.event.BTTEvent
+import com.bluetriangle.analytics.eventhub.AppEventHub
+import com.bluetriangle.analytics.globalproperties.CustomCategory
+import com.bluetriangle.analytics.globalproperties.GlobalPropertiesStore
 import com.bluetriangle.analytics.hybrid.BTTWebViewTracker
 import com.bluetriangle.analytics.launchtime.LaunchMonitor
 import com.bluetriangle.analytics.launchtime.LaunchReporter
@@ -127,12 +134,17 @@ class Tracker private constructor(
 
     private var launchReporter: LaunchReporter? = null
 
+    private var globalPropertiesStore: GlobalPropertiesStore
+
+    internal var checkoutEventReporter: CheckoutEventReporter? = null
+
     init {
         this.context = WeakReference(application.applicationContext)
         this.configuration = configuration
         this.deviceInfoProvider = DeviceInfoProvider
         this.anrReporter = ANRReporter(deviceInfoProvider)
         this.memoryWarningReporter = MemoryWarningReporter(deviceInfoProvider)
+        this.globalPropertiesStore = GlobalPropertiesStore(application.applicationContext)
 
         appVersion = Utils.getAppVersion(application.applicationContext)
 
@@ -182,6 +194,8 @@ class Tracker private constructor(
         setSessionId(sessionData.sessionId)
         this.configuration.updateConfiguration(sessionData)
 
+        checkoutEventReporter = CheckoutEventReporter(sessionData.checkoutConfig)
+
         if(configuration.isScreenTrackingEnabled) {
             initializeScreenTracker()
         }
@@ -208,6 +222,8 @@ class Tracker private constructor(
         performanceSpans.forEach {
             it.value.stop()
         }
+
+        checkoutEventReporter = null
 
         stopPerformanceMonitoring()
         deInitializeScreenTracker()
@@ -250,16 +266,22 @@ class Tracker private constructor(
 
         globalFields.apply {
             configuration.siteId?.let { put(Timer.FIELD_SITE_ID, it) }
-            put(Timer.FIELD_BROWSER, Constants.BROWSER)
-            put(Timer.FIELD_NA_FLG, "1")
             put(
                 Timer.FIELD_DEVICE,
                 if (isTablet) Constants.DEVICE_TABLET else Constants.DEVICE_MOBILE
             )
             put(Timer.FIELD_BROWSER_VERSION, "${Constants.BROWSER}-$appVersion-${Utils.os}")
-            put(Timer.FIELD_SDK_VERSION, BuildConfig.SDK_VERSION)
-            put(Timer.FIELD_TRAFFIC_SEGMENT_NAME, Constants.DEFAULT_TRAFFIC_SEGMENT_NAME)
-            put(Timer.FIELD_CONTENT_GROUP_NAME, Constants.DEFAULT_CONTENT_GROUP_NAME)
+            putAll(DEFAULT_VALUES)
+
+            val globalProperties = globalPropertiesStore.loadGlobalProperties()
+            put(Timer.FIELD_CAMPAIGN_MEDIUM, globalProperties.campaignMedium)
+            put(Timer.FIELD_CAMPAIGN_NAME, globalProperties.campaignName)
+            put(Timer.FIELD_CAMPAIGN_SOURCE, globalProperties.campaignSource)
+
+            put(Timer.FIELD_AB_TEST_ID, globalProperties.abTestIdentifier)
+            put(Timer.FIELD_DATACENTER, globalProperties.dataCenter)
+
+            putAll(globalProperties.customCategories.mapKeys { it.key.fieldName })
         }
     }
 
@@ -470,6 +492,9 @@ class Tracker private constructor(
     @Synchronized
     fun submitCapturedRequest(capturedRequest: CapturedRequest?) {
         if (capturedRequest == null) return
+
+        checkoutEventReporter?.onCheckoutEvent(CheckoutEvent.NetworkEvent(capturedRequest.url, capturedRequest.responseStatusCode))
+
         if (configuration.shouldSampleNetwork) {
             getMostRecentTimer()?.let { timer ->
                 configuration.logger?.debug("Network Request Captured: $capturedRequest for $timer")
@@ -587,21 +612,41 @@ class Tracker private constructor(
     }
 
     /**
-     * Set this session's AB test identifier
+     * Set the value for AB test identifier
+     * This will be applied to all timers that are submitted after calling this method.
+     * This value will remain set until changed explicitly.
+     * Setting null value clears the AB test identifier value.
      *
-     * @param abTestIdentifier the AB test id
+     * @param abTestIdentifier the AB test identifier
      */
-    fun setSessionAbTestIdentifier(abTestIdentifier: String) {
-        setGlobalField(Timer.FIELD_AB_TEST_ID, abTestIdentifier)
+    fun setSessionAbTestIdentifier(abTestIdentifier: String?) {
+        if(abTestIdentifier == null) {
+            clearGlobalField(Timer.FIELD_AB_TEST_ID)
+            configuration.logger?.debug("Cleared AB test identifier value")
+        } else {
+            setGlobalField(Timer.FIELD_AB_TEST_ID, abTestIdentifier.take(MAX_FIELD_CHAR_LENGTH))
+            configuration.logger?.debug("Updated AB test identifier value to $abTestIdentifier")
+        }
+        globalPropertiesStore.setAbTestIdentifier(abTestIdentifier)
     }
 
     /**
-     * Set this session's data center value
+     * Set the value for data center
+     * This will be applied to all timers that are submitted after calling this method.
+     * This value will remain set until changed explicitly.
+     * Setting null value clears the data center value.
      *
      * @param dataCenter the value for the data center
      */
-    fun setSessionDataCenter(dataCenter: String) {
-        setGlobalField(Timer.FIELD_DATACENTER, dataCenter)
+    fun setSessionDataCenter(dataCenter: String?) {
+        if(dataCenter == null) {
+            clearGlobalField(Timer.FIELD_DATACENTER)
+            configuration.logger?.debug("Cleared data center value")
+        } else {
+            setGlobalField(Timer.FIELD_DATACENTER, dataCenter.take(MAX_FIELD_CHAR_LENGTH))
+            configuration.logger?.debug("Updated data center value to $dataCenter")
+        }
+        globalPropertiesStore.setDataCenter(dataCenter)
     }
 
     /**
@@ -610,34 +655,64 @@ class Tracker private constructor(
      * @param trafficSegmentName name of the traffic segment for this session
      */
     fun setSessionTrafficSegmentName(trafficSegmentName: String) {
-        setGlobalField(Timer.FIELD_TRAFFIC_SEGMENT_NAME, trafficSegmentName)
+        setGlobalField(Timer.FIELD_TRAFFIC_SEGMENT_NAME, trafficSegmentName.take(MAX_FIELD_CHAR_LENGTH))
     }
 
     /**
-     * Set this session's campaign name
+     * Set the value for campaign name
+     * This will be applied to all timers that are submitted after calling this method.
+     * This value will remain set until changed explicitly.
+     * Setting null value clears the campaign name value.
      *
      * @param campaignName name of campaign
      */
-    fun setSessionCampaignName(campaignName: String) {
-        setGlobalField(Timer.FIELD_CAMPAIGN_NAME, campaignName)
+    fun setSessionCampaignName(campaignName: String?) {
+        if(campaignName == null) {
+            clearGlobalField(Timer.FIELD_CAMPAIGN_NAME)
+            configuration.logger?.debug("Cleared campaign name value")
+        } else {
+            setGlobalField(Timer.FIELD_CAMPAIGN_NAME, campaignName.take(MAX_FIELD_CHAR_LENGTH))
+            configuration.logger?.debug("Updated campaign name value to $campaignName")
+        }
+        globalPropertiesStore.setCampaignName(campaignName)
     }
 
     /**
-     * Set this session's campaign source
+     * Set the value for campaign source
+     * This will be applied to all timers that are submitted after calling this method.
+     * This value will remain set until changed explicitly.
+     * Setting null value clears the campaign source value.
      *
      * @param campaignSource source of campaign
      */
-    fun setSessionCampaignSource(campaignSource: String) {
-        setGlobalField(Timer.FIELD_CAMPAIGN_SOURCE, campaignSource)
+    fun setSessionCampaignSource(campaignSource: String?) {
+        if(campaignSource == null) {
+            clearGlobalField(Timer.FIELD_CAMPAIGN_SOURCE)
+            configuration.logger?.debug("Cleared campaign source value")
+        } else {
+            setGlobalField(Timer.FIELD_CAMPAIGN_SOURCE, campaignSource.take(MAX_FIELD_CHAR_LENGTH))
+            configuration.logger?.debug("Updated campaign source value to $campaignSource")
+        }
+        globalPropertiesStore.setCampaignSource(campaignSource)
     }
 
     /**
-     * Set this session's campaign medium
+     * Set the value for campaign medium
+     * This will be applied to all timers that are submitted after calling this method.
+     * This value will remain set until changed explicitly.
+     * Setting null value clears the campaign medium value.
      *
      * @param campaignMedium medium of campaign
      */
-    fun setSessionCampaignMedium(campaignMedium: String) {
-        setGlobalField(Timer.FIELD_CAMPAIGN_MEDIUM, campaignMedium)
+    fun setSessionCampaignMedium(campaignMedium: String?) {
+        if(campaignMedium == null) {
+            clearGlobalField(Timer.FIELD_CAMPAIGN_MEDIUM)
+            configuration.logger?.debug("Cleared campaign medium value")
+        } else {
+            setGlobalField(Timer.FIELD_CAMPAIGN_MEDIUM, campaignMedium.take(MAX_FIELD_CHAR_LENGTH))
+            configuration.logger?.debug("Updated campaign medium value to $campaignMedium")
+        }
+        globalPropertiesStore.setCampaignMedium(campaignMedium)
     }
 
     /**
@@ -648,6 +723,21 @@ class Tracker private constructor(
      */
     fun setGlobalField(fieldName: String, value: String) {
         synchronized(globalFields) { globalFields.put(fieldName, value) }
+    }
+
+    /**
+     * Checks if a field is set or not. i.e. it still has the default value or doesn't exist at all
+     *
+     * @param fieldName name of field to remove
+     * @return true if the field exists or false otherwise
+     */
+    internal fun isGlobalFieldSet(fieldName: String): Boolean {
+        return synchronized(globalFields) {
+            val exists = globalFields.containsKey(fieldName)
+            val hasDefaultValue = DEFAULT_VALUES.containsKey(fieldName) && globalFields[fieldName] == DEFAULT_VALUES[fieldName]
+
+            exists && !hasDefaultValue
+        }
     }
 
     /**
@@ -828,6 +918,11 @@ class Tracker private constructor(
             screenTrackMonitor?.ignoreScreens = sessionData.ignoreScreens
         }
 
+        if(checkoutEventReporter?.config != sessionData.checkoutConfig) {
+            changes.append("\ncheckoutConfig: ${checkoutEventReporter?.config} -> ${sessionData.checkoutConfig}")
+            checkoutEventReporter?.updateConfig(sessionData.checkoutConfig)
+        }
+
         val changesString = changes.toString()
         if(changesString.isNotEmpty()) {
             configuration.logger?.debug("Updated configuration $changesString")
@@ -920,6 +1015,102 @@ class Tracker private constructor(
         }
     }
 
+    /**
+     * Set the value for custom category 1
+     * Custom category will be applied to all timers that are submitted after calling this method.
+     * This value will remain set until changed explicitly.
+     * Setting null value clears the custom category value.
+     *
+     * @param value value of the custom category
+     */
+    fun setCustomCategory1(value: String?) {
+        synchronized(this) {
+            if(value == null) {
+                clearGlobalField(CustomCategory.Category1.fieldName)
+                configuration.logger?.debug("Cleared custom category 1 value")
+            } else {
+                setGlobalField(CustomCategory.Category1.fieldName, value)
+                configuration.logger?.debug("Updated custom category 1 value to $value")
+            }
+            globalPropertiesStore.setCustomCategory(CustomCategory.Category1, value)
+        }
+    }
+
+    /**
+     * Set the values for custom category 2
+     * Custom category will be applied to timers that are submitted after calling this method.
+     * These values will remain set until changed explicitly.
+     * Setting null value clears the custom category value.
+     *
+     * @param value value of the custom category
+     */
+    fun setCustomCategory2(value: String?) {
+        if(value == null) {
+            clearGlobalField(CustomCategory.Category2.fieldName)
+            configuration.logger?.debug("Cleared custom category 2 value")
+        } else {
+            setGlobalField(CustomCategory.Category2.fieldName, value)
+            configuration.logger?.debug("Updated custom category 2 value to $value")
+        }
+        globalPropertiesStore.setCustomCategory(CustomCategory.Category2, value)
+    }
+
+    /**
+     * Set the values for custom category 3
+     * Custom category will be applied to timers that are submitted after calling this method.
+     * These values will remain set until changed explicitly.
+     * Setting null value clears the custom category value.
+     *
+     * @param value value of the custom category
+     */
+    fun setCustomCategory3(value: String?) {
+        if(value == null) {
+            clearGlobalField(CustomCategory.Category3.fieldName)
+            configuration.logger?.debug("Cleared custom category 3 value")
+        } else {
+            setGlobalField(CustomCategory.Category3.fieldName, value)
+            configuration.logger?.debug("Updated custom category 3 value to $value")
+        }
+        globalPropertiesStore.setCustomCategory(CustomCategory.Category3, value)
+    }
+
+    /**
+     * Set the values for custom category 4
+     * Custom category will be applied to timers that are submitted after calling this method.
+     * These values will remain set until changed explicitly.
+     * Setting null value clears the custom category value.
+     *
+     * @param value value of the custom category
+     */
+    fun setCustomCategory4(value: String?) {
+        if(value == null) {
+            clearGlobalField(CustomCategory.Category4.fieldName)
+            configuration.logger?.debug("Cleared custom category 4 value")
+        } else {
+            setGlobalField(CustomCategory.Category4.fieldName, value)
+            configuration.logger?.debug("Updated custom category 4 value to $value")
+        }
+        globalPropertiesStore.setCustomCategory(CustomCategory.Category4, value)
+    }
+
+    /**
+     * Set the values for custom category 5
+     * Custom category will be applied to timers that are submitted after calling this method.
+     * These values will remain set until changed explicitly.
+     * Setting null value clears the custom category value.
+     *
+     * @param value value of the custom category
+     */
+    fun setCustomCategory5(value: String?) {
+        if(value == null) {
+            clearGlobalField(CustomCategory.Category5.fieldName)
+            configuration.logger?.debug("Cleared custom category 5 value")
+        } else {
+            setGlobalField(CustomCategory.Category5.fieldName, value)
+            configuration.logger?.debug("Updated custom category 5 value to $value")
+        }
+        globalPropertiesStore.setCustomCategory(CustomCategory.Category5, value)
+    }
 
     fun trackError(message: String) {
         trackException(message, object : Throwable() {
@@ -956,11 +1147,17 @@ class Tracker private constructor(
         )
     }
 
-    enum class BTErrorType(val value: String) {
-        NativeAppCrash("Android Crash"),
-        ANRWarning("ANRWarning"),
-        MemoryWarning("MemoryWarning"),
-        BTTConfigUpdateError("BTTConfigUpdate")
+    enum class BTErrorType(val event: BTTEvent? = null) {
+        NativeAppCrash(BTTEvent.Crash),
+        ANRWarning(BTTEvent.ANRWarning),
+        MemoryWarning(BTTEvent.MemoryWarning),
+        BTTConfigUpdateError;
+
+        val errorName: String
+            get() = when(this) {
+                BTTConfigUpdateError -> "BTTConfigUpdate"
+                else -> event?.defaultPageName?:"Unknown"
+            }
     }
 
     fun raiseTestException() {
@@ -1064,7 +1261,8 @@ class Tracker private constructor(
                 enableANRTracking = configuration.isTrackAnrEnabled,
                 enableMemoryWarning = configuration.isMemoryWarningEnabled,
                 enableLaunchTime = configuration.isLaunchTimeEnabled,
-                enableWebViewStitching = configuration.isWebViewStitchingEnabled
+                enableWebViewStitching = configuration.isWebViewStitchingEnabled,
+                checkoutConfig = CheckoutConfig.DEFAULT
             )
 
             initializeConfigurationUpdater(application, configuration, defaultConfig)
@@ -1073,7 +1271,7 @@ class Tracker private constructor(
                 initializeSessionManager(application, configuration, defaultConfig)
                 instance = Tracker(application, configuration)
             } else {
-                deInitializeSessionManager(configuration)
+                deInitializeSessionManager()
                 configuration.logger?.debug("enableAllTracking is false, no need to initialize SDK")
             }
 
@@ -1170,7 +1368,7 @@ class Tracker private constructor(
                     } else {
                         if(instance != null) {
                             instance?.disable()
-                            deInitializeSessionManager(configuration)
+                            deInitializeSessionManager()
                             instance = null
                         }
                     }
@@ -1239,14 +1437,22 @@ class Tracker private constructor(
             AppEventHub.instance.addConsumer(this.sessionManager)
         }
 
-        private fun deInitializeSessionManager(configuration: BlueTriangleConfiguration) {
+        private fun deInitializeSessionManager() {
             if(::sessionManager.isInitialized) {
                 sessionManager.endSession()
                 AppEventHub.instance.removeConsumer(sessionManager)
             }
-            sessionManager = DisabledModeSessionManager(configuration, configurationUpdater)
+            sessionManager = DisabledModeSessionManager(configurationUpdater)
             AppEventHub.instance.addConsumer(sessionManager)
         }
+
+        private val DEFAULT_VALUES: Map<String, String> = mapOf(
+            Timer.FIELD_BROWSER to Constants.BROWSER,
+            Timer.FIELD_NA_FLG to "1",
+            Timer.FIELD_SDK_VERSION to BuildConfig.SDK_VERSION,
+            Timer.FIELD_TRAFFIC_SEGMENT_NAME to Constants.DEFAULT_TRAFFIC_SEGMENT_NAME,
+            Timer.FIELD_CONTENT_GROUP_NAME to Constants.DEFAULT_CONTENT_GROUP_NAME
+        )
     }
 
 }
