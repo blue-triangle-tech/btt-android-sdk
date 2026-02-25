@@ -18,6 +18,7 @@ import com.bluetriangle.analytics.Constants.MAX_FIELD_CHAR_LENGTH
 import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
 import com.bluetriangle.analytics.anrwatchdog.ANRReporter
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
+import com.bluetriangle.analytics.breadcrumbs.BreadcrumbsCollector
 import com.bluetriangle.analytics.breadcrumbs.UserEvent
 import com.bluetriangle.analytics.breadcrumbs.UserEventsCollection
 import com.bluetriangle.analytics.checkout.config.CheckoutConfig
@@ -137,6 +138,8 @@ class Tracker private constructor(
     private var globalPropertiesStore: GlobalPropertiesStore
 
     internal var checkoutEventReporter: CheckoutEventReporter? = null
+
+    internal var breadcrumbsCollector: BreadcrumbsCollector? = null
 
     init {
         this.context = WeakReference(application.applicationContext)
@@ -558,17 +561,6 @@ class Tracker private constructor(
                 ?.let { collection -> capturedRequestCollections.add(collection) }
         }
         return capturedRequestCollections.toList()
-    }
-
-    @Synchronized
-    internal fun getUserEventsCollectionsForTimer(timer: Timer): List<UserEventsCollection> {
-        val keysToSend = userEvents.keys().toList().filter { it <= timer.start }
-        val userEventsCollection = mutableListOf<UserEventsCollection>()
-        keysToSend.forEach {
-            userEvents.remove(it)
-                ?.let { collection -> userEventsCollection.add(collection) }
-        }
-        return userEventsCollection.toList()
     }
 
     internal fun getTimerValue(fieldName: String, timer: Timer?): String {

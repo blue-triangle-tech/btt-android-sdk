@@ -22,4 +22,13 @@ internal class InteractionGestureListener(
         recordTouchEvent(UserEventType.DOUBLE_TAP, activity, x, y)
         return super.onDoubleTap(e)
     }
+
+    override fun onScroll(
+        e1: MotionEvent?,
+        e2: MotionEvent?,
+        distanceX: Float,
+        distanceY: Float
+    ): Boolean {
+        return super.onScroll(e1, e2, distanceX, distanceY)
+    }
 }
