@@ -9,6 +9,7 @@ import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.breadcrumbs.BreadcrumbEvent
 import com.bluetriangle.analytics.breadcrumbs.BreadcrumbsCollector
 import com.bluetriangle.analytics.lifecycle.ActivityLifecycleObserver
+import com.bluetriangle.analytics.lifecycle.ComposeLifecycleObserver
 import com.bluetriangle.analytics.lifecycle.FragmentLifecycleObserver
 import com.bluetriangle.analytics.lifecycle.LifecycleRegistry
 
@@ -110,14 +111,26 @@ internal class UiLifecycleInstrumentation(breadcrumbsCollector: BreadcrumbsColle
         }
     }
 
+    private val composeLifecycleObserver = object: ComposeLifecycleObserver {
+        override fun onEnterComposition(name: String) {
+            addBreadcrumb(name, "enterComposition")
+        }
+
+        override fun onLeaveComposition(name: String) {
+            addBreadcrumb(name, "leaveComposition")
+        }
+    }
+
     override fun enable() {
         LifecycleRegistry.addActivityObserver(activityObserver)
         LifecycleRegistry.addFragmentObserver(fragmentObserver)
+        LifecycleRegistry.addComposeObserver(composeLifecycleObserver)
     }
 
     override fun disable() {
         LifecycleRegistry.removeActivityObserver(activityObserver)
         LifecycleRegistry.removeFragmentObserver(fragmentObserver)
+        LifecycleRegistry.removeComposeObserver(composeLifecycleObserver)
     }
 
     private fun addBreadcrumb(

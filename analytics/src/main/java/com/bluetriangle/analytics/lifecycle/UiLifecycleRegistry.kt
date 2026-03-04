@@ -32,6 +32,8 @@ internal object LifecycleRegistry {
     private val activityLifecycleDispatcher = ActivityLifecycleDispatcher()
     private val fragmentLifecycleDispatcher = FragmentLifecycleDispatcher()
 
+    private val composeLifecycleDispatcher = ComposeLifecycleDispatcher()
+
     init {
         activityLifecycleDispatcher.addObserver(object : ActivityLifecycleObserver {
             override fun onCreated(activity: Activity, savedInstanceState: Bundle?) {
@@ -104,4 +106,19 @@ internal object LifecycleRegistry {
         fragmentLifecycleDispatcher.removeObserver(observer)
     }
 
+    fun addComposeObserver(observer: ComposeLifecycleObserver) {
+        composeLifecycleDispatcher.addObserver(observer)
+    }
+
+    fun removeComposeObserver(observer: ComposeLifecycleObserver) {
+        composeLifecycleDispatcher.removeObserver(observer)
+    }
+
+    fun onEnterComposition(name: String) {
+        composeLifecycleDispatcher.onEnterComposition(name)
+    }
+
+    fun onLeaveComposition(name: String) {
+        composeLifecycleDispatcher.onLeaveComposition(name)
+    }
 }
