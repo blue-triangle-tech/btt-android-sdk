@@ -2,10 +2,10 @@ package com.bluetriangle.analytics.anrwatchdog
 
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Tracker
-import com.bluetriangle.analytics.eventhub.SDKEventConsumer
-import com.bluetriangle.analytics.eventhub.SDKEventHub
+import com.bluetriangle.analytics.eventhub.sdkeventhub.SDKEventHub
+import com.bluetriangle.analytics.eventhub.sdkeventhub.TimerEventConsumer
 
-internal class ANRRecordsHolder: SDKEventConsumer {
+internal class ANRRecordsHolder: TimerEventConsumer {
 
     init {
         SDKEventHub.instance.addConsumer(this)
@@ -41,7 +41,6 @@ internal class ANRRecordsHolder: SDKEventConsumer {
      * called by SDKEventHub when any Timer is submitted
      */
     override fun onTimerSubmitted(timer: Timer) {
-        super.onTimerSubmitted(timer)
         submitANRs(timer)
     }
 

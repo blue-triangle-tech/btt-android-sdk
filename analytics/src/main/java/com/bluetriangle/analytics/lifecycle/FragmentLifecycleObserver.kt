@@ -10,7 +10,6 @@ internal interface FragmentLifecycleObserver {
     fun onAttached(fragment: Fragment, context: Context) {}
     fun onPreCreated(fragment: Fragment, savedInstanceState: Bundle?) {}
     fun onCreated(fragment: Fragment, savedInstanceState: Bundle?) {}
-    fun onActivityCreated(fragment: Fragment, savedInstanceState: Bundle?) {}
     fun onViewCreated(fragment: Fragment, v: View, savedInstanceState: Bundle?) {}
     fun onStarted(fragment: Fragment) {}
     fun onResumed(fragment: Fragment) {}

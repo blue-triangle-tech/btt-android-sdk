@@ -2,10 +2,11 @@ package com.bluetriangle.analytics.performancemonitor.monitors
 
 import com.bluetriangle.analytics.Timer
 import com.bluetriangle.analytics.Tracker
-import com.bluetriangle.analytics.eventhub.SDKEventConsumer
-import com.bluetriangle.analytics.eventhub.SDKEventHub
+import com.bluetriangle.analytics.eventhub.sdkeventhub.SDKEventConsumer
+import com.bluetriangle.analytics.eventhub.sdkeventhub.SDKEventHub
+import com.bluetriangle.analytics.eventhub.sdkeventhub.TimerEventConsumer
 
-class MemoryWarningHolder: SDKEventConsumer {
+class MemoryWarningHolder: TimerEventConsumer {
 
     init {
         SDKEventHub.instance.addConsumer(this)
@@ -35,7 +36,6 @@ class MemoryWarningHolder: SDKEventConsumer {
     }
 
     override fun onTimerSubmitted(timer: Timer) {
-        super.onTimerSubmitted(timer)
         submitMemoryWarnings(timer)
     }
 

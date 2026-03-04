@@ -27,12 +27,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bluetriangle.analytics.compose.BttTimerEffect
 import com.bluetriangle.android.demo.compose.ui.theme.BttandroidsdkTheme
 import com.bluetriangle.android.demo.groupingpoc.QuoteRequestHelper
 import com.bluetriangle.android.demo.groupingpoc.QuoteRequestHelper.Quote
+import com.bluetriangle.analytics.breadcrumbs.touchresolver.bttTrack
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -92,7 +92,7 @@ fun TabContent(modifier: Modifier = Modifier, tabName: String) {
     var quote by rememberSaveable { mutableStateOf<Quote?>(null) }
     val coroutineScope = rememberCoroutineScope()
     Column(modifier.padding(24.dp)) {
-        Button(onClick = {
+        Button(modifier = Modifier.bttTrack("QuoteButton"), onClick = {
             coroutineScope.launch(Dispatchers.IO) {
                 quote = QuoteRequestHelper.instance.getQuote()
             }

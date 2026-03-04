@@ -3,32 +3,35 @@ package com.bluetriangle.analytics.breadcrumbs
 import android.app.Activity
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
-import kotlin.math.roundToInt
+import com.bluetriangle.analytics.breadcrumbs.touchresolver.TapTarget
+import com.bluetriangle.analytics.breadcrumbs.touchresolver.TapTargetResolver
 
 internal class InteractionGestureListener(
     val activity: Activity,
+    val userEvent: (UserEventType, TapTarget) -> Unit,
 ) : SimpleOnGestureListener() {
-    override fun onSingleTapUp(event: MotionEvent): Boolean {
-        val x = event.x.roundToInt()
-        val y = event.y.roundToInt()
-        recordTouchEvent(UserEventType.TAP, activity, x, y)
-        return super.onSingleTapUp(event)
+    override fun onSingleTapConfirmed(e: MotionEvent?): Boolean {
+        if(e == null) return super.onSingleTapConfirmed(e)
+
+        TapTargetResolver.resolve(activity, e.rawX, e.rawY)?.let {
+            userEvent(UserEventType.TAP, it)
+        }
+
+        return super.onSingleTapConfirmed(e)
     }
 
     override fun onDoubleTap(e: MotionEvent?): Boolean {
         if(e == null) return super.onDoubleTap(e)
-        val x = e.x.roundToInt()
-        val y = e.y.roundToInt()
-        recordTouchEvent(UserEventType.DOUBLE_TAP, activity, x, y)
+
+        TapTargetResolver.resolve(activity, e.rawX, e.rawY)?.let {
+            userEvent(UserEventType.DOUBLE_TAP, it)
+        }
         return super.onDoubleTap(e)
     }
 
-    override fun onScroll(
-        e1: MotionEvent?,
-        e2: MotionEvent?,
-        distanceX: Float,
-        distanceY: Float
-    ): Boolean {
-        return super.onScroll(e1, e2, distanceX, distanceY)
-    }
+}
+
+enum class UserEventType(val value: String) {
+    TAP("tap"),
+    DOUBLE_TAP("double tap")
 }

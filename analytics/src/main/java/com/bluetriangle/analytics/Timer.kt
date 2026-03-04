@@ -3,7 +3,7 @@ package com.bluetriangle.analytics
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
-import com.bluetriangle.analytics.eventhub.SDKEventHub
+import com.bluetriangle.analytics.eventhub.sdkeventhub.SDKEventHub
 import com.bluetriangle.analytics.model.NativeAppProperties
 import com.bluetriangle.analytics.performancemonitor.PerformanceSpan
 import com.bluetriangle.analytics.utility.getNumberOfCPUCores

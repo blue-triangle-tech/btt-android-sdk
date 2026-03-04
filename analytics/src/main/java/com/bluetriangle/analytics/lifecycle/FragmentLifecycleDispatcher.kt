@@ -18,59 +18,55 @@ internal class FragmentLifecycleDispatcher : FragmentManager.FragmentLifecycleCa
         observers -= observer
     }
 
-    fun onFragmentPreAttached(fragment: Fragment, context: Context) {
+    override fun onFragmentPreAttached(fm: FragmentManager, fragment: Fragment, context: Context) {
         observers.forEach { it.onPreAttached(fragment, context) }
     }
 
-    fun onFragmentAttached(fragment: Fragment, context: Context) {
+    override fun onFragmentAttached(fm: FragmentManager, fragment: Fragment, context: Context) {
         observers.forEach { it.onAttached(fragment, context) }
     }
 
-    fun onFragmentPreCreated(fragment: Fragment, savedInstanceState: Bundle?) {
+    override fun onFragmentPreCreated(fm: FragmentManager, fragment: Fragment, savedInstanceState: Bundle?) {
         observers.forEach { it.onPreCreated(fragment, savedInstanceState) }
     }
 
-    fun onFragmentCreated(fragment: Fragment, savedInstanceState: Bundle?) {
+    override fun onFragmentCreated(fm: FragmentManager, fragment: Fragment, savedInstanceState: Bundle?) {
         observers.forEach { it.onCreated(fragment, savedInstanceState) }
     }
 
-    fun onFragmentActivityCreated(fragment: Fragment, savedInstanceState: Bundle?) {
-        observers.forEach { it.onActivityCreated(fragment, savedInstanceState) }
-    }
-
-    fun onFragmentViewCreated(fragment: Fragment, v: View, savedInstanceState: Bundle?) {
+    override fun onFragmentViewCreated(fm: FragmentManager, fragment: Fragment, v: View, savedInstanceState: Bundle?) {
         observers.forEach { it.onViewCreated(fragment, v, savedInstanceState) }
     }
 
-    fun onFragmentStarted(fragment: Fragment) {
+    override fun onFragmentStarted(fm: FragmentManager, fragment: Fragment) {
         observers.forEach { it.onStarted(fragment) }
     }
 
-    fun onFragmentResumed(fragment: Fragment) {
+    override fun onFragmentResumed(fm: FragmentManager, fragment: Fragment) {
         observers.forEach { it.onResumed(fragment) }
     }
 
-    fun onFragmentPaused(fragment: Fragment) {
+    override fun onFragmentPaused(fm: FragmentManager, fragment: Fragment) {
         observers.forEach { it.onPaused(fragment) }
     }
 
-    fun onFragmentStopped(fragment: Fragment) {
+    override fun onFragmentStopped(fm: FragmentManager, fragment: Fragment) {
         observers.forEach { it.onStopped(fragment) }
     }
 
-    fun onFragmentSaveInstanceState(fragment: Fragment, outState: Bundle) {
+    override fun onFragmentSaveInstanceState(fm: FragmentManager, fragment: Fragment, outState: Bundle) {
         observers.forEach { it.onSaveInstanceState(fragment, outState) }
     }
 
-    fun onFragmentViewDestroyed(fragment: Fragment) {
+    override fun onFragmentViewDestroyed(fm: FragmentManager, fragment: Fragment) {
         observers.forEach { it.onViewDestroyed(fragment) }
     }
 
-    fun onFragmentDestroyed(fragment: Fragment) {
+    override fun onFragmentDestroyed(fm: FragmentManager, fragment: Fragment) {
         observers.forEach { it.onDestroyed(fragment) }
     }
 
-    fun onFragmentDetached(fragment: Fragment) {
+    override fun onFragmentDetached(fm: FragmentManager, fragment: Fragment) {
         observers.forEach { it.onDetached(fragment) }
     }
 

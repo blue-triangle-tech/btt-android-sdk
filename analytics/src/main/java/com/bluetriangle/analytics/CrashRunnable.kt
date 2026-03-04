@@ -1,5 +1,6 @@
 package com.bluetriangle.analytics
 
+import android.util.Log
 import androidx.core.net.toUri
 import com.bluetriangle.analytics.Constants.TIMER_MIN_PGTM
 import com.bluetriangle.analytics.Timer.Companion.FIELD_NATIVE_APP
@@ -222,7 +223,8 @@ internal class CrashRunnable(
             }
         }
         nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
-
+        val breadcrumbs = Tracker.instance?.breadcrumbsManager?.snapshot()
+        nativeAppProperties.breadcrumbs = breadcrumbs?.toString()
         crashReport[FIELD_NATIVE_APP] = nativeAppProperties.toMap()
 
         val crashDataArray = JSONArray(listOf(JSONObject(crashReport.toMap())))

@@ -8,19 +8,20 @@ package com.bluetriangle.analytics
 import android.Manifest.permission.ACCESS_NETWORK_STATE
 import android.app.Application
 import android.content.Context
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import android.text.TextUtils
 import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
+import com.bluetriangle.analytics.Constants.APP_VERSION
 import com.bluetriangle.analytics.Constants.MAX_FIELD_CHAR_LENGTH
 import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
 import com.bluetriangle.analytics.anrwatchdog.ANRReporter
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
-import com.bluetriangle.analytics.breadcrumbs.BreadcrumbsCollector
-import com.bluetriangle.analytics.breadcrumbs.UserEvent
-import com.bluetriangle.analytics.breadcrumbs.UserEventsCollection
+import com.bluetriangle.analytics.breadcrumbs.BreadcrumbsManager
+import com.bluetriangle.analytics.breadcrumbs.config.BreadcrumbsConfig
 import com.bluetriangle.analytics.checkout.config.CheckoutConfig
 import com.bluetriangle.analytics.checkout.event.CheckoutEvent
 import com.bluetriangle.analytics.checkout.event.CheckoutEventReporter
@@ -35,11 +36,13 @@ import com.bluetriangle.analytics.dynamicconfig.updater.BTTConfigurationUpdater
 import com.bluetriangle.analytics.dynamicconfig.updater.IBTTConfigurationUpdater
 import com.bluetriangle.analytics.event.BTTEvent
 import com.bluetriangle.analytics.eventhub.AppEventHub
+import com.bluetriangle.analytics.eventhub.sdkeventhub.SDKEventHub
 import com.bluetriangle.analytics.globalproperties.CustomCategory
 import com.bluetriangle.analytics.globalproperties.GlobalPropertiesStore
 import com.bluetriangle.analytics.hybrid.BTTWebViewTracker
 import com.bluetriangle.analytics.launchtime.LaunchMonitor
 import com.bluetriangle.analytics.launchtime.LaunchReporter
+import com.bluetriangle.analytics.lifecycle.LifecycleRegistry
 import com.bluetriangle.analytics.networkcapture.CapturedRequest
 import com.bluetriangle.analytics.networkcapture.CapturedRequestCollection
 import com.bluetriangle.analytics.networkstate.NetworkStateMonitor
@@ -139,7 +142,13 @@ class Tracker private constructor(
 
     internal var checkoutEventReporter: CheckoutEventReporter? = null
 
-    internal var breadcrumbsCollector: BreadcrumbsCollector? = null
+    internal var breadcrumbsManager: BreadcrumbsManager? = null
+
+    private val sharedPreferences: SharedPreferences?
+        get() {
+            val context = context.get() ?: return null
+            return context.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
+        }
 
     init {
         this.context = WeakReference(application.applicationContext)
@@ -217,7 +226,29 @@ class Tracker private constructor(
             enableLaunchMonitor()
         }
         initializeNetworkStateTracking()
+
+        (context.get()?.applicationContext as? Application)?.let {
+            LifecycleRegistry.install(it)
+        }
+        breadcrumbsManager = BreadcrumbsManager(BreadcrumbsConfig.DEFAULT)
+        breadcrumbsManager?.install()
+
+        checkAppVersion()
         configuration.logger?.debug("SDK is enabled")
+    }
+
+    private fun checkAppVersion() {
+        sharedPreferences?.let {
+            val lastAppVersion = it.getString(APP_VERSION, null)
+            if(lastAppVersion == null) {
+                SDKEventHub.instance.onAppInstall(appVersion)
+            } else if(lastAppVersion != appVersion) {
+                SDKEventHub.instance.onAppUpdate(lastAppVersion, appVersion)
+            }
+            it.edit {
+                putString(APP_VERSION, appVersion)
+            }
+        }
     }
 
     @Synchronized
@@ -234,6 +265,9 @@ class Tracker private constructor(
         stopTrackCrashes()
         deInitializeNetworkStateTracking()
         disableLaunchMonitor()
+        LifecycleRegistry.uninstall()
+        breadcrumbsManager?.uninstall()
+        breadcrumbsManager = null
         configuration.logger?.debug("SDK is disabled.")
     }
 
@@ -402,15 +436,14 @@ class Tracker private constructor(
     private val globalUserId: String
         get() {
             var globalUserId: String? = null
-            val context = context.get() ?: return Utils.generateRandomId()
-            val sharedPreferences =
-                context.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
-            if (sharedPreferences.contains(Timer.FIELD_GLOBAL_USER_ID)) {
-                globalUserId = sharedPreferences.getString(Timer.FIELD_GLOBAL_USER_ID, null)
+            val prefs = sharedPreferences ?: return Utils.generateRandomId()
+
+            if (prefs.contains(Timer.FIELD_GLOBAL_USER_ID)) {
+                globalUserId = prefs.getString(Timer.FIELD_GLOBAL_USER_ID, null)
             }
             if (globalUserId.isNullOrBlank()) {
                 globalUserId = Utils.generateRandomId()
-                sharedPreferences.edit { putString(Timer.FIELD_GLOBAL_USER_ID, globalUserId) }
+                prefs.edit { putString(Timer.FIELD_GLOBAL_USER_ID, globalUserId) }
             }
             return globalUserId
         }
@@ -496,6 +529,7 @@ class Tracker private constructor(
     fun submitCapturedRequest(capturedRequest: CapturedRequest?) {
         if (capturedRequest == null) return
 
+        SDKEventHub.instance.onNetworkRequestCaptured(capturedRequest)
         checkoutEventReporter?.onCheckoutEvent(CheckoutEvent.NetworkEvent(capturedRequest.url, capturedRequest.responseStatusCode))
 
         if (configuration.shouldSampleNetwork) {
@@ -519,32 +553,6 @@ class Tracker private constructor(
                     )
                     capturedRequests[timer.start] = capturedRequestCollection
                 }
-            }
-        }
-    }
-
-    private val userEvents = ConcurrentHashMap<Long, UserEventsCollection>()
-
-    @Synchronized
-    internal fun submitUserEvent(userEvent: UserEvent) {
-        getMostRecentTimer()?.let { timer ->
-            configuration.logger?.debug("User Event Captured: $userEvent for $timer")
-            userEvent.setNavigationStart(timer.start)
-            if (userEvents.containsKey(timer.start)) {
-                userEvents[timer.start]?.add(userEvent)
-            } else {
-                val userEventsCollection = UserEventsCollection(
-                    configuration.siteId.toString(),
-                    timer.start.toString(),
-                    getTimerValue(Timer.FIELD_PAGE_NAME, timer),
-                    getTimerValue(Timer.FIELD_CONTENT_GROUP_NAME, timer),
-                    getTimerValue(Timer.FIELD_TRAFFIC_SEGMENT_NAME, timer),
-                    configuration.sessionId.toString(),
-                    globalFields[Timer.FIELD_BROWSER_VERSION]!!,
-                    globalFields[Timer.FIELD_DEVICE]!!,
-                    userEvent
-                )
-                userEvents[timer.start] = userEventsCollection
             }
         }
     }

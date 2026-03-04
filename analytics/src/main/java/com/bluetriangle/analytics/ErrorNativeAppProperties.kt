@@ -10,7 +10,8 @@ import com.bluetriangle.analytics.networkcapture.CapturedRequest.Companion.FIELD
 data class ErrorNativeAppProperties(
     var netState: String? = null,
     private var deviceModel: String? = null,
-    var netStateSource: String? = null
+    var netStateSource: String? = null,
+    var breadcrumbs: String? = null
 ) {
 
     val appVersion: String? = Tracker.instance?.appVersion
@@ -29,6 +30,9 @@ data class ErrorNativeAppProperties(
         appVersion?.let {
             this[SDK_VERSION] = sdkVersion
             this[APP_VERSION] = appVersion
+        }
+        breadcrumbs?.let {
+            this["breadcrumbs"] = breadcrumbs
         }
     }
 }
