@@ -32,7 +32,7 @@ import com.bluetriangle.analytics.compose.BttTimerEffect
 import com.bluetriangle.android.demo.compose.ui.theme.BttandroidsdkTheme
 import com.bluetriangle.android.demo.groupingpoc.QuoteRequestHelper
 import com.bluetriangle.android.demo.groupingpoc.QuoteRequestHelper.Quote
-import com.bluetriangle.analytics.breadcrumbs.touchresolver.bttTrack
+import com.bluetriangle.analytics.breadcrumbs.touchresolver.bttTrackAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -92,7 +92,7 @@ fun TabContent(modifier: Modifier = Modifier, tabName: String) {
     var quote by rememberSaveable { mutableStateOf<Quote?>(null) }
     val coroutineScope = rememberCoroutineScope()
     Column(modifier.padding(24.dp)) {
-        Button(modifier = Modifier.bttTrack("QuoteButton"), onClick = {
+        Button(modifier = Modifier.bttTrackAction("QuoteButton"), onClick = {
             coroutineScope.launch(Dispatchers.IO) {
                 quote = QuoteRequestHelper.instance.getQuote()
             }

@@ -2,14 +2,38 @@ package com.bluetriangle.analytics.breadcrumbs.instrumentation
 
 import android.app.Activity
 import android.app.Application
-import com.bluetriangle.analytics.Tracker
+import android.content.res.Configuration
 import com.bluetriangle.analytics.breadcrumbs.BreadcrumbEvent
 import com.bluetriangle.analytics.breadcrumbs.BreadcrumbsCollector
 import com.bluetriangle.analytics.eventhub.AppEventConsumer
 import com.bluetriangle.analytics.eventhub.AppEventHub
+import com.bluetriangle.analytics.utility.getConfigurationChanges
 
 internal class AppLifecycleInstrumentation(breadcrumbsCollector: BreadcrumbsCollector) : AppEventConsumer,
     BreadcrumbInstrumentation(breadcrumbsCollector) {
+
+    private var currentConfiguration: Configuration? = null
+
+    override fun onAppCreated(application: Application) {
+        addBreadcrumb("Application.onCreate")
+    }
+
+    override fun onLowMemory() {
+        addBreadcrumb("Application.onLowMemory")
+    }
+
+    override fun onTrimMemory(level: String) {
+        addBreadcrumb("Application.onTrimMemory(${level})")
+    }
+
+    override fun onConfigurationChanged(configuration: Configuration) {
+        currentConfiguration?.let {
+            getConfigurationChanges(it, configuration).forEach { change ->
+                addBreadcrumb(change.toString())
+            }
+        }
+        currentConfiguration = Configuration(configuration)
+    }
 
     override fun onActivityResumed(activity: Activity) {
         super.onActivityResumed(activity)

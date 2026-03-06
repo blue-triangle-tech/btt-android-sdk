@@ -38,14 +38,9 @@ object BttComposeRegistry {
     fun clear() = nodes.clear()
 }
 
-fun Modifier.bttTrack(
+fun Modifier.bttTrackAction(
     name: String
-): Modifier = composed(
-    inspectorInfo = debugInspectorInfo {
-        this.name = "bttTrack"
-        properties["name"] = name
-    }
-) {
+): Modifier = composed {
     val registryKey = remember(name) { name }
 
     DisposableEffect(registryKey) {
