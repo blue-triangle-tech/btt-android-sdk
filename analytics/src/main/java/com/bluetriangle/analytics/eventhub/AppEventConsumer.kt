@@ -7,7 +7,7 @@ import android.os.Bundle
 
 internal interface AppEventConsumer {
 
-    fun onAppCreated(application: Application) {
+    fun onAppCreated(application: Application, timestamp: Long) {
 
     }
 

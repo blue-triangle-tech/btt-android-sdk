@@ -9,12 +9,12 @@ import com.bluetriangle.analytics.Constants
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_ANR_TRACKING
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_CRASH_TRACKING
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_GROUPING
+import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_GROUPING_TAP_DETECTION
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_LAUNCH_TIME
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_MEMORY_WARNING
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_NETWORK_STATE_TRACKING
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_WEB_VIEW_STITCHING
-import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_GROUPING_TAP_DETECTION
-import com.bluetriangle.analytics.checkout.config.CheckoutConfig
+import com.bluetriangle.analytics.breadcrumbs.config.BreadcrumbsConfigMapper
 import com.bluetriangle.analytics.checkout.config.CheckoutConfigMapper
 import com.bluetriangle.analytics.utility.getBooleanOrNull
 import com.bluetriangle.analytics.utility.getDoubleOrNull
@@ -67,6 +67,7 @@ internal object BTTSavedRemoteConfigurationMapper {
             jsonObject.getBooleanOrNull(ENABLE_LAUNCH_TIME) ?: DEFAULT_ENABLE_LAUNCH_TIME,
             jsonObject.getBooleanOrNull(ENABLE_WEB_VIEW_STITCHING) ?: DEFAULT_ENABLE_WEB_VIEW_STITCHING,
             CheckoutConfigMapper.loadFromJsonObject(jsonObject),
+            BreadcrumbsConfigMapper.loadFromJsonObject(jsonObject),
             jsonObject.getLong(SAVED_DATE)
         )
     }
@@ -91,6 +92,7 @@ internal object BTTSavedRemoteConfigurationMapper {
         put(ENABLE_LAUNCH_TIME, config.enableLaunchTime)
         put(ENABLE_WEB_VIEW_STITCHING, config.enableWebViewStitching)
         CheckoutConfigMapper.loadIntoJsonObject(this, config.checkoutConfig)
+        BreadcrumbsConfigMapper.loadIntoJsonObject(this, config.breadcrumbsConfig)
         put(SAVED_DATE, config.savedDate)
     }
 

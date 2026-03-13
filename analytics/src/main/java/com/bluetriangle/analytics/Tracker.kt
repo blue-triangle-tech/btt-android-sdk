@@ -230,8 +230,10 @@ class Tracker private constructor(
         (context.get()?.applicationContext as? Application)?.let {
             LifecycleRegistry.install(it)
         }
-        breadcrumbsManager = BreadcrumbsManager(BreadcrumbsConfig.DEFAULT)
-        breadcrumbsManager?.install()
+        if(sessionData.breadcrumbsConfig.isEnabled) {
+            breadcrumbsManager = BreadcrumbsManager(sessionData.breadcrumbsConfig)
+            breadcrumbsManager?.install()
+        }
 
         checkAppVersion()
         configuration.logger?.debug("SDK is enabled")
@@ -1142,7 +1144,8 @@ class Tracker private constructor(
                 timeStamp,
                 errorType,
                 mostRecentTimer,
-                deviceInfoProvider = deviceInfoProvider
+                deviceInfoProvider = deviceInfoProvider,
+                breadcrumbs = breadcrumbsManager?.snapshot()
             )
         )
     }
@@ -1262,7 +1265,8 @@ class Tracker private constructor(
                 enableMemoryWarning = configuration.isMemoryWarningEnabled,
                 enableLaunchTime = configuration.isLaunchTimeEnabled,
                 enableWebViewStitching = configuration.isWebViewStitchingEnabled,
-                checkoutConfig = CheckoutConfig.DEFAULT
+                checkoutConfig = CheckoutConfig.DEFAULT,
+                breadcrumbsConfig = BreadcrumbsConfig.DEFAULT
             )
 
             initializeConfigurationUpdater(application, configuration, defaultConfig)

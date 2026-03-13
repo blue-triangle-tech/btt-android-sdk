@@ -24,7 +24,14 @@ internal class UserEventInstrumentation(breadcrumbsCollector: BreadcrumbsCollect
                 activity,
                 activity.window.callback
             ) { eventType, userEvent ->
-                addBreadcrumb(eventType.value, userEvent.targetClassName?:"", userEvent.targetIdentifier?:"unknown")
+                userEvent?.let {
+                    addBreadcrumb(eventType.value,
+                        userEvent.targetClassName,
+                        userEvent.targetIdentifier,
+                        userEvent.x,
+                        userEvent.y
+                    )
+                }
             }
         }
 
@@ -45,10 +52,12 @@ internal class UserEventInstrumentation(breadcrumbsCollector: BreadcrumbsCollect
 
     private fun addBreadcrumb(
         action: String,
-        targetClass: String,
-        targetId: String
+        targetClass: String?,
+        targetId: String?,
+        x: Float,
+        y: Float
     ) = collector.get()?.add(
-        BreadcrumbEvent.UserEvent(BreadcrumbEvent.UserEvent.UserEventData(action, targetClass, targetId))
+        BreadcrumbEvent.UserEvent(BreadcrumbEvent.UserEvent.UserEventData(action, targetClass, targetId, x, y))
     )
 
 

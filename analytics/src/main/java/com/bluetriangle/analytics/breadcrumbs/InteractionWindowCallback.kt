@@ -18,7 +18,7 @@ import com.bluetriangle.analytics.breadcrumbs.touchresolver.TapTarget
 internal class InteractionWindowCallback(
     val activity: Activity,
     val wrapped: Window.Callback,
-    val userEvent: (UserEventType, TapTarget) -> Unit
+    userEvent: (UserEventType, TapTarget?) -> Unit
 ) : Window.Callback {
     val gestureDetector = GestureDetector(activity, InteractionGestureListener(activity, userEvent))
 

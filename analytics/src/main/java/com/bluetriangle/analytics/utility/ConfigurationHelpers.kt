@@ -107,7 +107,7 @@ private fun Configuration.getPrimaryLocale(): String {
     }
 }
 
-private fun Configuration.orientationToString(): String =
+fun Configuration.orientationToString(): String =
     when (orientation) {
         Configuration.ORIENTATION_PORTRAIT -> "portrait"
         Configuration.ORIENTATION_LANDSCAPE -> "landscape"

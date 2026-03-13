@@ -1,14 +1,14 @@
 package com.bluetriangle.analytics.breadcrumbs.touchresolver
 
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.remember
+import android.annotation.SuppressLint
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInWindow
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.debugInspectorInfo
+import androidx.compose.ui.node.GlobalPositionAwareModifierNode
+import androidx.compose.ui.node.ModifierNodeElement
+import androidx.compose.ui.platform.InspectorInfo
 import java.util.concurrent.ConcurrentHashMap
 
 data class TrackedComposableNode(
@@ -38,26 +38,48 @@ object BttComposeRegistry {
     fun clear() = nodes.clear()
 }
 
-fun Modifier.bttTrackAction(
-    name: String
-): Modifier = composed {
-    val registryKey = remember(name) { name }
+fun Modifier.getTrackedName(): String? {
+    return (this as? BttTrackActionElement)?.name
+}
 
-    DisposableEffect(registryKey) {
-        onDispose { BttComposeRegistry.unregister(registryKey) }
+private data class BttTrackActionElement @SuppressLint("ModifierFactoryReturnType") constructor(
+    val name: String
+) : ModifierNodeElement<BttTrackActionNode>() {
+
+    override fun create() = BttTrackActionNode(name)
+
+    override fun update(node: BttTrackActionNode) {
+        node.name = name
     }
 
-    onGloballyPositioned { coords ->
-        val bounds = coords.boundsInWindow()
+    override fun InspectorInfo.inspectableProperties() {
+        name = "bttTrackAction"
+        properties["name"] = this@BttTrackActionElement.name
+    }
+}
 
-        if (bounds.width > 0f && bounds.height > 0f) {
+private class BttTrackActionNode(
+    var name: String
+) : Modifier.Node(), GlobalPositionAwareModifierNode {
+
+    override fun onGloballyPositioned(coordinates: LayoutCoordinates) {
+        val bounds = coordinates.boundsInWindow()
+
+        if (bounds.width > 0 && bounds.height > 0) {
             BttComposeRegistry.register(
-                key = registryKey,
+                key = name,
                 node = TrackedComposableNode(
                     name = name,
-                    boundsInWindow = bounds,
+                    boundsInWindow = bounds
                 )
             )
         }
     }
+
+    override fun onDetach() {
+        BttComposeRegistry.unregister(name)
+    }
 }
+
+fun Modifier.bttTrackAction(name: String): Modifier =
+    this.then(BttTrackActionElement(name))

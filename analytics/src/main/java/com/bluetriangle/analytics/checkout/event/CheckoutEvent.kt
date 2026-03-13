@@ -5,7 +5,7 @@ import com.bluetriangle.analytics.utility.logD
 import com.bluetriangle.analytics.utility.logV
 import com.bluetriangle.analytics.utility.onFalse
 
-sealed class CheckoutEvent {
+internal sealed class CheckoutEvent {
 
     class ClassEvent(val className: String): CheckoutEvent() {
         override fun toString(): String {

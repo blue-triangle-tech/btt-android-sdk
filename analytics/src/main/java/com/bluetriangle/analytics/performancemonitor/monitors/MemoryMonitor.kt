@@ -1,13 +1,10 @@
 package com.bluetriangle.analytics.performancemonitor.monitors
 
 import com.bluetriangle.analytics.BlueTriangleConfiguration
-import com.bluetriangle.analytics.CrashRunnable
 import com.bluetriangle.analytics.Timer
-import com.bluetriangle.analytics.Timer.Companion.FIELD_PAGE_NAME
 import com.bluetriangle.analytics.Tracker
-import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 import com.bluetriangle.analytics.performancemonitor.DataPoint
-import kotlinx.coroutines.GlobalScope
+import org.json.JSONArray
 
 internal class MemoryMonitor(
     val configuration: BlueTriangleConfiguration
@@ -26,7 +23,7 @@ internal class MemoryMonitor(
     class MemoryWarningException(val usedMemory: Long, val totalMemory: Long) :
         RuntimeException("Critical memory usage detected. App using more than 80% of App\'s limit ${totalMemory}MB") {
         var count: Int = 1
-
+        var breadcrumbs: JSONArray? = null
         val timestamp: Long = System.currentTimeMillis()
     }
 
@@ -42,6 +39,7 @@ internal class MemoryMonitor(
     ) {
         configuration.logger?.debug("Memory Warning received ${memoryWarningException.count} times: Used: ${memoryWarningException.usedMemory}MB, Total: ${memoryWarningException.totalMemory}MB")
 
+        memoryWarningException.breadcrumbs = Tracker.instance?.breadcrumbsManager?.snapshot()
         if(timer == null) {
             Tracker.instance?.memoryWarningReporter?.reportMemoryWarning(null, memoryWarningException)
         } else {

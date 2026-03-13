@@ -16,6 +16,8 @@ import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_NETWORK_STATE_TRACKIN
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_WEB_VIEW_STITCHING
 import com.bluetriangle.analytics.Constants.DEFAULT_NETWORK_SAMPLE_RATE
 import com.bluetriangle.analytics.Tracker
+import com.bluetriangle.analytics.breadcrumbs.config.BreadcrumbsConfig
+import com.bluetriangle.analytics.breadcrumbs.config.BreadcrumbsConfigMapper
 import com.bluetriangle.analytics.checkout.config.CheckoutConfig
 import com.bluetriangle.analytics.checkout.config.CheckoutConfigMapper
 import com.bluetriangle.analytics.utility.getBooleanOrNull
@@ -43,6 +45,7 @@ internal data class SessionData(
     val enableLaunchTime: Boolean,
     val enableWebViewStitching: Boolean,
     val checkoutConfig: CheckoutConfig,
+    val breadcrumbsConfig: BreadcrumbsConfig,
     val expiration: Long
 ) {
     companion object {
@@ -88,6 +91,7 @@ internal data class SessionData(
                     enableLaunchTime = getBooleanOrNull(ENABLE_LAUNCH_TIME) ?: DEFAULT_ENABLE_LAUNCH_TIME,
                     enableWebViewStitching = getBooleanOrNull(ENABLE_WEB_VIEW_STITCHING) ?: DEFAULT_ENABLE_WEB_VIEW_STITCHING,
                     checkoutConfig = CheckoutConfigMapper.loadFromJsonObject(this),
+                    breadcrumbsConfig = BreadcrumbsConfigMapper.loadFromJsonObject(this),
                     expiration = getLong(EXPIRATION)
                 )
             } catch (e: Exception) {
@@ -113,6 +117,7 @@ internal data class SessionData(
             put(ENABLE_LAUNCH_TIME, enableLaunchTime)
             put(ENABLE_WEB_VIEW_STITCHING, enableWebViewStitching)
             CheckoutConfigMapper.loadIntoJsonObject(this, checkoutConfig)
+            BreadcrumbsConfigMapper.loadIntoJsonObject(this, breadcrumbsConfig)
             put(EXPIRATION, expiration)
         }
     }

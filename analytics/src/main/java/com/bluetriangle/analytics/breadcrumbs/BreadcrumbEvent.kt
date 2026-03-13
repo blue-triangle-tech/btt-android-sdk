@@ -43,8 +43,21 @@ internal sealed class BreadcrumbEvent(
         }
     }
 
-    class AppLifecycle(data: AppLifecycleData) :
-        BreadcrumbEvent("app.lifecycle", System.currentTimeMillis(), data) {
+    class SystemEvent(data: SystemEventData) :
+        BreadcrumbEvent("system.event", System.currentTimeMillis(), data) {
+        data class SystemEventData(
+            val eventType: String,
+            val event: String
+        ) : Data {
+            override fun writeTo(jsonObject: JSONObject) {
+                jsonObject.put("eventType", eventType)
+                jsonObject.put("event", event)
+            }
+        }
+    }
+
+    class AppLifecycle(data: AppLifecycleData, timestamp: Long = System.currentTimeMillis()) :
+        BreadcrumbEvent("app.lifecycle", timestamp, data) {
         data class AppLifecycleData(
             val event: String
         ) : Data {
@@ -82,24 +95,21 @@ internal sealed class BreadcrumbEvent(
         BreadcrumbEvent("user.event", System.currentTimeMillis(), data) {
         data class UserEventData(
             val action: String,
-            val targetClass: String,
-            val targetId: String
+            val targetClass: String?,
+            val targetId: String?,
+            val x: Float,
+            val y: Float
         ) : Data {
             override fun writeTo(jsonObject: JSONObject) {
                 jsonObject.put("action", action)
-                jsonObject.put("targetClass", targetClass)
-                jsonObject.put("targetId", targetId)
-            }
-        }
-    }
-
-    class AppLaunch(data: AppLaunchData) :
-        BreadcrumbEvent("app.launch", System.currentTimeMillis(), data) {
-        data class AppLaunchData(
-            val launchType: String
-        ) : Data {
-            override fun writeTo(jsonObject: JSONObject) {
-                jsonObject.put("launchType", launchType)
+                targetClass?.let {
+                    jsonObject.put("targetClass", targetClass)
+                }
+                targetId?.let {
+                    jsonObject.put("targetId", targetId)
+                }
+                jsonObject.put("x", x.toString())
+                jsonObject.put("y", y.toString())
             }
         }
     }

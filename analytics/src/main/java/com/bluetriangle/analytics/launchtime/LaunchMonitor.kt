@@ -75,7 +75,7 @@ internal class LaunchMonitor private constructor(): AppEventConsumer, LaunchEven
 
     private fun getAppUpTime() = SystemClock.uptimeMillis() - (if(Build.VERSION.SDK_INT >= 24) Process.getStartUptimeMillis() else 0)
 
-    override fun onAppCreated(application:Application) {
+    override fun onAppCreated(application:Application, timestamp: Long) {
         log(LogData(level = Log.VERBOSE, message = "${getPrefix()} onAppCreated"))
         appEventAccumulator.accumulate(AppLifecycleEvent.AppLifecycleCreated())
     }

@@ -29,9 +29,17 @@ internal class AppEventHub private constructor(): ComponentCallbacks2 {
     fun addConsumer(consumer: AppEventConsumer) {
         synchronized(consumers) {
             if(consumers.find { it.get() == consumer } == null) {
+                notifyAppCreated(consumer)
                 consumers.add(WeakReference(consumer))
             }
         }
+    }
+
+    fun notifyAppCreated(consumer: AppEventConsumer) {
+        val app = application?.get() ?: return
+        val timestamp = appCreatedTimestamp?: return
+
+        consumer.onAppCreated(app, timestamp)
     }
 
     fun removeConsumer(consumer: AppEventConsumer) {
@@ -52,13 +60,17 @@ internal class AppEventHub private constructor(): ComponentCallbacks2 {
         }
     }
 
-    fun onAppCreated(application: Application) {
+    private var appCreatedTimestamp: Long? = null
+    private var application: WeakReference<Application>? = null
+
+    fun onAppCreated(application: Application, timestamp: Long) {
         ProcessLifecycleOwner.get().lifecycle.addObserver(AppBackgroundNotifier(application))
         application.registerComponentCallbacks(this)
         application.registerActivityLifecycleCallbacks(activityEventHandler)
-
+        appCreatedTimestamp = timestamp
+        this.application = WeakReference(application)
         notifyConsumers {
-            it.onAppCreated(application)
+            it.onAppCreated(application, timestamp)
         }
     }
 

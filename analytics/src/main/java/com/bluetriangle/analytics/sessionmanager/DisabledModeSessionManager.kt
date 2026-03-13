@@ -3,6 +3,7 @@ package com.bluetriangle.analytics.sessionmanager
 import android.app.Activity
 import android.app.Application
 import com.bluetriangle.analytics.Constants
+import com.bluetriangle.analytics.breadcrumbs.config.BreadcrumbsConfig
 import com.bluetriangle.analytics.checkout.config.CheckoutConfig
 import com.bluetriangle.analytics.dynamicconfig.updater.IBTTConfigurationUpdater
 import kotlinx.coroutines.CoroutineScope
@@ -35,6 +36,7 @@ internal class DisabledModeSessionManager(
         enableLaunchTime = false,
         enableWebViewStitching = false,
         checkoutConfig = CheckoutConfig.DEFAULT,
+        breadcrumbsConfig = BreadcrumbsConfig.DEFAULT,
         expiration = 0L
     )
 

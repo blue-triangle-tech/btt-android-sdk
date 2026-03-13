@@ -4,63 +4,69 @@ import android.app.Activity
 import android.app.Application
 import android.os.Bundle
 import androidx.annotation.GuardedBy
+import androidx.core.view.ViewCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import com.bluetriangle.analytics.lifecycle.LifecycleRegistry.install
 
-/**
- * Central lifecycle registry for the SDK.
- *
- * Hooks into [Application.ActivityLifecycleCallbacks] to track all Activities,
- * and automatically registers a [FragmentManager.FragmentLifecycleCallbacks] on
- * every [FragmentActivity] so Fragment events are tracked across the whole app.
- *
- * // Any feature registers itself:
- * ```
- * LifecycleRegistry.addActivityObserver(myFeature)
- * LifecycleRegistry.addFragmentObserver(myFeature)
- * ```
- */
+
 internal object LifecycleRegistry {
 
     private val lock = Any()
 
     @GuardedBy("lock") private var application: Application? = null
     @GuardedBy("lock") private var installed = false
-    @GuardedBy("lock") private val trackedActivities = mutableSetOf<FragmentActivity>()
+    @GuardedBy("lock") private val trackedActivities = mutableSetOf<Activity>()
 
     private val activityLifecycleDispatcher = ActivityLifecycleDispatcher()
     private val fragmentLifecycleDispatcher = FragmentLifecycleDispatcher()
 
     private val composeLifecycleDispatcher = ComposeLifecycleDispatcher()
 
+    private val keyboardEventDispatcher = KeyboardEventDispatcher()
+
     init {
         activityLifecycleDispatcher.addObserver(object : ActivityLifecycleObserver {
             override fun onCreated(activity: Activity, savedInstanceState: Bundle?) {
                 super.onCreated(activity, savedInstanceState)
-                if (activity is FragmentActivity) {
-                    synchronized(lock) { trackedActivities.add(activity) }
-                    activity.supportFragmentManager.registerFragmentLifecycleCallbacks(
-                        fragmentLifecycleDispatcher,
-                        true
-                    )
-                }
+                synchronized(lock) { trackedActivities.add(activity) }
+                listenToKeyboardEvents(activity)
+                listenToFragments(activity)
             }
+
 
             override fun onDestroyed(activity: Activity) {
                 super.onDestroyed(activity)
-                if (activity is FragmentActivity) {
-                    activity.supportFragmentManager.unregisterFragmentLifecycleCallbacks(fragmentLifecycleDispatcher)
-                    synchronized(lock) { trackedActivities.remove(activity) }
-                }
+                synchronized(lock) { trackedActivities.remove(activity) }
+                stopListeningToKeyboardEvents(activity)
+                stopListeningToFragments(activity)
             }
         })
     }
 
-    /**
-     * Installs the registry against the given [Application].
-     * Safe to call multiple times — subsequent calls are no-ops.
-     */
+    private fun listenToKeyboardEvents(activity: Activity) {
+        ViewCompat.setOnApplyWindowInsetsListener(activity.window.decorView, keyboardEventDispatcher)
+    }
+
+    private fun listenToFragments(activity: Activity) {
+        if (activity is FragmentActivity) {
+            activity.supportFragmentManager.registerFragmentLifecycleCallbacks(
+                fragmentLifecycleDispatcher,
+                true
+            )
+        }
+    }
+
+    private fun stopListeningToKeyboardEvents(activity: Activity) {
+        ViewCompat.setOnApplyWindowInsetsListener(activity.window.decorView, null)
+    }
+
+    private fun stopListeningToFragments(activity: Activity) {
+        if (activity is FragmentActivity) {
+            activity.supportFragmentManager.unregisterFragmentLifecycleCallbacks(fragmentLifecycleDispatcher)
+        }
+    }
+
     fun install(application: Application) {
         synchronized(lock) {
             if (installed) return
@@ -70,18 +76,14 @@ internal object LifecycleRegistry {
         }
     }
 
-    /**
-     * Uninstalls the registry and clears all observers.
-     * After calling this, [install] must be called again to resume tracking.
-     */
     fun uninstall() {
         synchronized(lock) {
             if (!installed) return
             application?.unregisterActivityLifecycleCallbacks(activityLifecycleDispatcher)
             application = null
-            // Unregister fragment callbacks from any activities still alive at this point.
             trackedActivities.forEach { activity ->
-                activity.supportFragmentManager.unregisterFragmentLifecycleCallbacks(fragmentLifecycleDispatcher)
+                stopListeningToKeyboardEvents(activity)
+                stopListeningToFragments(activity)
             }
             trackedActivities.clear()
             activityLifecycleDispatcher.clear()
@@ -112,6 +114,14 @@ internal object LifecycleRegistry {
 
     fun removeComposeObserver(observer: ComposeLifecycleObserver) {
         composeLifecycleDispatcher.removeObserver(observer)
+    }
+
+    fun addKeyboardEventObserver(observer: KeyboardEventObserver) {
+        keyboardEventDispatcher.addObserver(observer)
+    }
+
+    fun removeKeyboardEventObserver(observer: KeyboardEventObserver) {
+        keyboardEventDispatcher.removeObserver(observer)
     }
 
     fun onEnterComposition(name: String) {

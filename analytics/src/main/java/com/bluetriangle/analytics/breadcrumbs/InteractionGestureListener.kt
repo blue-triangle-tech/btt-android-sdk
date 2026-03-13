@@ -8,14 +8,15 @@ import com.bluetriangle.analytics.breadcrumbs.touchresolver.TapTargetResolver
 
 internal class InteractionGestureListener(
     val activity: Activity,
-    val userEvent: (UserEventType, TapTarget) -> Unit,
+    val userEvent: (UserEventType, TapTarget?) -> Unit,
 ) : SimpleOnGestureListener() {
     override fun onSingleTapConfirmed(e: MotionEvent?): Boolean {
         if(e == null) return super.onSingleTapConfirmed(e)
 
-        TapTargetResolver.resolve(activity, e.rawX, e.rawY)?.let {
-            userEvent(UserEventType.TAP, it)
-        }
+        userEvent(
+            UserEventType.TAP,
+            TapTargetResolver.resolve(activity, e.rawX, e.rawY)
+        )
 
         return super.onSingleTapConfirmed(e)
     }
@@ -23,9 +24,10 @@ internal class InteractionGestureListener(
     override fun onDoubleTap(e: MotionEvent?): Boolean {
         if(e == null) return super.onDoubleTap(e)
 
-        TapTargetResolver.resolve(activity, e.rawX, e.rawY)?.let {
-            userEvent(UserEventType.DOUBLE_TAP, it)
-        }
+        userEvent(
+            UserEventType.DOUBLE_TAP,
+            TapTargetResolver.resolve(activity, e.rawX, e.rawY)
+        )
         return super.onDoubleTap(e)
     }
 

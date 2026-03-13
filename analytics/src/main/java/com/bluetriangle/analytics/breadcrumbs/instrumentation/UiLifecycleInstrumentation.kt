@@ -1,11 +1,8 @@
 package com.bluetriangle.analytics.breadcrumbs.instrumentation
 
 import android.app.Activity
-import android.content.Context
 import android.os.Bundle
-import android.view.View
 import androidx.fragment.app.Fragment
-import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.breadcrumbs.BreadcrumbEvent
 import com.bluetriangle.analytics.breadcrumbs.BreadcrumbsCollector
 import com.bluetriangle.analytics.lifecycle.ActivityLifecycleObserver
@@ -58,26 +55,6 @@ internal class UiLifecycleInstrumentation(breadcrumbsCollector: BreadcrumbsColle
         override fun onCreated(fragment: Fragment, savedInstanceState: Bundle?) {
             super.onCreated(fragment, savedInstanceState)
             addBreadcrumb(fragment::class.java.simpleName, "onCreate")
-        }
-
-        override fun onAttached(fragment: Fragment, context: Context) {
-            super.onAttached(fragment, context)
-            addBreadcrumb(fragment::class.java.simpleName, "onAttached")
-        }
-
-        override fun onDetached(fragment: Fragment) {
-            super.onDetached(fragment)
-            addBreadcrumb(fragment::class.java.simpleName, "onDetached")
-        }
-
-        override fun onViewCreated(fragment: Fragment, v: View, savedInstanceState: Bundle?) {
-            super.onViewCreated(fragment, v, savedInstanceState)
-            addBreadcrumb(fragment::class.java.simpleName, "onViewCreated")
-        }
-
-        override fun onViewDestroyed(fragment: Fragment) {
-            super.onViewDestroyed(fragment)
-            addBreadcrumb(fragment::class.java.simpleName, "onViewDestroyed")
         }
 
         override fun onStarted(fragment: Fragment) {
