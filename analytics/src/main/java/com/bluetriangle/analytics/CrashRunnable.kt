@@ -1,6 +1,5 @@
 package com.bluetriangle.analytics
 
-import android.util.Log
 import androidx.core.net.toUri
 import com.bluetriangle.analytics.Constants.TIMER_MIN_PGTM
 import com.bluetriangle.analytics.Timer.Companion.FIELD_NATIVE_APP

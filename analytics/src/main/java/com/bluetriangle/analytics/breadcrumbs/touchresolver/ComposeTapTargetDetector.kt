@@ -2,9 +2,11 @@
 
 package com.bluetriangle.analytics.breadcrumbs.touchresolver
 
+import android.util.Log
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.node.LayoutNode
+import androidx.compose.ui.node.LayoutNodeLayoutDelegate
 import androidx.compose.ui.node.Owner
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsModifier
@@ -100,9 +102,22 @@ internal class ComposeTapTargetDetector {
         try {
             node.layoutDelegate.outerCoordinator.coordinates
                 .boundsInWindow()
-        } catch (_: Exception) {
+        } catch (_: Throwable) {
+            (getLayoutDelegate(node) as? LayoutNodeLayoutDelegate)?.outerCoordinator?.coordinates?.boundsInWindow()
+        }
+
+    private fun getLayoutDelegate(layoutNode: LayoutNode): LayoutNodeLayoutDelegate? {
+        return try {
+            // Find the method dynamically — whatever the current mangled name is
+            val method = layoutNode.javaClass.methods.firstOrNull { method ->
+                method.name.startsWith("getLayoutDelegate")
+            }
+            Log.d("BlueTriangle", "LayoutNodeLayoutDelegateMethodName: ${method?.name}")
+            method?.invoke(layoutNode) as? LayoutNodeLayoutDelegate
+        } catch (e: Exception) {
             null
         }
+    }
 
     private fun hitTest(
         node: LayoutNode,

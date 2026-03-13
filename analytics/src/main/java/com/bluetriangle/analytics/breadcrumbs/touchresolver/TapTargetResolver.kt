@@ -9,6 +9,7 @@ import androidx.core.view.isVisible
 import java.util.LinkedList
 import androidx.compose.ui.node.Owner
 import androidx.compose.ui.node.LayoutNode
+import com.bluetriangle.analytics.Tracker
 
 object TapTargetResolver {
 
@@ -61,10 +62,11 @@ object TapTargetResolver {
             if(view is Owner) {
                 return view.findComposeTarget(x, y)
             }
-        } catch (_: Exception) {
+        } catch (e: Throwable) {
             // We are using internal classes from Compose framework above to track composables automatically.
             // In case the internal classes/fields change, it would throw an exception.
             // The below method is a fallback mechanism which allows us to track elements who are marked by bttTrackAction modifier
+            Tracker.instance?.configuration?.logger?.error("Couldn't track composable: ${e.message}: ${e.stackTraceToString()}")
             BttComposeRegistry.hitTest(x, y)?.let {
                 return TapTarget.ComposeTarget(it.name, x, y)
             }
