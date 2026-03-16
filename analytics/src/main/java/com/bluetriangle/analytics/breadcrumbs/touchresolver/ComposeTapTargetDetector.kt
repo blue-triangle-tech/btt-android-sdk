@@ -2,7 +2,6 @@
 
 package com.bluetriangle.analytics.breadcrumbs.touchresolver
 
-import android.util.Log
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.node.LayoutNode
@@ -12,9 +11,24 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsModifier
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
+import java.lang.reflect.Method
 import java.util.LinkedList
 
 internal class ComposeTapTargetDetector {
+
+    private val getLayoutDelegate: Method? = getLayoutDelegateMethod()
+
+    private fun getLayoutDelegateMethod(): Method? {
+        return try {
+            // Find the method dynamically — whatever the current mangled name is
+            this.javaClass.methods.firstOrNull { method ->
+                method.name.startsWith("getLayoutDelegate")
+            }
+        } catch (e: Throwable) {
+            null
+        }
+    }
+
     fun nodeToName(node: LayoutNode): String? =
         try {
             getNodeName(node)
@@ -103,21 +117,8 @@ internal class ComposeTapTargetDetector {
             node.layoutDelegate.outerCoordinator.coordinates
                 .boundsInWindow()
         } catch (_: Throwable) {
-            (getLayoutDelegate(node) as? LayoutNodeLayoutDelegate)?.outerCoordinator?.coordinates?.boundsInWindow()
+            (getLayoutDelegate?.invoke(node) as? LayoutNodeLayoutDelegate)?.outerCoordinator?.coordinates?.boundsInWindow()
         }
-
-    private fun getLayoutDelegate(layoutNode: LayoutNode): LayoutNodeLayoutDelegate? {
-        return try {
-            // Find the method dynamically — whatever the current mangled name is
-            val method = layoutNode.javaClass.methods.firstOrNull { method ->
-                method.name.startsWith("getLayoutDelegate")
-            }
-            Log.d("BlueTriangle", "LayoutNodeLayoutDelegateMethodName: ${method?.name}")
-            method?.invoke(layoutNode) as? LayoutNodeLayoutDelegate
-        } catch (e: Exception) {
-            null
-        }
-    }
 
     private fun hitTest(
         node: LayoutNode,
