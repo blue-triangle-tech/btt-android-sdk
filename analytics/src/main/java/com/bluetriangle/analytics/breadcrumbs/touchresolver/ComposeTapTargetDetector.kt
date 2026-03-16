@@ -20,9 +20,17 @@ internal class ComposeTapTargetDetector {
 
     private fun getLayoutDelegateMethod(): Method? {
         return try {
-            // Find the method dynamically — whatever the current mangled name is
+            // If the compiler sees literal string "getLayoutDelegate" used in reflection
+            // it'll try to optimize it by changing the reflection with actual code
+            // which defeats our purpose as we need to find a method named "getLayoutDelegate" which would
+            // have @<module_name> attached to it (as it's marked with internal modifier) @see https://4comprehension.com/kotlins-internal-visibility-modifier-and-java-interoperability/ and we don't know the module name. (it changed after 1.10x)
+            // so we are trying to find a method that starts with getLayoutDelegate regardless of the @<module_name> suffix
+            val methodName = buildString {
+                append("getLayout")
+                append("Delegate")
+            }
             this.javaClass.methods.firstOrNull { method ->
-                method.name.startsWith("getLayoutDelegate")
+                method.name.startsWith(methodName)
             }
         } catch (_: Throwable) {
             null
