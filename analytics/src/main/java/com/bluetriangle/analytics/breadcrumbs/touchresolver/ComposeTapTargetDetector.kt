@@ -24,7 +24,7 @@ internal class ComposeTapTargetDetector {
             this.javaClass.methods.firstOrNull { method ->
                 method.name.startsWith("getLayoutDelegate")
             }
-        } catch (e: Throwable) {
+        } catch (_: Throwable) {
             null
         }
     }
@@ -117,7 +117,13 @@ internal class ComposeTapTargetDetector {
             node.layoutDelegate.outerCoordinator.coordinates
                 .boundsInWindow()
         } catch (_: Throwable) {
+            getLayoutNodeBoundsInWindowThroughReflection(node)
+        }
+
+    private fun getLayoutNodeBoundsInWindowThroughReflection(node: LayoutNode): Rect? = try {
             (getLayoutDelegate?.invoke(node) as? LayoutNodeLayoutDelegate)?.outerCoordinator?.coordinates?.boundsInWindow()
+        } catch (_: Throwable) {
+            null
         }
 
     private fun hitTest(
