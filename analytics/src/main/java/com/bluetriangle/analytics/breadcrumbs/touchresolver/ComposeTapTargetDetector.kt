@@ -29,7 +29,7 @@ internal class ComposeTapTargetDetector {
                 append("getLayout")
                 append("Delegate")
             }
-            this.javaClass.methods.firstOrNull { method ->
+            LayoutNode::class.java.methods.firstOrNull { method ->
                 method.name.startsWith(methodName)
             }
         } catch (_: Throwable) {
