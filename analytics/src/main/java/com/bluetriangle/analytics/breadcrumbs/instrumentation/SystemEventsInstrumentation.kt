@@ -17,17 +17,31 @@ internal class SystemEventsInstrumentation(breadcrumbsCollector: BreadcrumbsColl
     private var currentConfiguration: Configuration? = null
 
     override fun onConfigurationChanged(configuration: Configuration) {
-        currentConfiguration?.let {
-            val diff = it.diff(configuration)
-            if ((diff and ActivityInfo.CONFIG_ORIENTATION) != 0) {
-                addBreadcrumb(
-                    "orientation",
-                    configuration.orientationToString()
-                )
-            }
+        val current = currentConfiguration
+        if(current == null) {
+            addBreadcrumb(
+                "orientation",
+                configuration.orientationToString()
+            )
+        } else {
+            checkDiffAndAddBreadcrumbs(current, configuration)
         }
         currentConfiguration = Configuration(configuration)
     }
+
+    private fun checkDiffAndAddBreadcrumbs(
+        current: Configuration,
+        updated: Configuration
+    ) {
+        val diff = current.diff(updated)
+        if ((diff and ActivityInfo.CONFIG_ORIENTATION) != 0) {
+            addBreadcrumb(
+                "orientation",
+                updated.orientationToString()
+            )
+        }
+    }
+
     private val keyboardLifecycleObserver = object : KeyboardEventObserver {
         override fun onKeyboardShown() {
             addBreadcrumb("keyboard", "shown")

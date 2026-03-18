@@ -78,5 +78,5 @@ object Constants {
     internal const val MAX_FIELD_CHAR_LENGTH: Int = 512
 
     internal const val DEFAULT_ENABLE_BREADCRUMBS = true
-    internal const val DEFAULT_BREADCRUMBS_CAPACITY = 100
+    internal const val DEFAULT_BREADCRUMBS_CAPACITY = 150
 }
