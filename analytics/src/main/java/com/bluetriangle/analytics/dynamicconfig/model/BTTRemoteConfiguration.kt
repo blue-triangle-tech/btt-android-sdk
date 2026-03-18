@@ -12,7 +12,6 @@ internal open class BTTRemoteConfiguration(
     val networkSampleRate: Double?,
     val ignoreScreens:List<String>,
     val enableAllTracking: Boolean,
-    val enableRemoteConfigAck: Boolean,
     val enableScreenTracking: Boolean,
     val enableGrouping: Boolean,
     val groupingIdleTime: Int,
@@ -24,12 +23,12 @@ internal open class BTTRemoteConfiguration(
     val enableLaunchTime: Boolean,
     val enableWebViewStitching: Boolean,
     val checkoutConfig: CheckoutConfig,
-    val breadcrumbsConfig: BreadcrumbsConfig
+    val breadcrumbsConfig: BreadcrumbsConfig,
+    val configKey: String
 ) {
     override fun equals(other: Any?): Boolean {
         if(other is BTTRemoteConfiguration) {
             return other.networkSampleRate == this.networkSampleRate &&
-                    other.enableRemoteConfigAck == this.enableRemoteConfigAck &&
                     other.ignoreScreens.joinToString() == ignoreScreens.joinToString() &&
                     other.enableAllTracking == enableAllTracking &&
                     other.enableScreenTracking == enableScreenTracking &&
@@ -43,19 +42,19 @@ internal open class BTTRemoteConfiguration(
                     other.enableLaunchTime == enableLaunchTime &&
                     other.enableWebViewStitching == enableWebViewStitching &&
                     other.checkoutConfig == checkoutConfig &&
-                    other.breadcrumbsConfig == breadcrumbsConfig
+                    other.breadcrumbsConfig == breadcrumbsConfig &&
+                    other.configKey == configKey
         }
         return false
     }
 
     override fun toString(): String {
-        return "RemoteConfig { networkSampleRate: $networkSampleRate, ignoreList: ${ignoreScreens}, enableRemoteConfigAck: $enableRemoteConfigAck, enableAllTracking: $enableAllTracking,  enableScreenTracking: $enableScreenTracking, enableGrouping: $enableGrouping, groupingIdleTime: $groupingIdleTime, enableGroupingTapDetection: $enableGroupingTapDetection, enableNetworkStateTracking: $enableNetworkStateTracking, enableCrashTracking: $enableCrashTracking, enableANRTracking: $enableANRTracking, enableMemoryWarning: $enableMemoryWarning, enableLaunchTime: $enableLaunchTime, enableWebViewStitching: $enableWebViewStitching, checkoutConfig: $checkoutConfig, breadcrumbsConfig: $breadcrumbsConfig }"
+        return "RemoteConfig { networkSampleRate: $networkSampleRate, ignoreList: ${ignoreScreens}, enableAllTracking: $enableAllTracking,  enableScreenTracking: $enableScreenTracking, enableGrouping: $enableGrouping, groupingIdleTime: $groupingIdleTime, enableGroupingTapDetection: $enableGroupingTapDetection, enableNetworkStateTracking: $enableNetworkStateTracking, enableCrashTracking: $enableCrashTracking, enableANRTracking: $enableANRTracking, enableMemoryWarning: $enableMemoryWarning, enableLaunchTime: $enableLaunchTime, enableWebViewStitching: $enableWebViewStitching, checkoutConfig: $checkoutConfig, breadcrumbsConfig: $breadcrumbsConfig, configKey: $configKey }"
     }
 
     override fun hashCode(): Int {
         var result = networkSampleRate?.hashCode() ?: 0
         result = 31 * result + enableAllTracking.hashCode()
-        result = 31 * result + enableRemoteConfigAck.hashCode()
         result = 31 * result + enableScreenTracking.hashCode()
         result = 31 * result + enableGrouping.hashCode()
         result = 31 * result + groupingIdleTime
@@ -69,6 +68,7 @@ internal open class BTTRemoteConfiguration(
         result = 31 * result + enableWebViewStitching.hashCode()
         result = 31 * result + checkoutConfig.hashCode()
         result = 31 * result + breadcrumbsConfig.hashCode()
+        result = 31 * result + configKey.hashCode()
         return result
     }
 

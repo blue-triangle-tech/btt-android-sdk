@@ -16,7 +16,9 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import com.bluetriangle.analytics.Constants.APP_VERSION
+import com.bluetriangle.analytics.Constants.DEFAULT_CONFIG_KEY
 import com.bluetriangle.analytics.Constants.MAX_FIELD_CHAR_LENGTH
+import com.bluetriangle.analytics.Constants.UNKNOWN
 import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
 import com.bluetriangle.analytics.anrwatchdog.ANRReporter
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
@@ -29,7 +31,6 @@ import com.bluetriangle.analytics.deviceinfo.DeviceInfoProvider
 import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 import com.bluetriangle.analytics.dynamicconfig.fetcher.BTTConfigurationFetcher
 import com.bluetriangle.analytics.dynamicconfig.model.BTTRemoteConfiguration
-import com.bluetriangle.analytics.dynamicconfig.reporter.BTTConfigUpdateReporter
 import com.bluetriangle.analytics.dynamicconfig.repository.BTTConfigurationRepository
 import com.bluetriangle.analytics.dynamicconfig.repository.IBTTConfigurationRepository
 import com.bluetriangle.analytics.dynamicconfig.updater.BTTConfigurationUpdater
@@ -1253,7 +1254,6 @@ class Tracker private constructor(
             val defaultConfig = BTTRemoteConfiguration(
                 networkSampleRate = configuration.networkSampleRate,
                 ignoreScreens = listOf(),
-                enableRemoteConfigAck = false,
                 enableAllTracking = true,
                 enableScreenTracking = configuration.isScreenTrackingEnabled,
                 enableGrouping = configuration.isGroupingEnabled,
@@ -1266,7 +1266,8 @@ class Tracker private constructor(
                 enableLaunchTime = configuration.isLaunchTimeEnabled,
                 enableWebViewStitching = configuration.isWebViewStitchingEnabled,
                 checkoutConfig = CheckoutConfig.DEFAULT,
-                breadcrumbsConfig = BreadcrumbsConfig.DEFAULT
+                breadcrumbsConfig = BreadcrumbsConfig.DEFAULT,
+                configKey = DEFAULT_CONFIG_KEY
             )
 
             initializeConfigurationUpdater(application, configuration, defaultConfig)
@@ -1415,10 +1416,7 @@ class Tracker private constructor(
                 logger = configuration.logger,
                 repository = this.configurationRepository,
                 fetcher = BTTConfigurationFetcher(configuration.logger, configUrl),
-                60 * 60 * 1000,
-                reporter = BTTConfigUpdateReporter(
-                    configuration, DeviceInfoProvider
-                )
+                60 * 60 * 1000
             )
         }
 
@@ -1457,6 +1455,10 @@ class Tracker private constructor(
             Timer.FIELD_TRAFFIC_SEGMENT_NAME to Constants.DEFAULT_TRAFFIC_SEGMENT_NAME,
             Timer.FIELD_CONTENT_GROUP_NAME to Constants.DEFAULT_CONTENT_GROUP_NAME
         )
+
+        internal fun getConfigKey(): String? {
+            return sessionManager.sessionData.configKey.takeIf { it != UNKNOWN }
+        }
     }
 
 }

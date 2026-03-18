@@ -11,7 +11,6 @@ import com.bluetriangle.analytics.checkout.config.CheckoutConfig
 internal class BTTSavedRemoteConfiguration(
     networkSampleRate: Double?,
     ignoreScreens: List<String>,
-    enableRemoteConfigAck: Boolean,
     enableAllTracking: Boolean,
     enableScreenTracking: Boolean,
     enableGrouping: Boolean,
@@ -25,12 +24,12 @@ internal class BTTSavedRemoteConfiguration(
     enableWebViewStitching: Boolean,
     checkoutConfig: CheckoutConfig,
     breadcrumbsConfig: BreadcrumbsConfig,
+    configKey: String,
     val savedDate: Long
 ) : BTTRemoteConfiguration(
     networkSampleRate,
     ignoreScreens,
     enableAllTracking,
-    enableRemoteConfigAck,
     enableScreenTracking,
     enableGrouping,
     groupingIdleTime,
@@ -42,14 +41,14 @@ internal class BTTSavedRemoteConfiguration(
     enableLaunchTime,
     enableWebViewStitching,
     checkoutConfig,
-    breadcrumbsConfig
+    breadcrumbsConfig,
+    configKey
 ) {
 
     companion object {
         fun from(remoteConfig: BTTRemoteConfiguration) = BTTSavedRemoteConfiguration(
             remoteConfig.networkSampleRate,
             remoteConfig.ignoreScreens,
-            remoteConfig.enableRemoteConfigAck,
             remoteConfig.enableAllTracking,
             remoteConfig.enableScreenTracking,
             remoteConfig.enableGrouping,
@@ -63,6 +62,7 @@ internal class BTTSavedRemoteConfiguration(
             remoteConfig.enableWebViewStitching,
             remoteConfig.checkoutConfig,
             remoteConfig.breadcrumbsConfig,
+            remoteConfig.configKey,
             System.currentTimeMillis()
         )
     }

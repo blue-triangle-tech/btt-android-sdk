@@ -5,6 +5,7 @@ import com.bluetriangle.analytics.Constants.APP_VERSION
 import com.bluetriangle.analytics.Constants.AUTO_CHECKOUT
 import com.bluetriangle.analytics.Constants.CONFIDENCE_MSG
 import com.bluetriangle.analytics.Constants.CONFIDENCE_RATE
+import com.bluetriangle.analytics.Constants.CONFIG_KEY
 import com.bluetriangle.analytics.Constants.EVENT_ID
 import com.bluetriangle.analytics.Constants.FULL_TIME
 import com.bluetriangle.analytics.Constants.GROUPED
@@ -57,7 +58,8 @@ internal data class NativeAppProperties(
     var disappearTime: Long = 0,
     var className: String = "",
     var event: BTTEvent? = null,
-    var autoCheckout: Boolean? = null
+    var autoCheckout: Boolean? = null,
+    var configKey: String? = null
 ) : Parcelable {
 
     private val cellularTotal
@@ -81,6 +83,10 @@ internal data class NativeAppProperties(
 
         autoCheckout?.let {
             obj.put(AUTO_CHECKOUT, it)
+        }
+
+        configKey?.let {
+            obj.put(CONFIG_KEY, it)
         }
 
         networkStates.apply {

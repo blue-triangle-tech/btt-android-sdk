@@ -106,6 +106,7 @@ internal class SessionManager(
             config.enableWebViewStitching,
             config.checkoutConfig,
             config.breadcrumbsConfig,
+            config.configKey,
             getNewExpiration()
         )
     }
@@ -145,6 +146,7 @@ internal class SessionManager(
                 it.enableWebViewStitching,
                 it.checkoutConfig,
                 it.breadcrumbsConfig,
+                it.configKey,
                 getNewExpiration()
             )
             sessionStore.storeSessionData(
@@ -197,6 +199,7 @@ internal class SessionManager(
                                 config.enableWebViewStitching,
                                 config.checkoutConfig,
                                 config.breadcrumbsConfig,
+                                config.configKey,
                                 session.expiration
                             )
                             Tracker.instance?.updateSession(sessionData)
