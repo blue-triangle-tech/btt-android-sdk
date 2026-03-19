@@ -10,30 +10,21 @@ internal class InteractionGestureListener(
     val activity: Activity,
     val userEvent: (UserEventType, TapTarget?) -> Unit,
 ) : SimpleOnGestureListener() {
-    override fun onSingleTapConfirmed(e: MotionEvent?): Boolean {
-        if(e == null) return super.onSingleTapConfirmed(e)
 
-        userEvent(
-            UserEventType.TAP,
-            TapTargetResolver.resolve(activity, e.rawX, e.rawY)
-        )
+    override fun onSingleTapUp(e: MotionEvent?): Boolean {
 
-        return super.onSingleTapConfirmed(e)
-    }
+        if(e != null) {
+            userEvent(
+                UserEventType.TAP,
+                TapTargetResolver.resolve(activity, e.rawX, e.rawY)
+            )
+        }
 
-    override fun onDoubleTap(e: MotionEvent?): Boolean {
-        if(e == null) return super.onDoubleTap(e)
-
-        userEvent(
-            UserEventType.DOUBLE_TAP,
-            TapTargetResolver.resolve(activity, e.rawX, e.rawY)
-        )
-        return super.onDoubleTap(e)
+        return super.onSingleTapUp(e)
     }
 
 }
 
 enum class UserEventType(val value: String) {
-    TAP("tap"),
-    DOUBLE_TAP("double tap")
+    TAP("tap")
 }
