@@ -232,12 +232,21 @@ class Tracker private constructor(
             LifecycleRegistry.install(it)
         }
         if(sessionData.breadcrumbsConfig.isEnabled) {
-            breadcrumbsManager = BreadcrumbsManager(sessionData.breadcrumbsConfig)
-            breadcrumbsManager?.install()
+            enableBreadcrumbs(sessionData.breadcrumbsConfig)
         }
 
         checkAppVersion()
         configuration.logger?.debug("SDK is enabled")
+    }
+
+    private fun enableBreadcrumbs(breadcrumbsConfig: BreadcrumbsConfig) {
+        breadcrumbsManager = BreadcrumbsManager(breadcrumbsConfig)
+        breadcrumbsManager?.install()
+    }
+
+    private fun disableBreadcrumbs() {
+        breadcrumbsManager?.uninstall()
+        breadcrumbsManager = null
     }
 
     private fun checkAppVersion() {
@@ -269,8 +278,7 @@ class Tracker private constructor(
         deInitializeNetworkStateTracking()
         disableLaunchMonitor()
         LifecycleRegistry.uninstall()
-        breadcrumbsManager?.uninstall()
-        breadcrumbsManager = null
+        disableBreadcrumbs()
         configuration.logger?.debug("SDK is disabled.")
     }
 
@@ -926,6 +934,18 @@ class Tracker private constructor(
             checkoutEventReporter?.updateConfig(sessionData.checkoutConfig)
         }
 
+        val isBreadcrumbsEnabled = breadcrumbsManager != null
+        if(sessionData.breadcrumbsConfig.isEnabled != isBreadcrumbsEnabled) {
+            if(sessionData.breadcrumbsConfig.isEnabled) {
+                enableBreadcrumbs(sessionData.breadcrumbsConfig)
+            } else {
+                disableBreadcrumbs()
+            }
+        }
+
+        if(sessionData.breadcrumbsConfig.ignoredFeatures != breadcrumbsManager?.config?.ignoredFeatures) {
+            breadcrumbsManager?.updateConfig(sessionData.breadcrumbsConfig)
+        }
         val changesString = changes.toString()
         if(changesString.isNotEmpty()) {
             configuration.logger?.debug("Updated configuration $changesString")

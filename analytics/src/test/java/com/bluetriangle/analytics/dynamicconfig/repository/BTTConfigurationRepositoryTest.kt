@@ -3,6 +3,8 @@ package com.bluetriangle.analytics.dynamicconfig.repository
 import android.content.Context
 import android.content.SharedPreferences
 import com.bluetriangle.analytics.Logger
+import com.bluetriangle.analytics.breadcrumbs.config.BreadcrumbsConfig
+import com.bluetriangle.analytics.checkout.config.CheckoutConfig
 import com.bluetriangle.analytics.dynamicconfig.model.BTTRemoteConfiguration
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -14,7 +16,6 @@ import org.mockito.Mockito.any
 import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.anyString
 import org.mockito.MockitoAnnotations
-import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.whenever
 import org.robolectric.RobolectricTestRunner
@@ -44,9 +45,17 @@ class BTTConfigurationRepositoryTest {
         true,
         true,
         true,
-        true,
         2,
-        0.05
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        CheckoutConfig.DEFAULT,
+        BreadcrumbsConfig.DEFAULT,
+        ""
     )
 
     @Before
@@ -85,9 +94,17 @@ class BTTConfigurationRepositoryTest {
             true,
             false,
             false,
+            2,
             true,
-            3,
-            Math.random()
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            CheckoutConfig.DEFAULT,
+            BreadcrumbsConfig.DEFAULT,
+            ""
         )
         val repositoryInput = BTTConfigurationRepository(mockLogger, mockContext, siteId, defaultConfig)
         val repositoryOutput = BTTConfigurationRepository(mockLogger, mockContext, siteId, defaultConfig)
@@ -122,9 +139,17 @@ class BTTConfigurationRepositoryTest {
             true,
             true,
             true,
-            true,
             2,
-            Math.random()
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            CheckoutConfig.DEFAULT,
+            BreadcrumbsConfig.DEFAULT,
+            ""
         )
         repository.save(config)
 

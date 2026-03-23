@@ -3,6 +3,7 @@ package com.bluetriangle.analytics.screenTracking
 import android.view.Window
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
+import com.bluetriangle.analytics.BlueTriangleConfiguration
 import junit.framework.TestCase.fail
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -19,9 +20,10 @@ class ActivityLifecycleTrackerTest {
     }
 
     private fun getActivityLifecycleTracker(): ActivityLifecycleTracker {
+        val configuration = mock(BlueTriangleConfiguration::class.java)
         val screenTracker = mock(ScreenLifecycleTracker::class.java)
         val fragmentTracker = mock(FragmentLifecycleTracker::class.java)
-        return ActivityLifecycleTracker(screenTracker, fragmentTracker)
+        return ActivityLifecycleTracker(configuration, screenTracker, fragmentTracker)
     }
 
     private fun mockActivity() = mock(FragmentActivity::class.java).apply {

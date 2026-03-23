@@ -71,6 +71,7 @@ class DemoApplication : Application() {
         configuration.isTrackAnrEnabled = true
         configuration.siteId = siteId
         configuration.isDebug = true
+        configuration.debugLevel = Log.VERBOSE
         configuration.networkSampleRate = 1.0
         configuration.isPerformanceMonitorEnabled = true
         configuration.performanceMonitorIntervalMs = 500

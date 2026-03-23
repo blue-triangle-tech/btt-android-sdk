@@ -17,19 +17,6 @@ internal sealed class BreadcrumbEvent(
         data.writeTo(this)
     }
 
-    class Navigation(data: NavigationData) :
-        BreadcrumbEvent("ui.navigation", System.currentTimeMillis(), data) {
-        data class NavigationData(
-            val from: String,
-            val to: String
-        ) : Data {
-            override fun writeTo(jsonObject: JSONObject) {
-                jsonObject.put("from", from)
-                jsonObject.put("to", to)
-            }
-        }
-    }
-
     class UiLifecycle(data: UiLifecycleData) :
         BreadcrumbEvent("ui.lifecycle", System.currentTimeMillis(), data) {
         data class UiLifecycleData(

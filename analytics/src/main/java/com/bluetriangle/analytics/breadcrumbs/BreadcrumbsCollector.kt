@@ -1,5 +1,6 @@
 package com.bluetriangle.analytics.breadcrumbs
 
+import com.bluetriangle.analytics.Tracker
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -13,6 +14,7 @@ internal class BreadcrumbsCollector (
     @Synchronized
     fun add(item: BreadcrumbEvent) {
         buffer[head] = item.toJson()
+        Tracker.instance?.configuration?.logger?.verbose("Added breadcrumb: ${buffer[head].toString()}")
         head = (head + 1) % capacity
         if (size < capacity) {
             size++

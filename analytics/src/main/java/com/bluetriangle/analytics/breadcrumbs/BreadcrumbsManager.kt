@@ -15,38 +15,58 @@ import org.json.JSONArray
 
 internal class BreadcrumbsManager(var config: BreadcrumbsConfig) {
     private var breadcrumbsCollector: BreadcrumbsCollector? = null
-    private var instrumentations: List<BreadcrumbInstrumentation> = emptyList()
+    private var instrumentations: MutableMap<BreadcrumbsFeature, BreadcrumbInstrumentation> = mutableMapOf()
+
+    private var features = BreadcrumbsFeature.values().filterNot { config.ignoredFeatures.contains(it) }
 
     fun install() {
         breadcrumbsCollector = BreadcrumbsCollector(config.capacity)
 
         breadcrumbsCollector?.let { collector ->
-            instrumentations = BreadcrumbsFeature.values().filterNot { config.ignoredFeatures.contains(it) }.map {
-                when(it) {
-                    BreadcrumbsFeature.AppLifecycle -> AppLifecycleInstrumentation(collector)
-                    BreadcrumbsFeature.UiLifecycle -> UiLifecycleInstrumentation(collector)
-                    BreadcrumbsFeature.NetworkRequest -> NetworkRequestInstrumentation(collector)
-                    BreadcrumbsFeature.NetworkState -> NetworkStateInstrumentation(collector)
-                    BreadcrumbsFeature.AppInstall -> AppInstallInstrumentation(collector)
-                    BreadcrumbsFeature.AppUpdate -> AppUpdateInstrumentation(collector)
-                    BreadcrumbsFeature.UserEvent -> UserEventInstrumentation(collector)
-                    BreadcrumbsFeature.SystemEvent -> SystemEventsInstrumentation(collector)
-                }
-            }
+            instrumentations = features.associateWith {
+                featureToInstrumentation(it, collector)
+            }.toMutableMap()
         }
 
-        instrumentations.forEach {
+        instrumentations.values.forEach {
             it.enable()
         }
     }
 
     fun uninstall() {
-        instrumentations.forEach {
+        instrumentations.values.forEach {
             it.disable()
         }
-        instrumentations = emptyList()
+        instrumentations = mutableMapOf()
         breadcrumbsCollector?.clear()
         breadcrumbsCollector = null
+    }
+
+    fun featureToInstrumentation(feature: BreadcrumbsFeature, collector: BreadcrumbsCollector) = when(feature) {
+        BreadcrumbsFeature.AppLifecycle -> AppLifecycleInstrumentation(collector)
+        BreadcrumbsFeature.UiLifecycle -> UiLifecycleInstrumentation(collector)
+        BreadcrumbsFeature.NetworkRequest -> NetworkRequestInstrumentation(collector)
+        BreadcrumbsFeature.NetworkState -> NetworkStateInstrumentation(collector)
+        BreadcrumbsFeature.AppInstall -> AppInstallInstrumentation(collector)
+        BreadcrumbsFeature.AppUpdate -> AppUpdateInstrumentation(collector)
+        BreadcrumbsFeature.UserEvent -> UserEventInstrumentation(collector)
+        BreadcrumbsFeature.SystemEvent -> SystemEventsInstrumentation(collector)
+    }
+
+    fun updateConfig(config: BreadcrumbsConfig) {
+        val collector = breadcrumbsCollector?: return
+        val newFeatures = BreadcrumbsFeature.values().filterNot { config.ignoredFeatures.contains(it) }
+        val toBeDisabled = features.filterNot { newFeatures.contains(it) }
+        val toBeEnabled = newFeatures.filterNot { features.contains(it) }
+
+        toBeDisabled.forEach {
+            instrumentations[it]?.disable()
+            instrumentations.remove(it)
+        }
+        toBeEnabled.forEach {
+            instrumentations[it] = featureToInstrumentation(it, collector)
+            instrumentations[it]?.enable()
+        }
     }
 
     fun snapshot(): JSONArray? {
