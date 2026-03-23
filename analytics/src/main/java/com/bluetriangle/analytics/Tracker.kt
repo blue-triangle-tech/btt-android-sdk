@@ -936,6 +936,7 @@ class Tracker private constructor(
 
         val isBreadcrumbsEnabled = breadcrumbsManager != null
         if(sessionData.breadcrumbsConfig.isEnabled != isBreadcrumbsEnabled) {
+            changes.append("\nenableBreadcrumbs: $isBreadcrumbsEnabled -> ${sessionData.breadcrumbsConfig.isEnabled}")
             if(sessionData.breadcrumbsConfig.isEnabled) {
                 enableBreadcrumbs(sessionData.breadcrumbsConfig)
             } else {
@@ -944,6 +945,7 @@ class Tracker private constructor(
         }
 
         if(sessionData.breadcrumbsConfig.ignoredFeatures != breadcrumbsManager?.config?.ignoredFeatures) {
+            changes.append("\nignoreBreadcrumbs: ${breadcrumbsManager?.config?.ignoredFeatures} -> ${sessionData.breadcrumbsConfig.ignoredFeatures}")
             breadcrumbsManager?.updateConfig(sessionData.breadcrumbsConfig)
         }
         val changesString = changes.toString()
