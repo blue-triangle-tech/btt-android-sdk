@@ -9,12 +9,12 @@ import com.bluetriangle.analytics.deviceinfo.IDeviceInfoProvider
 internal class ANRReporter(
     private val deviceInfoProvider: IDeviceInfoProvider
 ) {
-    fun reportANR(timer: Timer?, ANRWarningException: ANRWarningException) {
+    fun reportANR(timer: Timer?, anrWarningException: ANRWarningException) {
         val tracker = Tracker.instance ?: return
         val configuration = tracker.configuration
 
-        val timeStamp = ANRWarningException.timestamp.toString()
-        val stacktrace = Utils.exceptionToStacktrace(null, ANRWarningException, true)
+        val timeStamp = anrWarningException.timestamp.toString()
+        val stacktrace = Utils.exceptionToStacktrace(null, anrWarningException, true)
 
         try {
             val thread = Thread(
@@ -24,7 +24,8 @@ internal class ANRReporter(
                     timeStamp,
                     Tracker.BTErrorType.ANRWarning,
                     timer,
-                    deviceInfoProvider = deviceInfoProvider
+                    deviceInfoProvider = deviceInfoProvider,
+                    breadcrumbs = anrWarningException.breadcrumbs
                 )
             )
             thread.start()

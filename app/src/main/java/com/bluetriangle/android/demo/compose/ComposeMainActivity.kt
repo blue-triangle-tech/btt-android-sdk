@@ -19,6 +19,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,8 +28,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.bluetriangle.analytics.breadcrumbs.touchresolver.bttTrackAction
 import com.bluetriangle.analytics.compose.BttTimerEffect
 import com.bluetriangle.android.demo.compose.ui.theme.BttandroidsdkTheme
 import com.bluetriangle.android.demo.groupingpoc.QuoteRequestHelper
@@ -54,7 +57,11 @@ class ComposeMainActivity : ComponentActivity() {
 @Composable
 fun HomeScreen(modifier: Modifier) {
     val tabs = listOf("Tab 1", "Tab 2", "Tab 3")
-    val pagerState = rememberPagerState(initialPage = 0)
+    val pagerState = rememberPagerState(
+        initialPage = 0
+    ) {
+        3
+    }
     val coroutineScope = rememberCoroutineScope()
 
     Column(modifier) {
@@ -66,6 +73,9 @@ fun HomeScreen(modifier: Modifier) {
                 Tab(
                     text = { Text(title) },
                     selected = pagerState.currentPage == index,
+                    modifier = Modifier.semantics {
+                        contentDescription = "Tab ${index + 1}"
+                    },
                     onClick = {
                         coroutineScope.launch {
                             pagerState.animateScrollToPage(index)
@@ -77,7 +87,6 @@ fun HomeScreen(modifier: Modifier) {
 
         // Pager
         HorizontalPager(
-            pageCount = tabs.size,
             state = pagerState,
             modifier = Modifier.weight(1f)
         ) { page ->
@@ -86,13 +95,19 @@ fun HomeScreen(modifier: Modifier) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TabContent(modifier: Modifier = Modifier, tabName: String) {
     BttTimerEffect(tabName)
     var quote by rememberSaveable { mutableStateOf<Quote?>(null) }
+    var textValue by rememberSaveable { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
     Column(modifier.padding(24.dp)) {
-        Button(onClick = {
+        TextField(textValue, onValueChange = { textValue = it })
+        Spacer(Modifier.height(16.dp))
+        Button(modifier = Modifier.bttTrackAction("QuoteButton").semantics {
+            contentDescription = "Quote Button"
+        }, onClick = {
             coroutineScope.launch(Dispatchers.IO) {
                 quote = QuoteRequestHelper.instance.getQuote()
             }

@@ -9,6 +9,7 @@ import android.os.SystemClock
 import android.util.Log
 import com.bluetriangle.analytics.Tracker
 import com.bluetriangle.analytics.eventhub.AppEventConsumer
+import com.bluetriangle.analytics.eventhub.sdkeventhub.SDKEventHub
 import com.bluetriangle.analytics.launchtime.model.AppLifecycleEvent
 import com.bluetriangle.analytics.launchtime.model.LaunchEvent
 import com.bluetriangle.analytics.launchtime.helpers.AppEventAccumulator
@@ -74,7 +75,7 @@ internal class LaunchMonitor private constructor(): AppEventConsumer, LaunchEven
 
     private fun getAppUpTime() = SystemClock.uptimeMillis() - (if(Build.VERSION.SDK_INT >= 24) Process.getStartUptimeMillis() else 0)
 
-    override fun onAppCreated(application:Application) {
+    override fun onAppCreated(application:Application, timestamp: Long) {
         log(LogData(level = Log.VERBOSE, message = "${getPrefix()} onAppCreated"))
         appEventAccumulator.accumulate(AppLifecycleEvent.AppLifecycleCreated())
     }
@@ -97,6 +98,7 @@ internal class LaunchMonitor private constructor(): AppEventConsumer, LaunchEven
             val startTime = result.events[0].time
             log(LogData(level = Log.VERBOSE, message = "${getPrefix()} LaunchEvent ${result.type.name} took ${System.currentTimeMillis() - startTime}ms"))
 
+            SDKEventHub.instance.onLaunchDetected(result.type)
             GlobalScope.launch {
                 // Remove if there is a launch event is in the channel that hasn't been processed yet
                 // so as to keep only one LaunchEvent in the channel

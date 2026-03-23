@@ -31,7 +31,8 @@ internal class BtCrashHandler(
         val thread = Thread(CrashRunnable(
             configuration, stacktrace, timeStamp,
             mostRecentTimer = mostRecentTimer,
-            deviceInfoProvider = deviceInfoProvider
+            deviceInfoProvider = deviceInfoProvider,
+            breadcrumbs = Tracker.instance?.breadcrumbsManager?.snapshot()
         ))
         thread.start()
         thread.join()

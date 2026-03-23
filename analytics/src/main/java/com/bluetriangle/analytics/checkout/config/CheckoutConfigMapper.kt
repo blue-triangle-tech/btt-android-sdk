@@ -13,7 +13,7 @@ import com.bluetriangle.analytics.utility.getStringOrNull
 import org.json.JSONArray
 import org.json.JSONObject
 
-object CheckoutConfigMapper {
+internal object CheckoutConfigMapper {
     private const val CHECKOUT_TRACKING_ENABLED = "checkoutTrackingEnabled"
     private const val CLASS_NAME = "checkoutClassName"
     private const val CHECKOUT_AMOUNT = "checkoutAmount"

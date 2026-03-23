@@ -22,7 +22,8 @@ internal class MemoryWarningReporter(val deviceInfoProvider: IDeviceInfoProvider
                     Tracker.BTErrorType.MemoryWarning,
                     mostRecentTimer = timer,
                     errorCount = exception.count,
-                    deviceInfoProvider = deviceInfoProvider
+                    deviceInfoProvider = deviceInfoProvider,
+                    breadcrumbs = exception.breadcrumbs
                 )
             )
             thread.start()

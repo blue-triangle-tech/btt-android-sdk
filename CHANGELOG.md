@@ -1,4 +1,9 @@
-# Blue Triangle 2.19.3 Latest, Feb 18 2026
+# Blue Triangle 2.19.4 Latest, Mar 23 2026
+### New Improvements
+- Added breadcrumbs for ANRs, crashes, and memory warnings
+- Added configKey to Launch time beacon
+
+# Blue Triangle 2.19.3, Feb 18 2026
 ### New Improvements
 - Added support for auto checkout reporting via remote configuration.
 - Added eventID to the NATIVEAPP property for all event types.

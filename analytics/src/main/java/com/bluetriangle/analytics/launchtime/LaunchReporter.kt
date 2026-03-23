@@ -44,6 +44,7 @@ internal class LaunchReporter(
     private fun reportLaunch(
         event: LaunchEvent
     ) {
+        val configKey = Tracker.getConfigKey()
         val launchPageName = event.pageName
         val startTime = event.data.startTime
         val duration = event.data.duration
@@ -62,6 +63,7 @@ internal class LaunchReporter(
             nativeAppProperties.loadTime = duration
             nativeAppProperties.launchScreenName = launchActivityName
             nativeAppProperties.event = event.event
+            nativeAppProperties.configKey = configKey
             submit()
         }
 

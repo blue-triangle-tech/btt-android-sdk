@@ -6,7 +6,7 @@ import com.bluetriangle.analytics.checkout.config.CheckoutConfig
 import com.bluetriangle.analytics.utility.logD
 import com.bluetriangle.analytics.utility.logV
 
-class CheckoutEventReporter(private var _config: CheckoutConfig) {
+internal class CheckoutEventReporter(private var _config: CheckoutConfig) {
 
     val config: CheckoutConfig
         get() = _config

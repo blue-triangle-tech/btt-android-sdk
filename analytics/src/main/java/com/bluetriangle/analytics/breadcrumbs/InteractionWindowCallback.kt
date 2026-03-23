@@ -13,12 +13,14 @@ import android.view.View
 import android.view.Window
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
+import com.bluetriangle.analytics.breadcrumbs.touchresolver.TapTarget
 
 internal class InteractionWindowCallback(
     val activity: Activity,
     val wrapped: Window.Callback,
+    userEvent: (UserEventType, TapTarget?) -> Unit
 ) : Window.Callback {
-    val gestureDetector = GestureDetector(activity, InteractionGestureListener(activity))
+    val gestureDetector = GestureDetector(activity, InteractionGestureListener(activity, userEvent))
 
     override fun dispatchKeyEvent(event: KeyEvent?): Boolean {
         return wrapped.dispatchKeyEvent(event)

@@ -1,6 +1,7 @@
 package com.bluetriangle.analytics.networkstate
 
 import com.bluetriangle.analytics.Tracker
+import com.bluetriangle.analytics.eventhub.sdkeventhub.SDKEventHub
 import com.bluetriangle.analytics.networkstate.data.NetworkSliceStats
 import com.bluetriangle.analytics.networkstate.data.NetworkSwitch
 import com.bluetriangle.analytics.utility.value
@@ -29,6 +30,7 @@ internal class NetworkTimelineTracker(private val networkStateMonitor: NetworkSt
     @Synchronized
     private fun onNetworkChange(network: BTTNetworkState) {
         Tracker.instance?.configuration?.logger?.info("Network change received: ${network.value}")
+        SDKEventHub.instance.onNetworkStateChanged(network)
         val timestamp = System.currentTimeMillis()
         // if this is not the first network state, there will be other network switch info in the array.
         // get the last one from that and set it's end time to current time

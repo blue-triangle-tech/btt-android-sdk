@@ -5,6 +5,7 @@
  */
 package com.bluetriangle.analytics.dynamicconfig.model
 
+import com.bluetriangle.analytics.Constants.DEFAULT_CONFIG_KEY
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_ANR_TRACKING
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_CRASH_TRACKING
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_GROUPING
@@ -14,11 +15,13 @@ import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_NETWORK_STATE_TRACKIN
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_WEB_VIEW_STITCHING
 import com.bluetriangle.analytics.Constants.DEFAULT_GROUPING_IDLE_TIME
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_GROUPING_TAP_DETECTION
+import com.bluetriangle.analytics.breadcrumbs.config.BreadcrumbsConfigMapper
 import com.bluetriangle.analytics.checkout.config.CheckoutConfigMapper
 import com.bluetriangle.analytics.utility.getBooleanOrNull
 import com.bluetriangle.analytics.utility.getDoubleOrNull
 import com.bluetriangle.analytics.utility.getIntOrNull
 import com.bluetriangle.analytics.utility.getJsonArrayOrNull
+import com.bluetriangle.analytics.utility.getStringOrNull
 import org.json.JSONObject
 
 internal object BTTRemoteConfigurationMapper {
@@ -37,6 +40,7 @@ internal object BTTRemoteConfigurationMapper {
     private const val ENABLE_MEMORY_WARNING = "enableMemoryWarning"
     private const val ENABLE_LAUNCH_TIME = "enableLaunchTime"
     private const val ENABLE_WEB_VIEW_STITCHING = "enableWebViewStitching"
+    private const val CONFIG_KEY = "configKey"
 
     fun fromJson(remoteConfigJson: JSONObject): BTTRemoteConfiguration {
         val networkSampleRate = remoteConfigJson.getDoubleOrNull(NETWORK_SAMPLE_RATE)?.div(100.0)
@@ -62,12 +66,13 @@ internal object BTTRemoteConfigurationMapper {
         val enableLaunchTime = remoteConfigJson.getBooleanOrNull(ENABLE_LAUNCH_TIME) ?: DEFAULT_ENABLE_LAUNCH_TIME
         val enableWebViewStitching = remoteConfigJson.getBooleanOrNull(ENABLE_WEB_VIEW_STITCHING) ?: DEFAULT_ENABLE_WEB_VIEW_STITCHING
         val checkoutConfig = CheckoutConfigMapper.loadFromJsonObject(remoteConfigJson)
+        val breadcrumbsConfig = BreadcrumbsConfigMapper.loadFromJsonObject(remoteConfigJson)
+        val configKey = remoteConfigJson.getStringOrNull(CONFIG_KEY) ?: DEFAULT_CONFIG_KEY
 
         return BTTRemoteConfiguration(
             networkSampleRate,
             ignoreScreens,
             enableAllTracking,
-            enableRemoteConfig,
             enableScreenTracking,
             enableGrouping,
             groupingIdleTime,
@@ -78,7 +83,9 @@ internal object BTTRemoteConfigurationMapper {
             enableMemoryWarning,
             enableLaunchTime,
             enableWebViewStitching,
-            checkoutConfig
+            checkoutConfig,
+            breadcrumbsConfig,
+            configKey
         )
     }
 }

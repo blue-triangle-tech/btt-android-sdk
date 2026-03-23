@@ -40,7 +40,8 @@ internal class CrashRunnable(
     private val errorType: Tracker.BTErrorType = Tracker.BTErrorType.NativeAppCrash,
     private val mostRecentTimer: Timer? = null,
     private val errorCount: Int = 1,
-    private val deviceInfoProvider: IDeviceInfoProvider
+    private val deviceInfoProvider: IDeviceInfoProvider,
+    private val breadcrumbs: JSONArray? = null
 ) : Runnable {
 
     private var timerFields = mutableMapOf<String, String?>()
@@ -222,7 +223,7 @@ internal class CrashRunnable(
             }
         }
         nativeAppProperties.add(deviceInfoProvider.getDeviceInfo())
-
+        nativeAppProperties.breadcrumbs = breadcrumbs?.toString()
         crashReport[FIELD_NATIVE_APP] = nativeAppProperties.toMap()
 
         val crashDataArray = JSONArray(listOf(JSONObject(crashReport.toMap())))

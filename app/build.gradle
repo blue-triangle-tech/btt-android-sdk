@@ -6,15 +6,15 @@ plugins {
 }
 
 android {
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.bluetriangle.android.demo"
         namespace "com.bluetriangle.android.demo"
         minSdk 21
-        targetSdk 33
+        targetSdk 34
         versionCode 5
-        versionName "2.19.3"
+        versionName "2.19.4"
 
         externalNativeBuild {
             cmake {

@@ -29,7 +29,7 @@ class TabContainerFragment : Fragment() {
         val tabLayout = view.findViewById<TabLayout>(R.id.tabs)
         val viewPager = view.findViewById<ViewPager2>(R.id.view_pager)
 
-        val adapter = TabsAdapter(requireActivity())
+        val adapter = TabsAdapter(this)
         viewPager.adapter = adapter
 
         // Register page change callback to track current position
@@ -59,7 +59,7 @@ class TabContainerFragment : Fragment() {
     }
 
 
-    class TabsAdapter(fragmentActivity: FragmentActivity) : FragmentStateAdapter(fragmentActivity) {
+    class TabsAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
         private var currentPosition = 0
 
         override fun createFragment(position: Int): Fragment {
@@ -84,7 +84,6 @@ class TabContainerFragment : Fragment() {
 
         fun setCurrentPosition(pos: Int) {
             currentPosition = pos
-            notifyDataSetChanged()
         }
 
     }

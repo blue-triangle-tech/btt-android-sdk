@@ -1,6 +1,7 @@
 package com.bluetriangle.analytics
 
 import com.bluetriangle.analytics.Constants.APP_VERSION
+import com.bluetriangle.analytics.Constants.BREADCRUMBS
 import com.bluetriangle.analytics.Constants.SDK_VERSION
 import com.bluetriangle.analytics.Timer.Companion.FIELD_NET_STATE_SOURCE
 import com.bluetriangle.analytics.deviceinfo.DeviceInfo
@@ -10,7 +11,8 @@ import com.bluetriangle.analytics.networkcapture.CapturedRequest.Companion.FIELD
 data class ErrorNativeAppProperties(
     var netState: String? = null,
     private var deviceModel: String? = null,
-    var netStateSource: String? = null
+    var netStateSource: String? = null,
+    var breadcrumbs: String? = null
 ) {
 
     val appVersion: String? = Tracker.instance?.appVersion
@@ -29,6 +31,9 @@ data class ErrorNativeAppProperties(
         appVersion?.let {
             this[SDK_VERSION] = sdkVersion
             this[APP_VERSION] = appVersion
+        }
+        breadcrumbs?.let {
+            this[BREADCRUMBS] = breadcrumbs
         }
     }
 }

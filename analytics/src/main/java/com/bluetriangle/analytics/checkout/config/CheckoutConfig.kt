@@ -6,7 +6,7 @@ import com.bluetriangle.analytics.Constants.DEFAULT_CHECKOUT_AMOUNT
 import com.bluetriangle.analytics.Constants.DEFAULT_CHECKOUT_TRACKING_ENABLED
 import com.bluetriangle.analytics.Constants.DEFAULT_TIMER_VALUE
 
-class CheckoutConfig(
+internal class CheckoutConfig(
     val isEnabled: Boolean,
     val classNames: List<String>,
     val networkUrlPattern: String?,

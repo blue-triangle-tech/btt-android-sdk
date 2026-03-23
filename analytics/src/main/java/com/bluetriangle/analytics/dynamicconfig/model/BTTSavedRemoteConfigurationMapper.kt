@@ -6,26 +6,27 @@
 package com.bluetriangle.analytics.dynamicconfig.model
 
 import com.bluetriangle.analytics.Constants
+import com.bluetriangle.analytics.Constants.DEFAULT_CONFIG_KEY
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_ANR_TRACKING
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_CRASH_TRACKING
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_GROUPING
+import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_GROUPING_TAP_DETECTION
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_LAUNCH_TIME
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_MEMORY_WARNING
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_NETWORK_STATE_TRACKING
 import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_WEB_VIEW_STITCHING
-import com.bluetriangle.analytics.Constants.DEFAULT_ENABLE_GROUPING_TAP_DETECTION
-import com.bluetriangle.analytics.checkout.config.CheckoutConfig
+import com.bluetriangle.analytics.breadcrumbs.config.BreadcrumbsConfigMapper
 import com.bluetriangle.analytics.checkout.config.CheckoutConfigMapper
 import com.bluetriangle.analytics.utility.getBooleanOrNull
 import com.bluetriangle.analytics.utility.getDoubleOrNull
 import com.bluetriangle.analytics.utility.getIntOrNull
 import com.bluetriangle.analytics.utility.getJsonArrayOrNull
+import com.bluetriangle.analytics.utility.getStringOrNull
 import org.json.JSONArray
 import org.json.JSONObject
 
 internal object BTTSavedRemoteConfigurationMapper {
     private const val NETWORK_SAMPLE_RATE = "networkSampleRateSDK"
-    private const val ENABLE_REMOTE_CONFIG = "enableRemoteConfigAck"
     private const val SAVED_DATE = "savedDate"
     private const val IGNORE_SCREENS = "ignoreScreens"
     private const val ENABLE_ALL_TRACKING = "enableAllTracking"
@@ -39,6 +40,8 @@ internal object BTTSavedRemoteConfigurationMapper {
     private const val ENABLE_MEMORY_WARNING = "enableMemoryWarning"
     private const val ENABLE_LAUNCH_TIME = "enableLaunchTime"
     private const val ENABLE_WEB_VIEW_STITCHING = "enableWebViewStitching"
+
+    private const val CONFIG_KEY = "configKey"
 
     fun fromJson(jsonObject: JSONObject, defaultConfig: BTTRemoteConfiguration): BTTSavedRemoteConfiguration {
         val ignoreScreens = jsonObject.getJsonArrayOrNull(IGNORE_SCREENS)?.let { array ->
@@ -54,7 +57,6 @@ internal object BTTSavedRemoteConfigurationMapper {
         return BTTSavedRemoteConfiguration(
             jsonObject.getDoubleOrNull(NETWORK_SAMPLE_RATE),
             ignoreScreens,
-            jsonObject.getBoolean(ENABLE_REMOTE_CONFIG),
             jsonObject.getBooleanOrNull(ENABLE_ALL_TRACKING)?:defaultConfig.enableAllTracking,
             jsonObject.getBooleanOrNull(ENABLE_SCREEN_TRACKING)?:defaultConfig.enableScreenTracking,
             jsonObject.getBooleanOrNull(ENABLE_GROUPING)?:DEFAULT_ENABLE_GROUPING,
@@ -67,6 +69,8 @@ internal object BTTSavedRemoteConfigurationMapper {
             jsonObject.getBooleanOrNull(ENABLE_LAUNCH_TIME) ?: DEFAULT_ENABLE_LAUNCH_TIME,
             jsonObject.getBooleanOrNull(ENABLE_WEB_VIEW_STITCHING) ?: DEFAULT_ENABLE_WEB_VIEW_STITCHING,
             CheckoutConfigMapper.loadFromJsonObject(jsonObject),
+            BreadcrumbsConfigMapper.loadFromJsonObject(jsonObject),
+            jsonObject.getStringOrNull(CONFIG_KEY) ?: DEFAULT_CONFIG_KEY,
             jsonObject.getLong(SAVED_DATE)
         )
     }
@@ -79,7 +83,6 @@ internal object BTTSavedRemoteConfigurationMapper {
         put(NETWORK_SAMPLE_RATE, config.networkSampleRate)
         put(IGNORE_SCREENS, ignoreListArray)
         put(ENABLE_ALL_TRACKING, config.enableAllTracking)
-        put(ENABLE_REMOTE_CONFIG, config.enableRemoteConfigAck)
         put(ENABLE_SCREEN_TRACKING, config.enableScreenTracking)
         put(ENABLE_GROUPING, config.enableGrouping)
         put(GROUPING_IDLE_TIME, config.groupingIdleTime)
@@ -91,6 +94,8 @@ internal object BTTSavedRemoteConfigurationMapper {
         put(ENABLE_LAUNCH_TIME, config.enableLaunchTime)
         put(ENABLE_WEB_VIEW_STITCHING, config.enableWebViewStitching)
         CheckoutConfigMapper.loadIntoJsonObject(this, config.checkoutConfig)
+        BreadcrumbsConfigMapper.loadIntoJsonObject(this, config.breadcrumbsConfig)
+        put(CONFIG_KEY, config.configKey)
         put(SAVED_DATE, config.savedDate)
     }
 

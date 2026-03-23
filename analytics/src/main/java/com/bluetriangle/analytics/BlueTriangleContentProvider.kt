@@ -17,7 +17,7 @@ class BlueTriangleContentProvider: ContentProvider() {
                 AppEventHub.instance.addConsumer(it)
             }
             val application = (context!!.applicationContext as Application)
-            AppEventHub.instance.onAppCreated(application)
+            AppEventHub.instance.onAppCreated(application, System.currentTimeMillis())
         } catch (e: Exception) {
             Log.e("BlueTriangle", "Error while getting Application instance in ContentProvider.onCreate : ${e::class.java.simpleName}(\"${e.message}\")")
         }

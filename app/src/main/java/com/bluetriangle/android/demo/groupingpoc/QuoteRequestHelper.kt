@@ -1,5 +1,6 @@
 package com.bluetriangle.android.demo.groupingpoc
 
+import android.os.Parcelable
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
@@ -15,6 +16,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.parcelize.Parcelize
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient
@@ -22,6 +24,8 @@ import okhttp3.Request
 import okhttp3.Response
 import org.json.JSONObject
 import java.io.IOException
+import java.time.Duration
+import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resumeWithException
 
 class QuoteRequestHelper {
@@ -40,7 +44,8 @@ class QuoteRequestHelper {
             }
     }
 
-    data class Quote(val quote: String, val author: String)
+    @Parcelize
+    data class Quote(val quote: String, val author: String): Parcelable
 
     fun setupQuoteUI(lifecycleScope: CoroutineScope, view: View) {
         val getQuoteButton = view.findViewById<Button>(R.id.get_quote_button)
@@ -50,12 +55,16 @@ class QuoteRequestHelper {
 
         getQuoteButton.setOnClickListener {
             lifecycleScope.launch(IO) {
-                val quote = getQuote()
+                try {
+                    val quote = getQuote()
 
-                withContext(Main) {
-                    quoteCard.visibility = View.VISIBLE
-                    quoteText.text = quote.quote
-                    authorText.text = quote.author
+                    withContext(Main) {
+                        quoteCard.visibility = View.VISIBLE
+                        quoteText.text = quote.quote
+                        authorText.text = quote.author
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             }
         }
@@ -104,7 +113,7 @@ class QuoteRequestHelper {
             .build()
     }
 
-    private fun createOkHttpClient() = OkHttpClient.Builder().apply {
+    private fun createOkHttpClient() = OkHttpClient.Builder().callTimeout(2, TimeUnit.SECONDS).apply {
         Tracker.instance?.let {
             addInterceptor(BlueTriangleOkHttpInterceptor(it.configuration))
         }

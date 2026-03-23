@@ -4,6 +4,7 @@ package com.bluetriangle.analytics
  * constant values used across the SDK
  */
 object Constants {
+    internal const val UNKNOWN = "unknown"
     const val OS = "Android"
     const val CRASH_PAGE_NAME = "Android Crash"
     const val BROWSER = "Native App"
@@ -47,8 +48,12 @@ object Constants {
     internal const val DEFAULT_CART_COUNT_CHECKOUT = 1
     internal const val DEFAULT_TIMER_VALUE = 100
 
+    internal const val DEFAULT_CONFIG_KEY = UNKNOWN
+
     internal const val SDK_VERSION = "sdkVersion"
     internal const val APP_VERSION = "appVersion"
+
+    internal const val BREADCRUMBS = "breadcrumbs"
     internal const val NUMBER_OF_CPU_CORES = "numberOfCPUCores"
     internal const val SCREEN_TYPE = "screenType"
     internal const val MAX_MAIN_THREAD_USAGE = "maxMainThreadUsage"
@@ -68,8 +73,12 @@ object Constants {
     internal const val CONFIDENCE_MSG = "confidenceMsg"
 
     internal const val AUTO_CHECKOUT = "autoCheckout"
+    internal const val CONFIG_KEY = "configKey"
 
     internal const val DEFAULT_TRAFFIC_SEGMENT_NAME = "Main Segment"
     internal const val DEFAULT_CONTENT_GROUP_NAME = "Main Group"
     internal const val MAX_FIELD_CHAR_LENGTH: Int = 512
+
+    internal const val DEFAULT_ENABLE_BREADCRUMBS = true
+    internal const val DEFAULT_BREADCRUMBS_CAPACITY = 150
 }

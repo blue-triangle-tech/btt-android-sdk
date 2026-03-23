@@ -5,12 +5,12 @@
  */
 package com.bluetriangle.analytics.dynamicconfig.model
 
+import com.bluetriangle.analytics.breadcrumbs.config.BreadcrumbsConfig
 import com.bluetriangle.analytics.checkout.config.CheckoutConfig
 
 internal class BTTSavedRemoteConfiguration(
     networkSampleRate: Double?,
     ignoreScreens: List<String>,
-    enableRemoteConfigAck: Boolean,
     enableAllTracking: Boolean,
     enableScreenTracking: Boolean,
     enableGrouping: Boolean,
@@ -23,12 +23,13 @@ internal class BTTSavedRemoteConfiguration(
     enableLaunchTime: Boolean,
     enableWebViewStitching: Boolean,
     checkoutConfig: CheckoutConfig,
+    breadcrumbsConfig: BreadcrumbsConfig,
+    configKey: String,
     val savedDate: Long
 ) : BTTRemoteConfiguration(
     networkSampleRate,
     ignoreScreens,
     enableAllTracking,
-    enableRemoteConfigAck,
     enableScreenTracking,
     enableGrouping,
     groupingIdleTime,
@@ -39,14 +40,15 @@ internal class BTTSavedRemoteConfiguration(
     enableMemoryWarning,
     enableLaunchTime,
     enableWebViewStitching,
-    checkoutConfig
+    checkoutConfig,
+    breadcrumbsConfig,
+    configKey
 ) {
 
     companion object {
         fun from(remoteConfig: BTTRemoteConfiguration) = BTTSavedRemoteConfiguration(
             remoteConfig.networkSampleRate,
             remoteConfig.ignoreScreens,
-            remoteConfig.enableRemoteConfigAck,
             remoteConfig.enableAllTracking,
             remoteConfig.enableScreenTracking,
             remoteConfig.enableGrouping,
@@ -59,6 +61,8 @@ internal class BTTSavedRemoteConfiguration(
             remoteConfig.enableLaunchTime,
             remoteConfig.enableWebViewStitching,
             remoteConfig.checkoutConfig,
+            remoteConfig.breadcrumbsConfig,
+            remoteConfig.configKey,
             System.currentTimeMillis()
         )
     }

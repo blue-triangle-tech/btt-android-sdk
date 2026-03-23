@@ -12,6 +12,7 @@ import androidx.lifecycle.Lifecycle.Event.ON_STOP
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import com.bluetriangle.analytics.Tracker
+import com.bluetriangle.analytics.lifecycle.LifecycleRegistry
 import com.bluetriangle.analytics.model.Screen
 import com.bluetriangle.analytics.model.ScreenType
 import com.bluetriangle.analytics.screenTracking.ScreenLifecycleTracker
@@ -21,10 +22,12 @@ import com.bluetriangle.analytics.screenTracking.ScreenLifecycleTracker
 fun BttTimerEffect(screenName: String) {
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(Unit) {
+        LifecycleRegistry.onEnterComposition(screenName)
         val screenTracker = Tracker.instance?.screenTrackMonitor
         val observer = ComposableLifecycleObserver(screenTracker, screenName)
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
+            LifecycleRegistry.onLeaveComposition(screenName)
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }

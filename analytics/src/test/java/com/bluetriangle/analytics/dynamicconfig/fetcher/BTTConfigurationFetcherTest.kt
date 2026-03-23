@@ -1,6 +1,8 @@
 package com.bluetriangle.analytics.dynamicconfig.fetcher
 
 import com.bluetriangle.analytics.Logger
+import com.bluetriangle.analytics.breadcrumbs.config.BreadcrumbsConfig
+import com.bluetriangle.analytics.checkout.config.CheckoutConfig
 import com.bluetriangle.analytics.dynamicconfig.model.BTTRemoteConfiguration
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
@@ -100,9 +102,17 @@ class BTTConfigurationFetcherTest {
                 true,
                 false,
                 true,
-                false,
-                5,
-                0.3
+                2,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                CheckoutConfig.DEFAULT,
+                BreadcrumbsConfig.DEFAULT,
+                ""
             )
             val result = fetcher.fetch()
 
