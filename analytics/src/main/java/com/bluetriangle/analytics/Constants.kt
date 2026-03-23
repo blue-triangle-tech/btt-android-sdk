@@ -52,6 +52,8 @@ object Constants {
 
     internal const val SDK_VERSION = "sdkVersion"
     internal const val APP_VERSION = "appVersion"
+
+    internal const val BREADCRUMBS = "breadcrumbs"
     internal const val NUMBER_OF_CPU_CORES = "numberOfCPUCores"
     internal const val SCREEN_TYPE = "screenType"
     internal const val MAX_MAIN_THREAD_USAGE = "maxMainThreadUsage"

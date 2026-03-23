@@ -1,6 +1,7 @@
 package com.bluetriangle.analytics
 
 import com.bluetriangle.analytics.Constants.APP_VERSION
+import com.bluetriangle.analytics.Constants.BREADCRUMBS
 import com.bluetriangle.analytics.Constants.SDK_VERSION
 import com.bluetriangle.analytics.Timer.Companion.FIELD_NET_STATE_SOURCE
 import com.bluetriangle.analytics.deviceinfo.DeviceInfo
@@ -32,7 +33,7 @@ data class ErrorNativeAppProperties(
             this[APP_VERSION] = appVersion
         }
         breadcrumbs?.let {
-            this["breadcrumbs"] = breadcrumbs
+            this[BREADCRUMBS] = breadcrumbs
         }
     }
 }
