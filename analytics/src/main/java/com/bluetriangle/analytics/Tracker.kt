@@ -164,7 +164,7 @@ class Tracker private constructor(
         this.configuration = configuration
         this.deviceInfoProvider = DeviceInfoProvider
         this.anrReporter = ANRReporter(deviceInfoProvider)
-        this.appLaunchReporter = AppLaunchReporter()
+        this.appLaunchReporter = AppLaunchReporter(configuration.logger, application.applicationContext, deviceInfoProvider, configuration.forceRestartDuration)
         this.memoryWarningReporter = MemoryWarningReporter(deviceInfoProvider)
         this.globalPropertiesStore = GlobalPropertiesStore(application.applicationContext)
 
@@ -244,6 +244,11 @@ class Tracker private constructor(
             enableBreadcrumbs(sessionData.breadcrumbsConfig, configuration.shouldDetectTap)
         }
 
+        if (configuration.isForceRestartEnable) {
+            appLaunchReporter.setForceRestartDuration(sessionData.forceRestartDuration)
+            startAppLaunchReporter()
+        }
+
         checkAppVersion()
         configuration.logger?.debug("SDK is enabled")
     }
@@ -297,6 +302,7 @@ class Tracker private constructor(
         disableLaunchMonitor()
         LifecycleRegistry.uninstall()
         disableBreadcrumbs()
+        stopAppLaunchReporter()
         configuration.logger?.debug("SDK is disabled.")
     }
 
@@ -308,6 +314,14 @@ class Tracker private constructor(
     private fun stopPerformanceMonitoring() {
         performanceMonitor?.stopRunning()
         performanceMonitor = null
+    }
+
+    private fun startAppLaunchReporter() {
+        appLaunchReporter.start()
+    }
+
+    private fun stopAppLaunchReporter() {
+        appLaunchReporter.stop()
     }
 
     fun trackCrashes() {
@@ -951,6 +965,22 @@ class Tracker private constructor(
             }
         }
 
+        if (configuration.forceRestartDuration != sessionData.forceRestartDuration) {
+            changes.append("\nforceRestartDuration: ${configuration.forceRestartDuration} -> ${sessionData.forceRestartDuration}")
+            configuration.forceRestartDuration = sessionData.forceRestartDuration
+            appLaunchReporter.setForceRestartDuration(sessionData.forceRestartDuration)
+        }
+
+        if (configuration.isForceRestartEnable != sessionData.enableForceRestart) {
+            changes.append("\nenableForceRestart: ${configuration.isForceRestartEnable} -> ${sessionData.enableForceRestart}")
+            configuration.isForceRestartEnable = sessionData.enableForceRestart
+            if (configuration.isForceRestartEnable) {
+                startAppLaunchReporter()
+            } else {
+                stopAppLaunchReporter()
+            }
+        }
+
         if(configuration.isWebViewStitchingEnabled != sessionData.enableWebViewStitching) {
             changes.append("\nenableWebViewStitching: ${configuration.isWebViewStitchingEnabled} -> ${sessionData.enableWebViewStitching}")
             configuration.isWebViewStitchingEnabled = sessionData.enableWebViewStitching
@@ -1217,6 +1247,7 @@ class Tracker private constructor(
         NativeAppCrash(BTTEvent.Crash),
         ANRWarning(BTTEvent.ANRWarning),
         MemoryWarning(BTTEvent.MemoryWarning),
+        ForceRestart(BTTEvent.ForceRestart),
         BTTConfigUpdateError;
 
         val errorName: String

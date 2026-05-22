@@ -81,6 +81,10 @@ internal class BreadcrumbsManager(var config: BreadcrumbsConfig, private val sho
         return breadcrumbsCollector?.snapshot()
     }
 
+    fun getCachedSnapshot(): JSONArray? {
+        return breadcrumbsCollector?.getCachedSnapshot()
+    }
+
     fun dump() {
         breadcrumbsCollector?.dump()
     }

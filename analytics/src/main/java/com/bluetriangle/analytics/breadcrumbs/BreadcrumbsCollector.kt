@@ -63,6 +63,27 @@ internal class BreadcrumbsCollector(
     }
 
     @Synchronized
+    fun getCachedSnapshot(): JSONArray {
+        val result = JSONArray()
+
+        val existingBreadcrumbs = prefs?.getString(BREADCRUMBS, null)
+        existingBreadcrumbs?.let {
+            try {
+                val jsonArray = JSONArray(it)
+                for (i in 0 until jsonArray.length()) {
+                    val jsonObject = jsonArray.getJSONObject(i)
+                    result.put(jsonObject)
+                    BreadcrumbEvent.fromJson(jsonObject)
+                        ?.let { breadcrumb -> result.put(breadcrumb) }
+                }
+            } catch (e: Exception) {
+            }
+        }
+
+        return result
+    }
+
+    @Synchronized
     fun clear() {
         head = 0
         size = 0
