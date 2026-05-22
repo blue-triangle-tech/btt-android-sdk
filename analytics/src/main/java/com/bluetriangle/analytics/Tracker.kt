@@ -232,15 +232,15 @@ class Tracker private constructor(
             LifecycleRegistry.install(it)
         }
         if(sessionData.breadcrumbsConfig.isEnabled) {
-            enableBreadcrumbs(sessionData.breadcrumbsConfig)
+            enableBreadcrumbs(sessionData.breadcrumbsConfig, configuration.shouldDetectTap)
         }
 
         checkAppVersion()
         configuration.logger?.debug("SDK is enabled")
     }
 
-    private fun enableBreadcrumbs(breadcrumbsConfig: BreadcrumbsConfig) {
-        breadcrumbsManager = BreadcrumbsManager(breadcrumbsConfig)
+    private fun enableBreadcrumbs(breadcrumbsConfig: BreadcrumbsConfig, shouldDetectTap: Boolean) {
+        breadcrumbsManager = BreadcrumbsManager(breadcrumbsConfig, shouldDetectTap)
         breadcrumbsManager?.install()
     }
 
@@ -938,15 +938,15 @@ class Tracker private constructor(
         if(sessionData.breadcrumbsConfig.isEnabled != isBreadcrumbsEnabled) {
             changes.append("\nenableBreadcrumbs: $isBreadcrumbsEnabled -> ${sessionData.breadcrumbsConfig.isEnabled}")
             if(sessionData.breadcrumbsConfig.isEnabled) {
-                enableBreadcrumbs(sessionData.breadcrumbsConfig)
+                enableBreadcrumbs(sessionData.breadcrumbsConfig, configuration.shouldDetectTap)
             } else {
                 disableBreadcrumbs()
             }
         }
 
-        if(sessionData.breadcrumbsConfig.ignoredFeatures != breadcrumbsManager?.config?.ignoredFeatures) {
+        if(sessionData.breadcrumbsConfig.ignoredFeatures != breadcrumbsManager?.config?.ignoredFeatures || configuration.isGroupingTapDetectionEnabled != sessionData.enableGroupingTapDetection) {
             changes.append("\nignoreBreadcrumbs: ${breadcrumbsManager?.config?.ignoredFeatures} -> ${sessionData.breadcrumbsConfig.ignoredFeatures}")
-            breadcrumbsManager?.updateConfig(sessionData.breadcrumbsConfig)
+            breadcrumbsManager?.updateConfig(sessionData.breadcrumbsConfig, configuration.shouldDetectTap)
         }
         val changesString = changes.toString()
         if(changesString.isNotEmpty()) {

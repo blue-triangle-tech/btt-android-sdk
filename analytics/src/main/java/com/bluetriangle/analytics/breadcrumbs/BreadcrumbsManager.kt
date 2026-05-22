@@ -13,7 +13,7 @@ import com.bluetriangle.analytics.breadcrumbs.instrumentation.UiLifecycleInstrum
 import com.bluetriangle.analytics.breadcrumbs.instrumentation.UserEventInstrumentation
 import org.json.JSONArray
 
-internal class BreadcrumbsManager(var config: BreadcrumbsConfig) {
+internal class BreadcrumbsManager(var config: BreadcrumbsConfig, private val shouldDetectTap: Boolean) {
     private var breadcrumbsCollector: BreadcrumbsCollector? = null
     private var instrumentations: MutableMap<BreadcrumbsFeature, BreadcrumbInstrumentation> = mutableMapOf()
 
@@ -29,7 +29,7 @@ internal class BreadcrumbsManager(var config: BreadcrumbsConfig) {
         }
 
         instrumentations.values.forEach {
-            it.enable()
+            if (it !is UserEventInstrumentation || shouldDetectTap) it.enable()
         }
     }
 
@@ -53,7 +53,7 @@ internal class BreadcrumbsManager(var config: BreadcrumbsConfig) {
         BreadcrumbsFeature.SystemEvent -> SystemEventsInstrumentation(collector)
     }
 
-    fun updateConfig(config: BreadcrumbsConfig) {
+    fun updateConfig(config: BreadcrumbsConfig, shouldDetectTap: Boolean) {
         val collector = breadcrumbsCollector?: return
         val newFeatures = BreadcrumbsFeature.values().filterNot { config.ignoredFeatures.contains(it) }
         val toBeDisabled = features.filterNot { newFeatures.contains(it) }
@@ -65,7 +65,13 @@ internal class BreadcrumbsManager(var config: BreadcrumbsConfig) {
         }
         toBeEnabled.forEach {
             instrumentations[it] = featureToInstrumentation(it, collector)
-            instrumentations[it]?.enable()
+            // Enable User Event only if tap tracking is enabled
+            if (it == BreadcrumbsFeature.UserEvent && !shouldDetectTap) {
+                instrumentations[it]?.disable()
+                instrumentations.remove(it)
+            } else {
+                instrumentations[it]?.enable()
+            }
         }
     }
 
