@@ -1,5 +1,6 @@
 package com.bluetriangle.analytics.breadcrumbs
 
+import android.content.Context
 import com.bluetriangle.analytics.breadcrumbs.config.BreadcrumbsConfig
 import com.bluetriangle.analytics.breadcrumbs.config.BreadcrumbsFeature
 import com.bluetriangle.analytics.breadcrumbs.instrumentation.AppInstallInstrumentation
@@ -12,15 +13,16 @@ import com.bluetriangle.analytics.breadcrumbs.instrumentation.SystemEventsInstru
 import com.bluetriangle.analytics.breadcrumbs.instrumentation.UiLifecycleInstrumentation
 import com.bluetriangle.analytics.breadcrumbs.instrumentation.UserEventInstrumentation
 import org.json.JSONArray
+import java.lang.ref.WeakReference
 
-internal class BreadcrumbsManager(var config: BreadcrumbsConfig, private val shouldDetectTap: Boolean) {
+internal class BreadcrumbsManager(var config: BreadcrumbsConfig, private val shouldDetectTap: Boolean, private val context: WeakReference<Context>) {
     private var breadcrumbsCollector: BreadcrumbsCollector? = null
     private var instrumentations: MutableMap<BreadcrumbsFeature, BreadcrumbInstrumentation> = mutableMapOf()
 
     private var features = BreadcrumbsFeature.values().filterNot { config.ignoredFeatures.contains(it) }
 
     fun install() {
-        breadcrumbsCollector = BreadcrumbsCollector(config.capacity)
+        breadcrumbsCollector = BreadcrumbsCollector(config.capacity, context)
 
         breadcrumbsCollector?.let { collector ->
             instrumentations = features.associateWith {
@@ -79,4 +81,7 @@ internal class BreadcrumbsManager(var config: BreadcrumbsConfig, private val sho
         return breadcrumbsCollector?.snapshot()
     }
 
+    fun dump() {
+        breadcrumbsCollector?.dump()
+    }
 }

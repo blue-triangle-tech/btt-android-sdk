@@ -240,7 +240,7 @@ class Tracker private constructor(
     }
 
     private fun enableBreadcrumbs(breadcrumbsConfig: BreadcrumbsConfig, shouldDetectTap: Boolean) {
-        breadcrumbsManager = BreadcrumbsManager(breadcrumbsConfig, shouldDetectTap)
+        breadcrumbsManager = BreadcrumbsManager(breadcrumbsConfig, shouldDetectTap, context)
         breadcrumbsManager?.install()
     }
 
@@ -751,6 +751,11 @@ class Tracker private constructor(
         }
     }
 
+    fun onScreenPause() {
+        // Save breadcrumbs on screen pause
+        breadcrumbsManager?.dump()
+    }
+
     /**
      * Set a global field to be applied to all trackers
      *
@@ -1193,7 +1198,7 @@ class Tracker private constructor(
     }
 
     companion object {
-        private const val SHARED_PREFERENCES_NAME = "BTT_SHARED_PREFERENCES"
+        internal const val SHARED_PREFERENCES_NAME = "BTT_SHARED_PREFERENCES"
 
         /**
          * String resource name for the site ID

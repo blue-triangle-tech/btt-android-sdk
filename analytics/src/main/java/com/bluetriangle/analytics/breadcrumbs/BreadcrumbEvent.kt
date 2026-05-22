@@ -17,6 +17,28 @@ internal sealed class BreadcrumbEvent(
         data.writeTo(this)
     }
 
+    companion object {
+        fun fromJson(json: JSONObject): BreadcrumbEvent? {
+            val type = json.getString("type")
+            val timestamp = json.getLong("timestamp")
+            return when (type) {
+                "ui.lifecycle" -> UiLifecycle(UiLifecycle.UiLifecycleData.fromJson(json))
+                "system.event" -> SystemEvent(SystemEvent.SystemEventData.fromJson(json))
+                "app.lifecycle" -> AppLifecycle(
+                    AppLifecycle.AppLifecycleData.fromJson(json),
+                    timestamp
+                )
+
+                "network.request" -> NetworkRequest(NetworkRequest.NetworkRequestData.fromJson(json))
+                "network.state" -> NetworkState(NetworkState.NetworkStateData.fromJson(json))
+                "user.event" -> UserEvent(UserEvent.UserEventData.fromJson(json))
+                "app.install" -> AppInstall(AppInstall.AppInstallData.fromJson(json))
+                "app.update" -> AppUpdate(AppUpdate.AppUpdateData.fromJson(json))
+                else -> null
+            }
+        }
+    }
+
     class UiLifecycle(data: UiLifecycleData) :
         BreadcrumbEvent("ui.lifecycle", System.currentTimeMillis(), data) {
         data class UiLifecycleData(
@@ -26,6 +48,15 @@ internal sealed class BreadcrumbEvent(
             override fun writeTo(jsonObject: JSONObject) {
                 jsonObject.put("className", className)
                 jsonObject.put("event", event)
+            }
+
+            companion object {
+                fun fromJson(json: JSONObject): UiLifecycleData {
+                    return UiLifecycleData(
+                        className = json.getString("className"),
+                        event = json.getString("event")
+                    )
+                }
             }
         }
     }
@@ -40,6 +71,15 @@ internal sealed class BreadcrumbEvent(
                 jsonObject.put("eventType", eventType)
                 jsonObject.put("event", event)
             }
+
+            companion object {
+                fun fromJson(json: JSONObject): SystemEventData {
+                    return SystemEventData(
+                        eventType = json.getString("eventType"),
+                        event = json.getString("event")
+                    )
+                }
+            }
         }
     }
 
@@ -50,6 +90,14 @@ internal sealed class BreadcrumbEvent(
         ) : Data {
             override fun writeTo(jsonObject: JSONObject) {
                 jsonObject.put("event", event)
+            }
+
+            companion object {
+                fun fromJson(json: JSONObject): AppLifecycleData {
+                    return AppLifecycleData(
+                        event = json.getString("event")
+                    )
+                }
             }
         }
     }
@@ -64,6 +112,15 @@ internal sealed class BreadcrumbEvent(
                 jsonObject.put("url", url)
                 jsonObject.put("statusCode", statusCode.toString())
             }
+
+            companion object {
+                fun fromJson(json: JSONObject): NetworkRequestData {
+                    return NetworkRequestData(
+                        url = json.getString("url"),
+                        statusCode = json.getString("statusCode").toInt()
+                    )
+                }
+            }
         }
     }
 
@@ -74,6 +131,14 @@ internal sealed class BreadcrumbEvent(
         ) : Data {
             override fun writeTo(jsonObject: JSONObject) {
                 jsonObject.put("state", state)
+            }
+
+            companion object {
+                fun fromJson(json: JSONObject): NetworkStateData {
+                    return NetworkStateData(
+                        state = json.getString("state")
+                    )
+                }
             }
         }
     }
@@ -98,6 +163,18 @@ internal sealed class BreadcrumbEvent(
                 jsonObject.put("x", x.toString())
                 jsonObject.put("y", y.toString())
             }
+
+            companion object {
+                fun fromJson(json: JSONObject): UserEventData {
+                    return UserEventData(
+                        action = json.getString("action"),
+                        targetClass = json.optString("targetClass", null),
+                        targetId = json.optString("targetId", null),
+                        x = json.getString("x").toFloat(),
+                        y = json.getString("y").toFloat()
+                    )
+                }
+            }
         }
     }
 
@@ -108,6 +185,14 @@ internal sealed class BreadcrumbEvent(
         ) : Data {
             override fun writeTo(jsonObject: JSONObject) {
                 jsonObject.put("version", version)
+            }
+
+            companion object {
+                fun fromJson(json: JSONObject): AppInstallData {
+                    return AppInstallData(
+                        version = json.getString("version")
+                    )
+                }
             }
         }
     }
@@ -121,6 +206,15 @@ internal sealed class BreadcrumbEvent(
             override fun writeTo(jsonObject: JSONObject) {
                 jsonObject.put("from", from)
                 jsonObject.put("to", to)
+            }
+
+            companion object {
+                fun fromJson(json: JSONObject): AppUpdateData {
+                    return AppUpdateData(
+                        from = json.getString("from"),
+                        to = json.getString("to")
+                    )
+                }
             }
         }
     }

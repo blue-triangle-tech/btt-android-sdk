@@ -107,6 +107,9 @@ internal class BTTScreenLifecycleTracker(
         } else {
             timer.end().submit()
         }
+
+        Tracker.instance?.onScreenPause()
+
         timers.remove(scr)
     }
 
