@@ -25,6 +25,7 @@ import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
 import com.bluetriangle.analytics.Timer.Companion.FIELD_TRAFFIC_SEGMENT_NAME
 import com.bluetriangle.analytics.anrwatchdog.ANRReporter
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
+import com.bluetriangle.analytics.applaunch.AppLaunchReporter
 import com.bluetriangle.analytics.breadcrumbs.BreadcrumbsManager
 import com.bluetriangle.analytics.breadcrumbs.config.BreadcrumbsConfig
 import com.bluetriangle.analytics.checkout.config.CheckoutConfig
@@ -139,6 +140,10 @@ class Tracker private constructor(
 
     private val claritySessionConnector:ClaritySessionConnector
     internal val appVersion: String
+    internal var firstInstallTime: Long? = null
+        @Synchronized set
+
+    internal var appLaunchReporter: AppLaunchReporter
 
     private var launchReporter: LaunchReporter? = null
 
@@ -159,6 +164,7 @@ class Tracker private constructor(
         this.configuration = configuration
         this.deviceInfoProvider = DeviceInfoProvider
         this.anrReporter = ANRReporter(deviceInfoProvider)
+        this.appLaunchReporter = AppLaunchReporter()
         this.memoryWarningReporter = MemoryWarningReporter(deviceInfoProvider)
         this.globalPropertiesStore = GlobalPropertiesStore(application.applicationContext)
 
@@ -256,7 +262,16 @@ class Tracker private constructor(
         sharedPreferences?.let {
             val lastAppVersion = it.getString(APP_VERSION, null)
             if(lastAppVersion == null) {
-                SDKEventHub.instance.onAppInstall(appVersion)
+                context.get()?.let { ct ->
+                    val installTime: Long =
+                        ct.packageManager.getPackageInfo(ct.packageName, 0).firstInstallTime
+                    val updateTime: Long =
+                        ct.packageManager.getPackageInfo(ct.packageName, 0).lastUpdateTime
+                    if (installTime == updateTime) {
+                        firstInstallTime = installTime
+                        SDKEventHub.instance.onAppInstall(appVersion)
+                    }
+                }
             } else if(lastAppVersion != appVersion) {
                 SDKEventHub.instance.onAppUpdate(lastAppVersion, appVersion)
             }
@@ -1425,6 +1440,13 @@ class Tracker private constructor(
                             instance?.disable()
                             deInitializeSessionManager()
                             instance = null
+                        }
+                    }
+
+                    instance?.firstInstallTime?.let { installTime ->
+                        if (it?.enableAppInstall == true) {
+                            instance?.firstInstallTime = null
+                            instance?.appLaunchReporter?.reportAppInstall(installTime)
                         }
                     }
                 }

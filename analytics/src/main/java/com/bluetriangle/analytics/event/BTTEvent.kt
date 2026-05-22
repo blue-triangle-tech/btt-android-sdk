@@ -10,6 +10,6 @@ sealed class BTTEvent(val id: Int, val defaultPageName: String): Parcelable {
     object HotLaunch: BTTEvent(3, "HotLaunchTime")
     object ANRWarning: BTTEvent(4, "ANRWarning")
     object MemoryWarning: BTTEvent(5, "MemoryWarning")
-    object Crash: BTTEvent(7, "Android Crash")
-
+    object Crash: BTTEvent(7, "NativeAppCrash") // 8 is for iOS crash
+    object AppInstall: BTTEvent(8, "AppInstall")
 }
