@@ -112,7 +112,10 @@ class BTTConfigurationFetcherTest {
                 true,
                 CheckoutConfig.DEFAULT,
                 BreadcrumbsConfig.DEFAULT,
-                ""
+                "",
+                true,
+                true,
+                10.0
             )
             val result = fetcher.fetch()
 
