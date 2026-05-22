@@ -19,7 +19,10 @@ import com.bluetriangle.analytics.Constants.APP_VERSION
 import com.bluetriangle.analytics.Constants.DEFAULT_CONFIG_KEY
 import com.bluetriangle.analytics.Constants.MAX_FIELD_CHAR_LENGTH
 import com.bluetriangle.analytics.Constants.UNKNOWN
+import com.bluetriangle.analytics.Timer.Companion.FIELD_CONTENT_GROUP_NAME
+import com.bluetriangle.analytics.Timer.Companion.FIELD_PAGE_NAME
 import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
+import com.bluetriangle.analytics.Timer.Companion.FIELD_TRAFFIC_SEGMENT_NAME
 import com.bluetriangle.analytics.anrwatchdog.ANRReporter
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
 import com.bluetriangle.analytics.breadcrumbs.BreadcrumbsManager
@@ -751,9 +754,26 @@ class Tracker private constructor(
         }
     }
 
-    fun onScreenPause() {
+    fun onScreenPause(timer: Timer?) {
         // Save breadcrumbs on screen pause
         breadcrumbsManager?.dump()
+
+        val context = context.get() ?: return
+        val prefs = context.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
+
+        // Save current time as last foreground time
+        prefs?.edit {
+            putLong(Constants.APP_LAST_FOREGROUND_TIME, System.currentTimeMillis())
+        }
+
+        // Save pageName/PageType/txnName of most recent timer
+        timer?.let { timer ->
+            prefs?.edit {
+                putString(FIELD_PAGE_NAME, timer.getField(FIELD_PAGE_NAME))
+                putString(FIELD_CONTENT_GROUP_NAME, timer.getField(FIELD_CONTENT_GROUP_NAME))
+                putString(FIELD_TRAFFIC_SEGMENT_NAME, timer.getField(FIELD_TRAFFIC_SEGMENT_NAME))
+            }
+        }
     }
 
     /**

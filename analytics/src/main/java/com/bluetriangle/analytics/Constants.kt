@@ -52,6 +52,7 @@ object Constants {
 
     internal const val SDK_VERSION = "sdkVersion"
     internal const val APP_VERSION = "appVersion"
+    internal const val APP_LAST_FOREGROUND_TIME = "appLastForegroundTime"
 
     internal const val BREADCRUMBS = "breadcrumbs"
     internal const val NUMBER_OF_CPU_CORES = "numberOfCPUCores"

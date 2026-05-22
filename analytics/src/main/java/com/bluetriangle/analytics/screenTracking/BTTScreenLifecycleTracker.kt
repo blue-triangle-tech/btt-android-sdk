@@ -108,7 +108,7 @@ internal class BTTScreenLifecycleTracker(
             timer.end().submit()
         }
 
-        Tracker.instance?.onScreenPause()
+        Tracker.instance?.onScreenPause(timer)
 
         timers.remove(scr)
     }
@@ -151,6 +151,11 @@ internal class BTTScreenLifecycleTracker(
         if(tracker == null || !tracker.isGlobalFieldSet(Timer.FIELD_TRAFFIC_SEGMENT_NAME)) {
             timer.setTrafficSegmentName(AUTOMATED_TIMERS_TRAFFIC_SEGMENT)
         }
+
+        if (timer.getField(Timer.FIELD_TRAFFIC_SEGMENT_NAME) == null || timer.getField(Timer.FIELD_TRAFFIC_SEGMENT_NAME) == "null") {
+            timer.setTrafficSegmentName(AUTOMATED_TIMERS_TRAFFIC_SEGMENT)
+        }
+
         timer.pageTimeCalculator = {
             (pgTm).coerceAtLeast(TIMER_MIN_PGTM)
         }
