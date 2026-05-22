@@ -107,7 +107,10 @@ internal class SessionManager(
             config.checkoutConfig,
             config.breadcrumbsConfig,
             config.configKey,
-            getNewExpiration()
+            getNewExpiration(),
+            config.enableAppInstall,
+            config.enableForceRestart,
+            config.forceRestartDuration
         )
     }
 
@@ -147,7 +150,10 @@ internal class SessionManager(
                 it.checkoutConfig,
                 it.breadcrumbsConfig,
                 it.configKey,
-                getNewExpiration()
+                getNewExpiration(),
+                it.enableAppInstall,
+                it.enableForceRestart,
+                it.forceRestartDuration
             )
             sessionStore.storeSessionData(
                 newExpirySession
@@ -200,7 +206,10 @@ internal class SessionManager(
                                 config.checkoutConfig,
                                 config.breadcrumbsConfig,
                                 config.configKey,
-                                session.expiration
+                                session.expiration,
+                                config.enableAppInstall,
+                                config.enableForceRestart,
+                                config.forceRestartDuration
                             )
                             Tracker.instance?.updateSession(sessionData)
                             sessionStore.storeSessionData(

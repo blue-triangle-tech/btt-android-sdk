@@ -1314,7 +1314,10 @@ class Tracker private constructor(
                 enableWebViewStitching = configuration.isWebViewStitchingEnabled,
                 checkoutConfig = CheckoutConfig.DEFAULT,
                 breadcrumbsConfig = BreadcrumbsConfig.DEFAULT,
-                configKey = DEFAULT_CONFIG_KEY
+                configKey = DEFAULT_CONFIG_KEY,
+                enableAppInstall = configuration.isAppInstallEnabled,
+                enableForceRestart = configuration.isForceRestartEnable,
+                forceRestartDuration = configuration.forceRestartDuration
             )
 
             initializeConfigurationUpdater(application, configuration, defaultConfig)
@@ -1442,6 +1445,9 @@ class Tracker private constructor(
             isLaunchTimeEnabled = sessionData.enableLaunchTime
             isWebViewStitchingEnabled = sessionData.enableWebViewStitching
             isScreenTrackingEnabled = sessionData.enableScreenTracking
+            isAppInstallEnabled = sessionData.enableAppInstall
+            isForceRestartEnable = sessionData.enableForceRestart
+            forceRestartDuration = sessionData.forceRestartDuration
         }
 
         private lateinit var configurationRepository: IBTTConfigurationRepository

@@ -24,7 +24,10 @@ internal open class BTTRemoteConfiguration(
     val enableWebViewStitching: Boolean,
     val checkoutConfig: CheckoutConfig,
     val breadcrumbsConfig: BreadcrumbsConfig,
-    val configKey: String
+    val configKey: String,
+    val enableAppInstall: Boolean,
+    val enableForceRestart: Boolean,
+    val forceRestartDuration: Double
 ) {
     override fun equals(other: Any?): Boolean {
         if(other is BTTRemoteConfiguration) {
@@ -43,7 +46,10 @@ internal open class BTTRemoteConfiguration(
                     other.enableWebViewStitching == enableWebViewStitching &&
                     other.checkoutConfig == checkoutConfig &&
                     other.breadcrumbsConfig == breadcrumbsConfig &&
-                    other.configKey == configKey
+                    other.configKey == configKey &&
+                    other.enableAppInstall == enableAppInstall &&
+                    other.enableForceRestart == enableForceRestart &&
+                    other.forceRestartDuration == forceRestartDuration
         }
         return false
     }
@@ -69,6 +75,9 @@ internal open class BTTRemoteConfiguration(
         result = 31 * result + checkoutConfig.hashCode()
         result = 31 * result + breadcrumbsConfig.hashCode()
         result = 31 * result + configKey.hashCode()
+        result = 31 * result + enableAppInstall.hashCode()
+        result = 31 * result + enableForceRestart.hashCode()
+        result = 31 * result + forceRestartDuration.hashCode()
         return result
     }
 

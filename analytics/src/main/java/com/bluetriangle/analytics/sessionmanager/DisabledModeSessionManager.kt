@@ -39,7 +39,10 @@ internal class DisabledModeSessionManager(
         checkoutConfig = CheckoutConfig.DEFAULT,
         breadcrumbsConfig = BreadcrumbsConfig.DEFAULT,
         configKey = DEFAULT_CONFIG_KEY,
-        expiration = 0L
+        expiration = 0L,
+        enableAppInstall = false,
+        enableForceRestart = false,
+        forceRestartDuration = 10.0
     )
 
     override val sessionData: SessionData

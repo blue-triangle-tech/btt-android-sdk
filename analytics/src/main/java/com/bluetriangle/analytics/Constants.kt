@@ -40,6 +40,9 @@ object Constants {
     internal const val DEFAULT_ENABLE_MEMORY_WARNING = true
     internal const val DEFAULT_ENABLE_LAUNCH_TIME = true
     internal const val DEFAULT_ENABLE_WEB_VIEW_STITCHING = true
+    internal const val DEFAULT_ENABLE_APP_INSTALL = true
+    internal const val DEFAULT_ENABLE_FORCE_RESTART = true
+    internal const val DEFAULT_FORCE_RESTART_DURATION = 10.0
     internal const val DEFAULT_GROUPED_VIEW_SAMPLE_RATE = 0.05
 
     internal const val DEFAULT_CHECKOUT_TRACKING_ENABLED = false
