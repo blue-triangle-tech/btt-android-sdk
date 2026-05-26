@@ -19,9 +19,13 @@ import com.bluetriangle.analytics.Constants.APP_VERSION
 import com.bluetriangle.analytics.Constants.DEFAULT_CONFIG_KEY
 import com.bluetriangle.analytics.Constants.MAX_FIELD_CHAR_LENGTH
 import com.bluetriangle.analytics.Constants.UNKNOWN
+import com.bluetriangle.analytics.Timer.Companion.FIELD_CONTENT_GROUP_NAME
+import com.bluetriangle.analytics.Timer.Companion.FIELD_PAGE_NAME
 import com.bluetriangle.analytics.Timer.Companion.FIELD_SESSION_ID
+import com.bluetriangle.analytics.Timer.Companion.FIELD_TRAFFIC_SEGMENT_NAME
 import com.bluetriangle.analytics.anrwatchdog.ANRReporter
 import com.bluetriangle.analytics.anrwatchdog.AnrManager
+import com.bluetriangle.analytics.applaunch.AppLaunchReporter
 import com.bluetriangle.analytics.breadcrumbs.BreadcrumbsManager
 import com.bluetriangle.analytics.breadcrumbs.config.BreadcrumbsConfig
 import com.bluetriangle.analytics.checkout.config.CheckoutConfig
@@ -136,6 +140,10 @@ class Tracker private constructor(
 
     private val claritySessionConnector:ClaritySessionConnector
     internal val appVersion: String
+    internal var firstInstallTime: Long? = null
+        @Synchronized set
+
+    internal var appLaunchReporter: AppLaunchReporter
 
     private var launchReporter: LaunchReporter? = null
 
@@ -156,6 +164,7 @@ class Tracker private constructor(
         this.configuration = configuration
         this.deviceInfoProvider = DeviceInfoProvider
         this.anrReporter = ANRReporter(deviceInfoProvider)
+        this.appLaunchReporter = AppLaunchReporter(configuration.logger, application.applicationContext, deviceInfoProvider, configuration.forceRestartDuration)
         this.memoryWarningReporter = MemoryWarningReporter(deviceInfoProvider)
         this.globalPropertiesStore = GlobalPropertiesStore(application.applicationContext)
 
@@ -232,15 +241,20 @@ class Tracker private constructor(
             LifecycleRegistry.install(it)
         }
         if(sessionData.breadcrumbsConfig.isEnabled) {
-            enableBreadcrumbs(sessionData.breadcrumbsConfig)
+            enableBreadcrumbs(sessionData.breadcrumbsConfig, configuration.shouldDetectTap)
+        }
+
+        if (configuration.isForceRestartEnable) {
+            appLaunchReporter.setForceRestartDuration(sessionData.forceRestartDuration)
+            startAppLaunchReporter()
         }
 
         checkAppVersion()
         configuration.logger?.debug("SDK is enabled")
     }
 
-    private fun enableBreadcrumbs(breadcrumbsConfig: BreadcrumbsConfig) {
-        breadcrumbsManager = BreadcrumbsManager(breadcrumbsConfig)
+    private fun enableBreadcrumbs(breadcrumbsConfig: BreadcrumbsConfig, shouldDetectTap: Boolean) {
+        breadcrumbsManager = BreadcrumbsManager(breadcrumbsConfig, shouldDetectTap, context)
         breadcrumbsManager?.install()
     }
 
@@ -253,7 +267,16 @@ class Tracker private constructor(
         sharedPreferences?.let {
             val lastAppVersion = it.getString(APP_VERSION, null)
             if(lastAppVersion == null) {
-                SDKEventHub.instance.onAppInstall(appVersion)
+                context.get()?.let { ct ->
+                    val installTime: Long =
+                        ct.packageManager.getPackageInfo(ct.packageName, 0).firstInstallTime
+                    val updateTime: Long =
+                        ct.packageManager.getPackageInfo(ct.packageName, 0).lastUpdateTime
+                    if (installTime == updateTime) {
+                        firstInstallTime = installTime
+                        SDKEventHub.instance.onAppInstall(appVersion)
+                    }
+                }
             } else if(lastAppVersion != appVersion) {
                 SDKEventHub.instance.onAppUpdate(lastAppVersion, appVersion)
             }
@@ -279,6 +302,7 @@ class Tracker private constructor(
         disableLaunchMonitor()
         LifecycleRegistry.uninstall()
         disableBreadcrumbs()
+        stopAppLaunchReporter()
         configuration.logger?.debug("SDK is disabled.")
     }
 
@@ -290,6 +314,14 @@ class Tracker private constructor(
     private fun stopPerformanceMonitoring() {
         performanceMonitor?.stopRunning()
         performanceMonitor = null
+    }
+
+    private fun startAppLaunchReporter() {
+        appLaunchReporter.start()
+    }
+
+    private fun stopAppLaunchReporter() {
+        appLaunchReporter.stop()
     }
 
     fun trackCrashes() {
@@ -751,6 +783,28 @@ class Tracker private constructor(
         }
     }
 
+    fun onScreenPause(timer: Timer?) {
+        // Save breadcrumbs on screen pause
+        breadcrumbsManager?.dump()
+
+        val context = context.get() ?: return
+        val prefs = context.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
+
+        // Save current time as last foreground time
+        prefs?.edit {
+            putLong(Constants.APP_LAST_FOREGROUND_TIME, System.currentTimeMillis())
+        }
+
+        // Save pageName/PageType/txnName of most recent timer
+        timer?.let { timer ->
+            prefs?.edit {
+                putString(FIELD_PAGE_NAME, timer.getField(FIELD_PAGE_NAME))
+                putString(FIELD_CONTENT_GROUP_NAME, timer.getField(FIELD_CONTENT_GROUP_NAME))
+                putString(FIELD_TRAFFIC_SEGMENT_NAME, timer.getField(FIELD_TRAFFIC_SEGMENT_NAME))
+            }
+        }
+    }
+
     /**
      * Set a global field to be applied to all trackers
      *
@@ -911,6 +965,22 @@ class Tracker private constructor(
             }
         }
 
+        if (configuration.forceRestartDuration != sessionData.forceRestartDuration) {
+            changes.append("\nforceRestartDuration: ${configuration.forceRestartDuration} -> ${sessionData.forceRestartDuration}")
+            configuration.forceRestartDuration = sessionData.forceRestartDuration
+            appLaunchReporter.setForceRestartDuration(sessionData.forceRestartDuration)
+        }
+
+        if (configuration.isForceRestartEnable != sessionData.enableForceRestart) {
+            changes.append("\nenableForceRestart: ${configuration.isForceRestartEnable} -> ${sessionData.enableForceRestart}")
+            configuration.isForceRestartEnable = sessionData.enableForceRestart
+            if (configuration.isForceRestartEnable) {
+                startAppLaunchReporter()
+            } else {
+                stopAppLaunchReporter()
+            }
+        }
+
         if(configuration.isWebViewStitchingEnabled != sessionData.enableWebViewStitching) {
             changes.append("\nenableWebViewStitching: ${configuration.isWebViewStitchingEnabled} -> ${sessionData.enableWebViewStitching}")
             configuration.isWebViewStitchingEnabled = sessionData.enableWebViewStitching
@@ -938,15 +1008,15 @@ class Tracker private constructor(
         if(sessionData.breadcrumbsConfig.isEnabled != isBreadcrumbsEnabled) {
             changes.append("\nenableBreadcrumbs: $isBreadcrumbsEnabled -> ${sessionData.breadcrumbsConfig.isEnabled}")
             if(sessionData.breadcrumbsConfig.isEnabled) {
-                enableBreadcrumbs(sessionData.breadcrumbsConfig)
+                enableBreadcrumbs(sessionData.breadcrumbsConfig, configuration.shouldDetectTap)
             } else {
                 disableBreadcrumbs()
             }
         }
 
-        if(sessionData.breadcrumbsConfig.ignoredFeatures != breadcrumbsManager?.config?.ignoredFeatures) {
+        if(sessionData.breadcrumbsConfig.ignoredFeatures != breadcrumbsManager?.config?.ignoredFeatures || configuration.isGroupingTapDetectionEnabled != sessionData.enableGroupingTapDetection) {
             changes.append("\nignoreBreadcrumbs: ${breadcrumbsManager?.config?.ignoredFeatures} -> ${sessionData.breadcrumbsConfig.ignoredFeatures}")
-            breadcrumbsManager?.updateConfig(sessionData.breadcrumbsConfig)
+            breadcrumbsManager?.updateConfig(sessionData.breadcrumbsConfig, configuration.shouldDetectTap)
         }
         val changesString = changes.toString()
         if(changesString.isNotEmpty()) {
@@ -1177,6 +1247,7 @@ class Tracker private constructor(
         NativeAppCrash(BTTEvent.Crash),
         ANRWarning(BTTEvent.ANRWarning),
         MemoryWarning(BTTEvent.MemoryWarning),
+        ForceRestart(BTTEvent.ForceRestart),
         BTTConfigUpdateError;
 
         val errorName: String
@@ -1193,7 +1264,7 @@ class Tracker private constructor(
     }
 
     companion object {
-        private const val SHARED_PREFERENCES_NAME = "BTT_SHARED_PREFERENCES"
+        internal const val SHARED_PREFERENCES_NAME = "BTT_SHARED_PREFERENCES"
 
         /**
          * String resource name for the site ID
@@ -1289,7 +1360,10 @@ class Tracker private constructor(
                 enableWebViewStitching = configuration.isWebViewStitchingEnabled,
                 checkoutConfig = CheckoutConfig.DEFAULT,
                 breadcrumbsConfig = BreadcrumbsConfig.DEFAULT,
-                configKey = DEFAULT_CONFIG_KEY
+                configKey = DEFAULT_CONFIG_KEY,
+                enableAppInstall = configuration.isAppInstallEnabled,
+                enableForceRestart = configuration.isForceRestartEnable,
+                forceRestartDuration = configuration.forceRestartDuration
             )
 
             initializeConfigurationUpdater(application, configuration, defaultConfig)
@@ -1399,6 +1473,13 @@ class Tracker private constructor(
                             instance = null
                         }
                     }
+
+                    instance?.firstInstallTime?.let { installTime ->
+                        if (it?.enableAppInstall == true) {
+                            instance?.firstInstallTime = null
+                            instance?.appLaunchReporter?.reportAppInstall(installTime)
+                        }
+                    }
                 }
             }
         }
@@ -1417,6 +1498,9 @@ class Tracker private constructor(
             isLaunchTimeEnabled = sessionData.enableLaunchTime
             isWebViewStitchingEnabled = sessionData.enableWebViewStitching
             isScreenTrackingEnabled = sessionData.enableScreenTracking
+            isAppInstallEnabled = sessionData.enableAppInstall
+            isForceRestartEnable = sessionData.enableForceRestart
+            forceRestartDuration = sessionData.forceRestartDuration
         }
 
         private lateinit var configurationRepository: IBTTConfigurationRepository

@@ -711,6 +711,16 @@ fun testCrashTracking() {
 }
 ```
 
+### App Install
+
+The BlueTriangle SDK automatically tracks new App Installs. Install event will be reported on next app launch after install. Hence, the time of the event may not necessarily be time of install it will be the time when user first time launched app after installation. If user launches app after 72 hours(3 days) post installation, BlueTriangle ignores this installation reporting.
+
+### Force Restart
+
+User has a tendency to force-kill the app and launch it again if something is not working on a screen. BlueTriangle treats this as bad performance and tracks this as "ForceRestart" error. BlueTriangle tracks sequence of evens including app being killed by user and then launched again in 10 seconds. We show this error in error explorer with type "ForceRestart". BlueTriangle tries to collect name of Activity or Fragment visible when user forces restarts the can be seen under page name. This feature is supported from Android 11 (API Level 30) and above.
+
+BlueTriangle tracks user-terminated app, and user launched app again by listening to lifecycle event Activity.onPause and AppLifecycleEvent.AppLifecycleCreated. These two sequence of notifications in a short time period and ApplicationExitInfo.reason is ApplicationExitInfo.REASON_USER_REQUESTED make "Force Restart" error.
+
 ### Microsoft Clarity Integration
 
 Blue Triangle offers session playback via Microsoft Clarity integration. For help with this process, please reach out to your Blue Triangle representative.

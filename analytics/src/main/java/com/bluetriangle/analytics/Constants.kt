@@ -40,6 +40,9 @@ object Constants {
     internal const val DEFAULT_ENABLE_MEMORY_WARNING = true
     internal const val DEFAULT_ENABLE_LAUNCH_TIME = true
     internal const val DEFAULT_ENABLE_WEB_VIEW_STITCHING = true
+    internal const val DEFAULT_ENABLE_APP_INSTALL = true
+    internal const val DEFAULT_ENABLE_FORCE_RESTART = true
+    internal const val DEFAULT_FORCE_RESTART_DURATION = 10.0
     internal const val DEFAULT_GROUPED_VIEW_SAMPLE_RATE = 0.05
 
     internal const val DEFAULT_CHECKOUT_TRACKING_ENABLED = false
@@ -52,6 +55,7 @@ object Constants {
 
     internal const val SDK_VERSION = "sdkVersion"
     internal const val APP_VERSION = "appVersion"
+    internal const val APP_LAST_FOREGROUND_TIME = "appLastForegroundTime"
 
     internal const val BREADCRUMBS = "breadcrumbs"
     internal const val NUMBER_OF_CPU_CORES = "numberOfCPUCores"
@@ -77,6 +81,7 @@ object Constants {
 
     internal const val DEFAULT_TRAFFIC_SEGMENT_NAME = "Main Segment"
     internal const val DEFAULT_CONTENT_GROUP_NAME = "Main Group"
+    internal const val INSTALL_TIME = "installTime"
     internal const val MAX_FIELD_CHAR_LENGTH: Int = 512
 
     internal const val DEFAULT_ENABLE_BREADCRUMBS = true

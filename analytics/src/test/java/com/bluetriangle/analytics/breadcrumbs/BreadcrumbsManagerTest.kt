@@ -1,5 +1,6 @@
 package com.bluetriangle.analytics.breadcrumbs
 
+import android.content.Context
 import com.bluetriangle.analytics.breadcrumbs.config.BreadcrumbsConfig
 import com.bluetriangle.analytics.breadcrumbs.config.BreadcrumbsFeature
 import com.bluetriangle.analytics.breadcrumbs.instrumentation.AppInstallInstrumentation
@@ -17,10 +18,18 @@ import io.mockk.spyk
 import io.mockk.verify
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.mockito.Mock
+import org.mockito.Mockito.anyBoolean
+import java.lang.ref.WeakReference
 
 class BreadcrumbsManagerTest {
 
-     private fun configWith(vararg active: BreadcrumbsFeature): BreadcrumbsConfig {
+    @Mock
+    private lateinit var mockContext: WeakReference<Context>
+
+    private var shouldDetectTap: Boolean = anyBoolean()
+
+    private fun configWith(vararg active: BreadcrumbsFeature): BreadcrumbsConfig {
         val allFeatures = BreadcrumbsFeature.values().toSet()
         val ignored = allFeatures - active.toSet()
         return BreadcrumbsConfig(true, 100, ignoredFeatures = ignored.toList())
@@ -29,7 +38,7 @@ class BreadcrumbsManagerTest {
     private fun configAllFeatures() = BreadcrumbsConfig(true, 100, ignoredFeatures = emptyList())
 
     private fun spyManagerWithMockedInstrumentations(config: BreadcrumbsConfig): BreadcrumbsManager {
-        val manager = spyk(BreadcrumbsManager(config))
+        val manager = spyk(BreadcrumbsManager(config, shouldDetectTap, mockContext))
         every { manager.featureToInstrumentation(any(), any()) } answers {
             // Return a unique mock per invocation so each feature gets its own mock.
             mockk(relaxed = true)
@@ -103,7 +112,7 @@ class BreadcrumbsManagerTest {
         clearMocks(manager, answers = false, recordedCalls = true)
 
         val newConfig = configWith(BreadcrumbsFeature.AppLifecycle, BreadcrumbsFeature.NetworkState)
-        manager.updateConfig(newConfig)
+        manager.updateConfig(newConfig, shouldDetectTap)
         verify(exactly = 0) { manager.featureToInstrumentation(BreadcrumbsFeature.AppLifecycle, any()) }
         verify(exactly = 1) { manager.featureToInstrumentation(BreadcrumbsFeature.NetworkState, any()) }
     }
@@ -120,7 +129,7 @@ class BreadcrumbsManagerTest {
         clearMocks(manager, answers = false, recordedCalls = true)
 
         val newConfig = configWith(BreadcrumbsFeature.AppLifecycle)
-        manager.updateConfig(newConfig)
+        manager.updateConfig(newConfig, shouldDetectTap)
 
         verify(exactly = 0) { manager.featureToInstrumentation(BreadcrumbsFeature.NetworkState, any()) }
         verify(exactly = 0) { manager.featureToInstrumentation(BreadcrumbsFeature.NetworkState, any()) }
@@ -136,7 +145,7 @@ class BreadcrumbsManagerTest {
 
         clearMocks(manager, answers = false, recordedCalls = true)
 
-        manager.updateConfig(configWith(BreadcrumbsFeature.AppLifecycle))
+        manager.updateConfig(configWith(BreadcrumbsFeature.AppLifecycle), shouldDetectTap)
         verify(exactly = 0) { manager.featureToInstrumentation(BreadcrumbsFeature.AppLifecycle, any()) }
 
     }
@@ -145,14 +154,14 @@ class BreadcrumbsManagerTest {
     fun `updateConfig - before install is called - does nothing`() {
         val manager = spyManagerWithMockedInstrumentations(configAllFeatures())
 
-        manager.updateConfig(configAllFeatures())
+        manager.updateConfig(configAllFeatures(), shouldDetectTap)
 
         verify(exactly = 0) { manager.featureToInstrumentation(any(), any()) }
     }
 
     @Test
     fun `featureToInstrumentation - AppLifecycle - returns AppLifecycleInstrumentation`() {
-        val manager = BreadcrumbsManager(configAllFeatures())
+        val manager = BreadcrumbsManager(configAllFeatures(), shouldDetectTap, mockContext)
         val collector = mockk<BreadcrumbsCollector>(relaxed = true)
 
         val instrumentation = manager.featureToInstrumentation(BreadcrumbsFeature.AppLifecycle, collector)
@@ -162,7 +171,7 @@ class BreadcrumbsManagerTest {
 
     @Test
     fun `featureToInstrumentation - UiLifecycle - returns UiLifecycleInstrumentation`() {
-        val manager = BreadcrumbsManager(configAllFeatures())
+        val manager = BreadcrumbsManager(configAllFeatures(), shouldDetectTap, mockContext)
         val collector = mockk<BreadcrumbsCollector>(relaxed = true)
 
         assertTrue(manager.featureToInstrumentation(BreadcrumbsFeature.UiLifecycle, collector) is UiLifecycleInstrumentation)
@@ -170,7 +179,7 @@ class BreadcrumbsManagerTest {
 
     @Test
     fun `featureToInstrumentation - NetworkRequest - returns NetworkRequestInstrumentation`() {
-        val manager = BreadcrumbsManager(configAllFeatures())
+        val manager = BreadcrumbsManager(configAllFeatures(), shouldDetectTap, mockContext)
         val collector = mockk<BreadcrumbsCollector>(relaxed = true)
 
         assertTrue(manager.featureToInstrumentation(BreadcrumbsFeature.NetworkRequest, collector) is NetworkRequestInstrumentation)
@@ -178,7 +187,7 @@ class BreadcrumbsManagerTest {
 
     @Test
     fun `featureToInstrumentation - NetworkState - returns NetworkStateInstrumentation`() {
-        val manager = BreadcrumbsManager(configAllFeatures())
+        val manager = BreadcrumbsManager(configAllFeatures(), shouldDetectTap, mockContext)
         val collector = mockk<BreadcrumbsCollector>(relaxed = true)
 
         assertTrue(manager.featureToInstrumentation(BreadcrumbsFeature.NetworkState, collector) is NetworkStateInstrumentation)
@@ -186,7 +195,7 @@ class BreadcrumbsManagerTest {
 
     @Test
     fun `featureToInstrumentation - AppInstall - returns AppInstallInstrumentation`() {
-        val manager = BreadcrumbsManager(configAllFeatures())
+        val manager = BreadcrumbsManager(configAllFeatures(), shouldDetectTap, mockContext)
         val collector = mockk<BreadcrumbsCollector>(relaxed = true)
 
         assertTrue(manager.featureToInstrumentation(BreadcrumbsFeature.AppInstall, collector) is AppInstallInstrumentation)
@@ -194,7 +203,7 @@ class BreadcrumbsManagerTest {
 
     @Test
     fun `featureToInstrumentation - AppUpdate - returns AppUpdateInstrumentation`() {
-        val manager = BreadcrumbsManager(configAllFeatures())
+        val manager = BreadcrumbsManager(configAllFeatures(), shouldDetectTap, mockContext)
         val collector = mockk<BreadcrumbsCollector>(relaxed = true)
 
         assertTrue(manager.featureToInstrumentation(BreadcrumbsFeature.AppUpdate, collector) is AppUpdateInstrumentation)
@@ -202,7 +211,7 @@ class BreadcrumbsManagerTest {
 
     @Test
     fun `featureToInstrumentation - UserEvent - returns UserEventInstrumentation`() {
-        val manager = BreadcrumbsManager(configAllFeatures())
+        val manager = BreadcrumbsManager(configAllFeatures(), shouldDetectTap, mockContext)
         val collector = mockk<BreadcrumbsCollector>(relaxed = true)
 
         assertTrue(manager.featureToInstrumentation(BreadcrumbsFeature.UserEvent, collector) is UserEventInstrumentation)
@@ -210,7 +219,7 @@ class BreadcrumbsManagerTest {
 
     @Test
     fun `featureToInstrumentation - SystemEvent - returns SystemEventsInstrumentation`() {
-        val manager = BreadcrumbsManager(configAllFeatures())
+        val manager = BreadcrumbsManager(configAllFeatures(), shouldDetectTap, mockContext)
         val collector = mockk<BreadcrumbsCollector>(relaxed = true)
 
         assertTrue(manager.featureToInstrumentation(BreadcrumbsFeature.SystemEvent, collector) is SystemEventsInstrumentation)

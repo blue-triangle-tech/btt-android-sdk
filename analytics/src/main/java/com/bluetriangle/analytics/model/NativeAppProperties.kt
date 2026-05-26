@@ -11,6 +11,7 @@ import com.bluetriangle.analytics.Constants.FULL_TIME
 import com.bluetriangle.analytics.Constants.GROUPED
 import com.bluetriangle.analytics.Constants.GROUPING_CAUSE
 import com.bluetriangle.analytics.Constants.GROUPING_CAUSE_INTERVAL
+import com.bluetriangle.analytics.Constants.INSTALL_TIME
 import com.bluetriangle.analytics.Constants.LAUNCH_SCREEN_NAME
 import com.bluetriangle.analytics.Constants.LOAD_TIME
 import com.bluetriangle.analytics.Constants.MAX_MAIN_THREAD_USAGE
@@ -59,7 +60,8 @@ internal data class NativeAppProperties(
     var className: String = "",
     var event: BTTEvent? = null,
     var autoCheckout: Boolean? = null,
-    var configKey: String? = null
+    var configKey: String? = null,
+    var installTime: Long? = null
 ) : Parcelable {
 
     private val cellularTotal
@@ -80,7 +82,9 @@ internal data class NativeAppProperties(
         obj.put(GROUPING_CAUSE, groupingCause)
         obj.put(GROUPING_CAUSE_INTERVAL, groupingCauseInterval)
         obj.put(EVENT_ID, event?.id?.toString())
-
+        installTime?.let {
+            obj.put(INSTALL_TIME, it)
+        }
         autoCheckout?.let {
             obj.put(AUTO_CHECKOUT, it)
         }

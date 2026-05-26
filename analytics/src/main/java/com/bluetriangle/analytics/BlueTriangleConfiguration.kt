@@ -183,6 +183,21 @@ class BlueTriangleConfiguration {
     internal val shouldDetectTap: Boolean
         get() = isGroupingEnabled && isGroupingTapDetectionEnabled
 
+    /**
+     * Enable or disable App Install sending reports to the server.
+     */
+    var isAppInstallEnabled: Boolean = true
+
+    /**
+     * Enable or disable App Force Restart sending reports to the server.
+     */
+    var isForceRestartEnable: Boolean = true
+
+    /**
+     * Enable or disable App Force Restart sending reports to the server.
+     */
+    var forceRestartDuration: Double = 10.0
+
     companion object {
         const val DEFAULT_TRACKER_URL = "https://d.btttag.com/analytics.rcv"
         const val DEFAULT_ERROR_REPORTING_URL = "https://d.btttag.com/err.rcv"
@@ -223,7 +238,10 @@ class BlueTriangleConfiguration {
             cacheMemoryLimit : $cacheMemoryLimit
             isTrackNetworkStateEnabled : $isTrackNetworkStateEnabled,
             isGroupingEnabled : $isGroupingEnabled,
-            groupingIdleTime : $groupingIdleTime
+            groupingIdleTime : $groupingIdleTime,
+            isAppInstallEnabled : $isAppInstallEnabled,
+            isForceRestartEnable : $isForceRestartEnable,
+            forceRestartDuration : $forceRestartDuration
         }
         """.trimIndent()
     }

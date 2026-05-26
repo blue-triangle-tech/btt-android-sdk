@@ -25,7 +25,10 @@ internal class BTTSavedRemoteConfiguration(
     checkoutConfig: CheckoutConfig,
     breadcrumbsConfig: BreadcrumbsConfig,
     configKey: String,
-    val savedDate: Long
+    val savedDate: Long,
+    enableAppInstall: Boolean,
+    enableForceRestart: Boolean,
+    forceRestartDuration: Double
 ) : BTTRemoteConfiguration(
     networkSampleRate,
     ignoreScreens,
@@ -42,7 +45,10 @@ internal class BTTSavedRemoteConfiguration(
     enableWebViewStitching,
     checkoutConfig,
     breadcrumbsConfig,
-    configKey
+    configKey,
+    enableAppInstall,
+    enableForceRestart,
+    forceRestartDuration
 ) {
 
     companion object {
@@ -63,7 +69,10 @@ internal class BTTSavedRemoteConfiguration(
             remoteConfig.checkoutConfig,
             remoteConfig.breadcrumbsConfig,
             remoteConfig.configKey,
-            System.currentTimeMillis()
+            System.currentTimeMillis(),
+            remoteConfig.enableAppInstall,
+            remoteConfig.enableForceRestart,
+            remoteConfig.forceRestartDuration
         )
     }
 

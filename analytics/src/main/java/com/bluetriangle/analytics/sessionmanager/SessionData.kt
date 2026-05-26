@@ -49,7 +49,10 @@ internal data class SessionData(
     val checkoutConfig: CheckoutConfig,
     val breadcrumbsConfig: BreadcrumbsConfig,
     val configKey: String,
-    val expiration: Long
+    val expiration: Long,
+    val enableAppInstall: Boolean,
+    val enableForceRestart: Boolean,
+    val forceRestartDuration: Double
 ) {
     companion object {
         private const val SESSION_ID = "sessionId"
@@ -68,6 +71,9 @@ internal data class SessionData(
         private const val ENABLE_MEMORY_WARNING = "enableMemoryWarning"
         private const val ENABLE_LAUNCH_TIME = "enableLaunchTime"
         private const val ENABLE_WEB_VIEW_STITCHING = "enableWebViewStitching"
+        private const val ENABLE_APP_INSTALL = "enableAppInstall"
+        private const val ENABLE_FORCE_RESTART = "enableForceRestart"
+        private const val FORCE_RESTART_DURATION = "forceRestartDuration"
 
         internal fun JSONObject.toSessionData(): SessionData? {
             try {
@@ -96,7 +102,10 @@ internal data class SessionData(
                     checkoutConfig = CheckoutConfigMapper.loadFromJsonObject(this),
                     breadcrumbsConfig = BreadcrumbsConfigMapper.loadFromJsonObject(this),
                     configKey = getStringOrNull(CONFIG_KEY) ?: DEFAULT_CONFIG_KEY,
-                    expiration = getLong(EXPIRATION)
+                    expiration = getLong(EXPIRATION),
+                    enableAppInstall = getBooleanOrNull(ENABLE_APP_INSTALL) ?: false,
+                    enableForceRestart = getBooleanOrNull(ENABLE_FORCE_RESTART) ?: false,
+                    forceRestartDuration = getDoubleOrNull(FORCE_RESTART_DURATION) ?: 10.0
                 )
             } catch (e: Exception) {
                 Tracker.instance?.configuration?.logger?.error("Error while parsing session data: ${e::class.simpleName}(\"${e.message}\")")
@@ -124,6 +133,9 @@ internal data class SessionData(
             CheckoutConfigMapper.loadIntoJsonObject(this, checkoutConfig)
             BreadcrumbsConfigMapper.loadIntoJsonObject(this, breadcrumbsConfig)
             put(EXPIRATION, expiration)
+            put(ENABLE_APP_INSTALL, enableAppInstall)
+            put(ENABLE_FORCE_RESTART, enableForceRestart)
+            put(FORCE_RESTART_DURATION, forceRestartDuration)
         }
     }
 }
