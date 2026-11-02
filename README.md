@@ -12,7 +12,9 @@ The Blue Triangle SDK for Android enables application owners to track their user
   - Screen Responsiveness (Jank, Hitch & Hang Frames)
 - Errors & Crashes
   - Application Not Responding (ANR)
-  - Fatal ANR and Excessive Resource Usage App Exits
+  - Fatal ANR
+  - Excessive Resource Usage (AccessResourceUsage) App Exits
+  - Network Errors (HTTP error status codes and connection failures)
   - HTTP Response Codes
   - App Crashes
 - Device Stats & Session Attributes
@@ -24,9 +26,8 @@ The Blue Triangle SDK for Android enables application owners to track their user
  - Memory Warnings
  - Memory/Out of Memory
  - Hot/Cold Launch
-
-Coming Soon
-- Network Type
+ - Force Restart
+ - Network Type
  
 
 ## Mandatory Installation Steps
@@ -502,6 +503,91 @@ You can disable ANR detection by setting the following meta-data:
 <meta-data android:name="com.blue-triangle.track-anr.enable" android:value="false"/>
 ```
 
+### Fatal ANR
+
+The ANR Detector above reports a main thread block as a non-fatal **ANR Warning** while the app is still running. If
+the block lasts long enough for Android to show the "App isn't responding" dialog and the system (or the user)
+kills the app, the SDK reports it as a **Fatal ANR**.
+
+On Android 11 (API Level 30) and above, the SDK reads
+[`ApplicationExitInfo`](https://developer.android.com/reference/android/app/ApplicationExitInfo) on the next app
+launch. If the previous process exited with `REASON_ANR`, it reports a `FatalANR` error with:
+
+- the main thread stack trace from the system ANR trace, when available,
+- the page (Activity/Fragment/Composable) that was visible when the ANR happened, and
+- the breadcrumbs captured before the exit.
+
+Because the exit can only be read after the app is relaunched, the error is reported on the next launch. Each exit is
+reported only once. Fatal ANR is treated as a fatal error and is sampled by the `fatalErrorSampleRate` remote
+configuration (see [Error Sampling](#error-sampling)).
+
+Fatal ANR reporting is enabled by default. It can be enabled/disabled remotely from the Blue Triangle portal
+(`enableReportFatalAnr`), or locally through `BlueTriangleConfiguration`:
+
+```kotlin
+configuration.isReportFatalAnrEnabled = false
+```
+
+**Note:** This feature is only available on Android 11 (API Level 30) and above.
+
+### Excessive Resource Usage
+
+Android can kill an app process that uses too many system resources, for example holding wake locks for too long or
+excessive CPU usage while in the background. On Android 11 (API Level 30) and above, when the previous process exited
+with `ApplicationExitInfo.REASON_EXCESSIVE_RESOURCE_USAGE`, the SDK reports an `AccessResourceUsage` error on the
+next app launch. The error title is prefixed with `Excess Resource Usage:` and includes the exit description provided
+by the system, along with the page that was visible and the breadcrumbs captured before the exit.
+
+Excessive Resource Usage is reported through the same `ApplicationExitInfo` pipeline as Fatal ANR, so it is
+enabled/disabled together with Fatal ANR reporting (`enableReportFatalAnr` / `isReportFatalAnrEnabled`). It is a
+non-fatal error and is sampled by the `nonFatalErrorSampleRate` remote configuration
+(see [Error Sampling](#error-sampling)).
+
+**Note:** This feature is only available on Android 11 (API Level 30) and above.
+
+### Network Errors
+
+The SDK reports failed network requests as `NetworkError` errors through the error beacon, so they show up in the
+Error Explorer alongside crashes and ANRs. Network errors are captured automatically when you use the
+[OkHttp integration](#okhttp-support):
+
+- **HTTP error responses** — any response that is not successful (`2xx`) and not a redirect (`3xx`), e.g. `404`,
+  `500`, `503`, is reported by `BlueTriangleOkHttpInterceptor`. `304 Not Modified` is not treated as an error.
+  The error title has the format `<METHOD> <URL>~~Status Code: <code> , Error: <status message>`.
+- **Connection failures** — requests that fail without a response (DNS failure, timeout, connection refused, TLS
+  failure, cancellation, etc.) are reported by `BlueTriangleOkHttpEventListener` with status code `600`. The error
+  title has the format `<METHOD> <URL>~~Error: <ExceptionType> : <message>`.
+
+Each network error is attached to the most recent timer (page) and is sent along with that page's analytics beacon,
+including the breadcrumbs captured at the time of the failure.
+
+If you are not using OkHttp, you can report a network error manually:
+
+```kotlin
+Tracker.instance?.reportNetworkError(
+    url = "https://bluetriangle.com/api/cart",
+    method = "POST",
+    statusCode = 500,              // use 600 for a connection failure without an HTTP response
+    statusText = "Internal Server Error"
+)
+```
+
+Network error reporting is independent of the [Network Capture Sample Rate](#network-capture-sample-rate):
+`networkSampleRate` only controls capture of network requests (successful and failed), while network errors are
+sampled by the `nonFatalErrorSampleRate` remote configuration (see [Error Sampling](#error-sampling)).
+
+### Error Sampling
+
+Errors are sampled per session using two remote configuration values set from the Blue Triangle portal:
+
+| Remote configuration      | Default (if not received) | Errors                                                                                  |
+|---------------------------|---------------------------|-----------------------------------------------------------------------------------------|
+| `fatalErrorSampleRate`    | 100%                      | Crash, Fatal ANR                                                                        |
+| `nonFatalErrorSampleRate` | 5%                        | ANR Warning, Memory Warning, Force Restart, Excessive Resource Usage, Network Error     |
+
+For local testing, the `debug.full.sample.rate` system property (see [Troubleshooting](#troubleshooting)) can be used
+to sample all sessions.
+
 ### Screen Responsiveness
 
 The SDK monitors frame rendering on every tracked screen using AndroidX
@@ -758,16 +844,29 @@ fun testCrashTracking() {
 
 The BlueTriangle SDK automatically tracks new App Installs. Install event will be reported on next app launch after install. Hence, the time of the event may not necessarily be time of install it will be the time when user first time launched app after installation. If user launches app after 72 hours(3 days) post installation, BlueTriangle ignores this installation reporting.
 
-### Fatal ANR and App Exit Reasons
+### Fatal ANR and Excessive Resource Usage
 
-On Android 11 (API Level 30) and above, the SDK reads `ApplicationExitInfo` on app launch and reports the previous
-process exit if the system killed the app for one of the following reasons:
+A **Fatal ANR** is an ANR that ends the app process. When the main thread stays blocked long enough, Android shows
+the "App isn't responding" dialog. If the user chooses **Close app**, or the system kills the unresponsive app, the
+process is terminated with exit reason `ApplicationExitInfo.REASON_ANR`. This is different from the non-fatal
+**ANR Warning**, which the SDK reports while the app is still running and recovers.
 
-- `REASON_ANR` — reported as a Fatal ANR error, with the main thread stack trace when available.
-- `REASON_EXCESSIVE_RESOURCE_USAGE` — reported as an Excessive Resource Usage error.
+**When it is reported:** an app cannot report its own death, so the SDK checks `ApplicationExitInfo` on the **next
+app launch**. If the previous process exited with `REASON_ANR`, the SDK reports a `FatalANR` error at that point,
+with the original exit time, the page that was visible when the ANR happened, and the main thread stack trace when
+available. If the user never relaunches the app, the Fatal ANR is not reported. Each exit is reported only once.
 
-Because the exit can only be read after the app is relaunched, the error is reported on the next launch. Each exit is
-reported only once. Fatal ANR reporting can be enabled/disabled remotely from the Blue Triangle portal.
+**Excessive Resource Usage** is reported the same way, on the next launch, when the previous process was killed by
+the system with exit reason `REASON_EXCESSIVE_RESOURCE_USAGE`.
+
+Both require Android 11 (API Level 30) or above.
+
+### Network Errors
+
+With the [OkHttp integration](#okhttp-support) set up, make a request that returns an error status (e.g. a URL that
+returns `404` or `500`), or a request to an unreachable host to trigger a connection failure. A `NetworkError` is
+reported along with the current page's analytics beacon. Use `adb shell setprop debug.full.sample.rate on` to make
+sure the session is sampled for non-fatal errors.
 
 ### Force Restart
 
