@@ -1,6 +1,8 @@
 package com.bluetriangle.analytics.applaunch
 
+import android.app.Activity
 import android.app.ActivityManager
+import android.app.Application
 import android.app.ApplicationExitInfo
 import android.content.Context
 import android.os.Build
@@ -10,6 +12,8 @@ import com.bluetriangle.analytics.Timer.Companion.FIELD_CONTENT_GROUP_NAME
 import com.bluetriangle.analytics.Timer.Companion.FIELD_PAGE_NAME
 import com.bluetriangle.analytics.Timer.Companion.FIELD_TRAFFIC_SEGMENT_NAME
 import com.bluetriangle.analytics.Tracker
+import com.bluetriangle.analytics.eventhub.AppEventConsumer
+import com.bluetriangle.analytics.eventhub.AppEventHub
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -20,7 +24,7 @@ import kotlinx.coroutines.launch
 
 internal class ForceRestartTracker(
     private val logger: Logger?, private val context: Context, private val reporter:AppLaunchReporter, forceRestartDuration: Double
-) {
+) : AppEventConsumer {
     private var _forceRestartDuration: Long = 10_000
     private var appForceKillReportJob: Job? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -38,25 +42,40 @@ internal class ForceRestartTracker(
             context.getSharedPreferences(Tracker.SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
 
         val lastForegroundTime = prefs.getLong(Constants.APP_LAST_FOREGROUND_TIME, 0L)
+        val backgroundTime = prefs.getLong(Constants.APP_BACKGROUND_TIME, 0L)
 
-        checkAppPreviousExit(System.currentTimeMillis(), lastForegroundTime)
+        checkAppPreviousExit(System.currentTimeMillis(), lastForegroundTime, backgroundTime)
+
+        AppEventHub.instance.addConsumer(this)
     }
 
     fun stop() {
+        AppEventHub.instance.removeConsumer(this)
         scope.cancel()
     }
 
-    private fun checkAppPreviousExit(currentTime: Long, lastForegroundTime: Long) {
+    // When the app goes to the background, so a kill long after that (e.g. swiped away from Recents
+    // 30 min later) isn't reported as a force restart. Reset to 0 while the app is in the foreground.
+    override fun onAppMovedToBackground(application: Application) {
+        saveBackgroundTime(System.currentTimeMillis())
+    }
+
+    override fun onActivityStarted(activity: Activity) {
+        saveBackgroundTime(0L)
+    }
+
+    private fun saveBackgroundTime(time: Long) {
+        context.getSharedPreferences(Tracker.SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putLong(Constants.APP_BACKGROUND_TIME, time)
+            .apply()
+    }
+
+    private fun checkAppPreviousExit(currentTime: Long, lastForegroundTime: Long, backgroundTime: Long) {
         if (lastForegroundTime == 0L) {
             logger?.debug("ForceRestartTracker::checkAppPreviousExit lastForegroundTime=0, so it's first launch after install")
             return
         }
-
-        // If the app was restarted within 10 seconds, we assume it was died unexpectedly
-        val reLaunchTime = currentTime - lastForegroundTime
-        val diedUnexpectedly = reLaunchTime < _forceRestartDuration
-
-        logger?.debug("ForceRestartTracker::checkAppPreviousExit - Relaunch Time Interval = $reLaunchTime ms")
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val activityManager =
@@ -67,13 +86,13 @@ internal class ForceRestartTracker(
                 activityManager.getHistoricalProcessExitReasons(context.packageName, 0, 1)
             if (exitList.isNotEmpty()) {
                 val lastExit = exitList[0]
-                val isUnexpectedReason = when (lastExit.reason) {
-                    ApplicationExitInfo.REASON_USER_REQUESTED -> true
 
-                    else -> false
-                }
+                // Measured from when the user left the app: when it went to the background, or when it
+                // was killed if it was still in the foreground (e.g. swiped away from a Recents live tile).
+                val leftAppAt = leftAppAt(lastExit.timestamp, backgroundTime)
+                logger?.debug("ForceRestartTracker::checkAppPreviousExit - Relaunch Time Interval = ${currentTime - leftAppAt} ms (since ${if (leftAppAt == lastExit.timestamp) "process exit" else "app moved to background"}, exit was ${currentTime - lastExit.timestamp} ms ago)")
 
-                if (diedUnexpectedly && isUnexpectedReason) {
+                if (isForceRestart(currentTime, lastExit.timestamp, lastExit.reason, backgroundTime, _forceRestartDuration)) {
                     logger?.debug("ForceRestartTracker::checkAppPreviousExit App Unexpectedly Exit at ${lastExit.timestamp}, Status: ${lastExit.status}, Description: ${lastExit.description}")
                     reportForceKill(lastExit.timestamp)
                 } else {
@@ -82,9 +101,14 @@ internal class ForceRestartTracker(
             } else {
                 logger?.debug("ForceRestartTracker::checkAppPreviousExit - Last process exit reasons is empty")
             }
-        } else if (diedUnexpectedly) {
-            //reportForceKill()
-            logger?.debug("ForceRestartTracker::checkAppPreviousExit App Unexpectedly Exit - lastForegroundTime=$lastForegroundTime")
+        } else {
+            // If the app was restarted within 10 seconds, we assume it was died unexpectedly
+            val reLaunchTime = currentTime - lastForegroundTime
+            logger?.debug("ForceRestartTracker::checkAppPreviousExit - Relaunch Time Interval = $reLaunchTime ms")
+            if (reLaunchTime < _forceRestartDuration) {
+                //reportForceKill()
+                logger?.debug("ForceRestartTracker::checkAppPreviousExit App Unexpectedly Exit - lastForegroundTime=$lastForegroundTime")
+            }
         }
     }
 
@@ -114,6 +138,31 @@ internal class ForceRestartTracker(
     }
 
     private fun String?.nonBlank(): String? = this?.takeIf { it.isNotBlank() && it != "null" }
+
+    internal companion object {
+        /**
+         * A user force restart: the process was stopped by the user (swiped away from Recents or
+         * force stopped) and the app was launched again within the force restart duration.
+         */
+        fun isForceRestart(
+            currentTime: Long,
+            exitTime: Long,
+            exitReason: Int,
+            backgroundTime: Long,
+            forceRestartDuration: Long
+        ): Boolean {
+            return exitReason == ApplicationExitInfo.REASON_USER_REQUESTED &&
+                    currentTime - leftAppAt(exitTime, backgroundTime) in 0 until forceRestartDuration
+        }
+
+        /**
+         * When the user left the app: the time it went to the background if it was in the background
+         * when it was killed, otherwise the time it was killed.
+         */
+        fun leftAppAt(exitTime: Long, backgroundTime: Long): Long {
+            return if (backgroundTime in 1..exitTime) backgroundTime else exitTime
+        }
+    }
 
     internal data class ForceRestartScreen(
         val nst: Long?,

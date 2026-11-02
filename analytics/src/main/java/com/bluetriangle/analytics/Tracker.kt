@@ -518,6 +518,39 @@ class Tracker private constructor(
         synchronized(timerStack) {
             timerStack.addLast(WeakReference(timer))
         }
+        saveForceRestartPage(timer)
+    }
+
+    /**
+     * Called by [Timer] when its page name, page type or traffic segment changes. The page view a
+     * force restart is reported against follows the most recent timer, so keep it in sync.
+     */
+    internal fun onTimerPageFieldsChanged(timer: Timer) {
+        if (getMostRecentTimer() === timer) {
+            saveForceRestartPage(timer)
+        }
+    }
+
+    /**
+     * Saves the page view of the most recent timer (page name, page type, traffic segment and nst),
+     * so a force restart on the next launch is reported against the page the app was killed on.
+     * Saved when a timer becomes the most recent one or is renamed, not when a screen ends: the
+     * screen still on display when the app is killed never ends, or ends just before the kill.
+     * It isn't cleared when the timer ends (a group timer is submitted while its screen is still
+     * visible), the next most recent timer replaces it.
+     */
+    private fun saveForceRestartPage(timer: Timer) {
+        val context = context.get() ?: return
+        val prefs = context.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
+
+        prefs.edit {
+            putLong(Constants.APP_LAST_FOREGROUND_TIME, System.currentTimeMillis())
+            putString(FIELD_PAGE_NAME, timer.getField(FIELD_PAGE_NAME))
+            putString(FIELD_CONTENT_GROUP_NAME, timer.getField(FIELD_CONTENT_GROUP_NAME))
+            putString(FIELD_TRAFFIC_SEGMENT_NAME, timer.getField(FIELD_TRAFFIC_SEGMENT_NAME))
+            putString(Constants.LAST_SCREEN_NST, timer.getField(Timer.FIELD_NST))
+            putString(Constants.LAST_SCREEN_SESSION_ID, sessionManager.sessionData.sessionId)
+        }
     }
 
     fun removeFromTimerStack(timer: Timer) {
@@ -868,18 +901,11 @@ class Tracker private constructor(
         val context = context.get() ?: return
         val prefs = context.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
 
-        // Save current time as last foreground time, along with the beacon the user was on, so a
-        // force restart on the next launch can be reported against the same page view (same nst)
+        // Save current time as last foreground time. The page a force restart is reported against
+        // is saved from the most recent timer (saveForceRestartPage), not here: a host Activity
+        // pausing would overwrite the screen still on display.
         prefs.edit {
             putLong(Constants.APP_LAST_FOREGROUND_TIME, System.currentTimeMillis())
-
-            timer?.let { timer ->
-                putString(FIELD_PAGE_NAME, timer.getField(FIELD_PAGE_NAME))
-                putString(FIELD_CONTENT_GROUP_NAME, timer.getField(FIELD_CONTENT_GROUP_NAME))
-                putString(FIELD_TRAFFIC_SEGMENT_NAME, timer.getField(FIELD_TRAFFIC_SEGMENT_NAME))
-                putString(Constants.LAST_SCREEN_NST, timer.getField(Timer.FIELD_NST))
-                putString(Constants.LAST_SCREEN_SESSION_ID, sessionManager.sessionData.sessionId)
-            }
         }
     }
 

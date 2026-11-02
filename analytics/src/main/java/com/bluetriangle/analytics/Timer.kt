@@ -386,7 +386,9 @@ class Timer : Parcelable {
      * @return this timer
      */
     fun setPageName(pageName: String): Timer {
-        return setField(FIELD_PAGE_NAME, pageName)
+        setField(FIELD_PAGE_NAME, pageName)
+        tracker?.onTimerPageFieldsChanged(this)
+        return this
     }
 
     /**
@@ -396,7 +398,9 @@ class Timer : Parcelable {
      * @return this timer
      */
     fun setTrafficSegmentName(trafficSegmentName: String): Timer {
-        return setField(FIELD_TRAFFIC_SEGMENT_NAME, trafficSegmentName)
+        setField(FIELD_TRAFFIC_SEGMENT_NAME, trafficSegmentName)
+        tracker?.onTimerPageFieldsChanged(this)
+        return this
     }
 
     /**
@@ -416,7 +420,9 @@ class Timer : Parcelable {
      * @return this timer
      */
     fun setContentGroupName(contentGroupName: String): Timer {
-        return setField(FIELD_CONTENT_GROUP_NAME, contentGroupName)
+        setField(FIELD_CONTENT_GROUP_NAME, contentGroupName)
+        tracker?.onTimerPageFieldsChanged(this)
+        return this
     }
 
     /**
