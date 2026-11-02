@@ -35,14 +35,16 @@ fun View.toViewTargetInfo(tapX: Float, tapY: Float): TapTarget.ViewTarget {
     )
 }
 
-private fun ViewGroup.findDeepText(): String? {
+private fun ViewGroup.findDeepText(trackDepth: Int = 1): String? {
+    if (trackDepth <= 0) return null
+
     for (i in 0 until childCount) {
         val child = getChildAt(i)
         // Never pick up typed user input from an EditText inside the container
         if (child is TextView && child !is EditText && child.text.isNotEmpty()) {
             return child.text.toString()
         } else if (child is ViewGroup) {
-            val nestedText = child.findDeepText()
+            val nestedText = child.findDeepText(trackDepth - 1)
             if (nestedText != null) return nestedText
         }
     }

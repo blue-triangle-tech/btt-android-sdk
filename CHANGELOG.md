@@ -1,21 +1,19 @@
 # Blue Triangle 2.20.0 Latest, October 30 2026
 ### New Features
-- Screen Responsiveness Tracking: BlueTriangle now tracks jank, hitch and hang frames per screen using AndroidX JankStats. Each screen timer reports hitch/hang metrics, a hitch histogram and a responsiveness grade. Can be disabled with the `com.blue-triangle.screen-responsiveness.enable` meta-data or remotely via `enableScreenResponsiveness`.
-- Fatal ANR Reporting: ANRs that terminated the app are reported on the next launch using `ApplicationExitInfo` (Android 11 / API 30 and above). Can be disabled remotely via `enableReportFatalAnr`.
-- HTTP method is now captured for network requests, including OkHttp `BlueTriangleOkHttpInterceptor` and `BlueTriangleOkHttpEventListener`.
-- Remote configuration is exposed to cross-platform SDKs through `Tracker.setConfigurationListener(IConfigListener)`. The listener receives the current configuration as soon as it is set, and keeps receiving updates while tracking is disabled by remote configuration.
-- Network Error Reporting: failed network requests (error status codes and connection failures) are reported as Network Error through the error beacon.
-- Error Sampling: errors are now sampled per session using two new remote configuration values:
-  - `fatalErrorSampleRate` (defaults to 100% if not received): Crash and Fatal ANR.
-  - `nonFatalErrorSampleRate` (defaults to 5% if not received): ANR Warning, Memory Warning, Force Restart, Excess Resource Usage and Network Error.
-  - `networkSampleRate` only controls capture of network requests (successful and failed); Network Error reporting is controlled by `nonFatalErrorSampleRate` alone.
+- Screen Responsiveness: tracks jank, hitch and hang frames per screen and reports a responsiveness grade with each screen and custom timer.
+- Fatal ANR: ANRs that terminate the app are reported on the next app launch (Android 11 and above).
+- Excessive Resource Usage: app exits caused by excessive resource usage are reported on the next app launch (Android 11 and above).
+- Network Errors: HTTP error responses and connection failures are reported as Network Error.
+- Error Sampling: errors are sampled per session using the new `fatalErrorSampleRate` (default 100%) and `nonFatalErrorSampleRate` (default 5%) remote configuration.
+- HTTP method are now captured for network requests.
+- Remote configuration is exposed to cross-platform SDKs.
 
 ### Bug Fixes and New Improvements
-- Crash, ANR and fatal ANR stack traces are formatted and sent as JSON, along with the crash source.
-- Tap detection for breadcrumbs now resolves button text on Compose and React Native views.
-- Native app properties now include the grouped screen count, group name source and SDK id.
-- Screen grouping is not working with the latest Jetpack Compose framework when using automatic instrumentation through the Gradle plugin.
-- In SDK debug mode, every beacon request and response (analytics, error and WCD) is logged to logcat and to `btt_logs/btt_beacons.log` in the app cache directory.
+- Crash and ANR stack traces are sent as JSON, along with the crash source.
+- Force Restart is reported on the page where it happened.
+- Screen grouping and responsiveness fixes for Jetpack Compose and grouped screens.
+- Tap detection for breadcrumbs resolves button text on Compose.
+- Beacon requests and responses are logged in SDK debug mode.
 
 # Blue Triangle 2.19.7, July 20 2026
 ### Bug Fixes and New Improvements
