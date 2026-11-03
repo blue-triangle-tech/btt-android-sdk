@@ -1,4 +1,21 @@
-# Blue Triangle 2.19.7 Latest, July 20 2026
+# Blue Triangle 2.20.0 Latest, October 30 2026
+### New Features
+- Screen Responsiveness: tracks jank, hitch and hang frames per screen and reports a responsiveness grade with each screen and custom timer.
+- Fatal ANR: ANRs that terminate the app are reported on the next app launch (Android 11 and above).
+- Excessive Resource Usage: app exits caused by excessive resource usage are reported on the next app launch (Android 11 and above).
+- Network Errors: HTTP error responses and connection failures are reported as Network Error.
+- Error Sampling: errors are sampled per session using the new `fatalErrorSampleRate` (default 100%) and `nonFatalErrorSampleRate` (default 5%) remote configuration.
+- HTTP method are now captured for network requests.
+- Remote configuration is exposed to cross-platform SDKs.
+
+### Bug Fixes and New Improvements
+- Crash and ANR stack traces are sent as JSON, along with the crash source.
+- Force Restart is reported on the page where it happened.
+- Screen grouping and responsiveness fixes for Jetpack Compose and grouped screens.
+- Tap detection for breadcrumbs resolves button text on Compose.
+- Beacon requests and responses are logged in SDK debug mode.
+
+# Blue Triangle 2.19.7, July 20 2026
 ### Bug Fixes and New Improvements
 - SDK logging was not printing in logcat in app debug mode; needed sdk debug mode issue fixed.
 - Make `androidx.navigation:navigation-compose` dependency compileOnly to avoid version conflict in consuming app.
